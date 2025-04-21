@@ -64,7 +64,7 @@ export default function URLInputForm({ onSubmit }: URLInputFormProps) {
               </div>
               <button 
                 type="submit" 
-                className="bg-youtube-red hover:bg-red-700 text-white font-medium py-3 px-5 rounded-r-lg focus:outline-none transition duration-150"
+                className="bg-youtube-red bg-red-700 text-white font-medium py-3 px-5 rounded-r-lg focus:outline-none transition duration-150"
               >
                 Summarize
               </button>

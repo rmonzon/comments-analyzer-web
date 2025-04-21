@@ -92,16 +92,22 @@ export default function Home() {
   const handleSubmit = async (submittedUrl: string) => {
     const id = extractVideoId(submittedUrl);
     if (id) {
-      setVideoId(id);
+      // Only trigger fetching if it's a new ID
+      const isNewVideo = id !== videoId;
+      
       setUrl(submittedUrl);
       setAnalysisData(null); // Clear previous analysis
       
-      // If we have a new video ID, trigger the analysis
-      if (id !== videoId) {
-        const result = await refetchVideo();
-        if (result.isSuccess) {
-          generateSummaryMutation.mutate(id);
-        }
+      if (isNewVideo) {
+        console.log("New video ID detected, setting videoId:", id);
+        // Set videoId which will trigger the useQuery automatically
+        // The useEffect will trigger analysis after data is loaded
+        setVideoId(id);
+      } else {
+        console.log("Same video ID, re-analyzing:", id);
+        // For the same video ID, we should invalidate the query to refresh the data
+        queryClient.invalidateQueries({ queryKey: ['/api/youtube/video', id] });
+        // The useEffect will trigger analysis after data is refreshed
       }
     } else {
       toast({
@@ -114,8 +120,12 @@ export default function Home() {
 
   const handleTryAgain = () => {
     if (videoId) {
-      refetchVideo();
-      generateSummaryMutation.mutate(videoId);
+      console.log("Trying again for video ID:", videoId);
+      // Clear analysis data
+      setAnalysisData(null);
+      // Invalidate the video data to trigger a refresh
+      queryClient.invalidateQueries({ queryKey: ['/api/youtube/video', videoId] });
+      // The useEffect will trigger the analysis when the video data reloads
     }
   };
 
@@ -126,6 +136,14 @@ export default function Home() {
   // Use the analysis data directly from the mutation or state
   const currentAnalysisData = analysisData || generateSummaryMutation.data;
 
+  // Effect to trigger analysis when video data is loaded
+  useEffect(() => {
+    if (videoId && videoData && !analysisData && !generateSummaryMutation.isPending) {
+      console.log("Video data loaded, triggering analysis for:", videoId);
+      generateSummaryMutation.mutate(videoId);
+    }
+  }, [videoId, videoData, analysisData, generateSummaryMutation.isPending]);
+  
   // Debug information
   useEffect(() => {
     console.log("DEBUG - Current state:");
