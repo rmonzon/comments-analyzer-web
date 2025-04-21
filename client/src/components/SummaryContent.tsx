@@ -1,0 +1,139 @@
+import { useState } from 'react';
+import { VideoAnalysis } from '@shared/types';
+import { copyToClipboard } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
+
+interface SummaryContentProps {
+  analysis: VideoAnalysis;
+}
+
+export default function SummaryContent({ analysis }: SummaryContentProps) {
+  const { toast } = useToast();
+  const [keyCopied, setKeyCopied] = useState(false);
+  const [summaryCopied, setSummaryCopied] = useState(false);
+
+  const handleCopyKeyPoints = async () => {
+    const content = analysis.keyPoints.map(point => 
+      `${point.title}: ${point.content}`
+    ).join('\n\n');
+    
+    const success = await copyToClipboard(`Key Discussion Points:\n\n${content}`);
+    
+    if (success) {
+      setKeyCopied(true);
+      setTimeout(() => setKeyCopied(false), 2000);
+    } else {
+      toast({
+        title: "Copy failed",
+        description: "Could not copy to clipboard",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCopySummary = async () => {
+    const success = await copyToClipboard(`Comment Summary:\n\n${analysis.comprehensive}`);
+    
+    if (success) {
+      setSummaryCopied(true);
+      setTimeout(() => setSummaryCopied(false), 2000);
+    } else {
+      toast({
+        title: "Copy failed",
+        description: "Could not copy to clipboard",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
+    <div className="p-6 animate-fade-in">
+      {/* Overall Sentiment */}
+      <div className="mb-6">
+        <h3 className="font-medium mb-3">Overall Sentiment</h3>
+        <div className="flex items-center">
+          <div className="w-full bg-gray-200 rounded-full h-4">
+            <div className="flex h-4 rounded-full overflow-hidden">
+              <div 
+                className="bg-positive h-full" 
+                style={{ width: `${analysis.sentimentStats.positive}%` }}
+              ></div>
+              <div 
+                className="bg-neutral h-full" 
+                style={{ width: `${analysis.sentimentStats.neutral}%` }}
+              ></div>
+              <div 
+                className="bg-negative h-full" 
+                style={{ width: `${analysis.sentimentStats.negative}%` }}
+              ></div>
+            </div>
+          </div>
+        </div>
+        <div className="flex justify-between mt-2 text-sm">
+          <div className="flex items-center">
+            <span className="w-3 h-3 rounded-full bg-positive inline-block mr-1"></span>
+            <span>Positive ({analysis.sentimentStats.positive}%)</span>
+          </div>
+          <div className="flex items-center">
+            <span className="w-3 h-3 rounded-full bg-neutral inline-block mr-1"></span>
+            <span>Neutral ({analysis.sentimentStats.neutral}%)</span>
+          </div>
+          <div className="flex items-center">
+            <span className="w-3 h-3 rounded-full bg-negative inline-block mr-1"></span>
+            <span>Negative ({analysis.sentimentStats.negative}%)</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Key Discussion Points */}
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-3">
+          <h3 className="font-medium">Key Discussion Points</h3>
+          <button 
+            onClick={handleCopyKeyPoints}
+            className="text-youtube-blue hover:text-blue-700 text-sm flex items-center focus:outline-none"
+          >
+            <span className="material-icons text-base mr-1">
+              {keyCopied ? 'check' : 'content_copy'}
+            </span>
+            {keyCopied ? 'Copied!' : 'Copy'}
+          </button>
+        </div>
+        <div className="space-y-3">
+          {analysis.keyPoints.map((point, index) => (
+            <div key={index} className="bg-youtube-light-grey p-4 rounded-lg">
+              <p className="font-medium mb-1">{point.title}</p>
+              <p className="text-sm text-youtube-dark-grey">{point.content}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+      
+      {/* Comprehensive Summary */}
+      <div>
+        <div className="flex justify-between items-center mb-3">
+          <h3 className="font-medium">Comprehensive Summary</h3>
+          <button 
+            onClick={handleCopySummary}
+            className="text-youtube-blue hover:text-blue-700 text-sm flex items-center focus:outline-none"
+          >
+            <span className="material-icons text-base mr-1">
+              {summaryCopied ? 'check' : 'content_copy'}
+            </span>
+            {summaryCopied ? 'Copied!' : 'Copy'}
+          </button>
+        </div>
+        <div className="bg-youtube-light-grey p-4 rounded-lg">
+          {analysis.comprehensive.split('\n\n').map((paragraph, index) => (
+            <p key={index} className="text-sm text-youtube-dark-grey mb-3 last:mb-0">
+              {paragraph}
+            </p>
+          ))}
+        </div>
+        <div className="mt-4 text-sm text-youtube-dark-grey italic">
+          <p>Summary generated by AI based on {analysis.commentsAnalyzed} comments. Results may not represent all opinions.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
