@@ -11,7 +11,22 @@ import { useState } from 'react';
 import { extractVideoId } from '@/lib/utils';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { VideoData, VideoAnalysis } from '@shared/types';
+import { VideoData, VideoAnalysis, Comment, KeyPoint, SentimentStats } from '@shared/types';
+
+// Helper function to validate and convert data to correct types
+function isVideoData(data: any): data is VideoData {
+  return data && 
+    typeof data.id === 'string' && 
+    typeof data.title === 'string' &&
+    Array.isArray(data.comments);
+}
+
+function isVideoAnalysis(data: any): data is VideoAnalysis {
+  return data && 
+    typeof data.videoId === 'string' && 
+    typeof data.comprehensive === 'string' &&
+    typeof data.commentsAnalyzed === 'number';
+}
 
 export default function Home() {
   const [url, setUrl] = useState<string>('');
@@ -24,7 +39,7 @@ export default function Home() {
     isError: isVideoError,
     error: videoError,
     refetch: refetchVideo
-  } = useQuery({
+  } = useQuery<VideoData>({
     queryKey: ['/api/youtube/video', videoId],
     enabled: !!videoId,
   });
@@ -70,7 +85,7 @@ export default function Home() {
     isLoading: isAnalysisLoading,
     isError: isAnalysisError,
     error: analysisError
-  } = useQuery({
+  } = useQuery<VideoAnalysis>({
     queryKey: ['/api/youtube/analysis', videoId],
     enabled: !!videoId && !isVideoLoading && !isVideoError && !generateSummaryMutation.isPending,
   });
@@ -122,10 +137,12 @@ export default function Home() {
         )}
         
         {videoData && analysisData && !isLoading && !isError && (
-          <ResultsSection 
-            videoData={videoData as unknown as VideoData} 
-            analysisData={analysisData as unknown as VideoAnalysis} 
-          />
+          <div>
+            <ResultsSection 
+              videoData={videoData} 
+              analysisData={analysisData} 
+            />
+          </div>
         )}
       </main>
       <Footer />
