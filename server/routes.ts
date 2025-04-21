@@ -79,34 +79,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Generate summary from comments
   app.post('/api/youtube/summarize', async (req, res) => {
     try {
+      console.log("Received summarize request with body:", req.body);
+      
       const schema = z.object({
         videoId: z.string().min(1)
       });
       
       const result = schema.safeParse(req.body);
       if (!result.success) {
+        console.log("Invalid request body:", result.error.format());
         return res.status(400).json({ message: "Invalid request body", errors: result.error.format() });
       }
       
       const { videoId } = result.data;
+      console.log("Generating summary for videoId:", videoId);
       
       // Get video data with comments
       const videoData = await storage.getVideo(videoId);
       if (!videoData) {
+        console.log("Video not found in storage:", videoId);
         return res.status(404).json({ message: "Video not found" });
       }
       
+      console.log(`Video found with ${videoData.comments.length} comments`);
+      
       if (videoData.comments.length === 0) {
+        console.log("No comments available for video:", videoId);
         return res.status(400).json({ message: "No comments available for this video" });
       }
       
       // Check if analysis already exists
       let analysis = await storage.getAnalysis(videoId);
       
-      if (!analysis) {
+      if (analysis) {
+        console.log("Using existing analysis for video:", videoId);
+      } else {
+        console.log("Generating new analysis for video:", videoId);
         // Generate analysis using OpenAI
         analysis = await openaiService.generateCommentAnalysis(videoData);
         
+        console.log("Analysis generated, storing in database");
         // Store the analysis
         await storage.createAnalysis({
           videoId: analysis.videoId,
@@ -118,6 +130,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      console.log("Returning analysis data");
       // Return the actual analysis data instead of just a success message
       return res.json(analysis);
     } catch (error: any) {

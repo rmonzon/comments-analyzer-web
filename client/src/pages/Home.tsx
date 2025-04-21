@@ -48,9 +48,16 @@ export default function Home() {
 
   const generateSummaryMutation = useMutation<VideoAnalysis, Error, string>({
     mutationFn: async (videoId: string) => {
+      console.log("Starting summary generation for video ID:", videoId);
       try {
         const response = await apiRequest('POST', '/api/youtube/summarize', { videoId });
+        console.log("Raw API response:", response);
         const data = await response.json();
+        console.log("Parsed data from API:", data);
+        // Validate the shape of the data
+        if (!data || typeof data !== 'object') {
+          throw new Error("Invalid response data format");
+        }
         return data as VideoAnalysis;
       } catch (error) {
         console.error("Error in summary mutation:", error);

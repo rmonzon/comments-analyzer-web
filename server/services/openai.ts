@@ -17,6 +17,7 @@ export class OpenAIService {
    * Generate a comprehensive analysis of video comments
    */
   async generateCommentAnalysis(videoData: VideoData): Promise<VideoAnalysis> {
+    console.log("Starting OpenAI comment analysis for video:", videoData.id);
     try {
       // Use only a subset of comments if there are too many
       const MAX_COMMENTS = 100;
@@ -66,7 +67,8 @@ export class OpenAIService {
         temperature: 0.5,
       });
       
-      const content = response.choices[0].message.content;
+      const content = response.choices[0].message.content || '';
+      console.log("OpenAI response content:", content);
       const analysis = JSON.parse(content);
       
       return {
@@ -77,9 +79,9 @@ export class OpenAIService {
         commentsAnalyzed: commentsToAnalyze.length,
         createdAt: new Date().toISOString()
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error generating comment analysis:", error);
-      throw new Error(`Failed to generate analysis: ${error.message}`);
+      throw new Error(`Failed to generate analysis: ${error.message || 'Unknown error'}`);
     }
   }
 }
