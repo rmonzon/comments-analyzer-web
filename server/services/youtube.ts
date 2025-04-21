@@ -68,52 +68,78 @@ export class YouTubeService {
    */
   async getVideoComments(videoId: string, maxComments: number = 100): Promise<Comment[]> {
     try {
-      const comments: Comment[] = [];
-      let nextPageToken: string | undefined = undefined;
+      console.log(`Fetching comments for video ${videoId}, max comments: ${maxComments}`);
       
-      // We'll fetch in pages until we have enough comments or there are no more
-      while (comments.length < maxComments) {
-        const response = await this.youtube.commentThreads.list({
-          part: ['snippet'],
-          videoId,
-          maxResults: Math.min(100, maxComments - comments.length), // YouTube API limit is 100 per request
-          pageToken: nextPageToken,
-          order: 'relevance' // Get most relevant comments first
-        });
+      // For videos with no comments or disabled comments, YouTube API throws an error
+      // Let's try to handle it gracefully by catching the error and returning an empty array
+      try {
+        const comments: Comment[] = [];
+        let nextPageToken: string | undefined = undefined;
         
-        if (!response.data.items || response.data.items.length === 0) {
-          break;
-        }
-        
-        for (const item of response.data.items) {
-          const { snippet } = item;
-          const commentSnippet = snippet.topLevelComment.snippet;
-          
-          comments.push({
-            id: item.id,
+        // We'll fetch in pages until we have enough comments or there are no more
+        while (comments.length < maxComments) {
+          console.log(`Fetching comments batch, current count: ${comments.length}`);
+          const response = await this.youtube.commentThreads.list({
+            part: ['snippet'],
             videoId,
-            authorDisplayName: commentSnippet.authorDisplayName,
-            authorProfileImageUrl: commentSnippet.authorProfileImageUrl,
-            authorChannelId: commentSnippet.authorChannelId?.value,
-            textDisplay: commentSnippet.textDisplay,
-            textOriginal: commentSnippet.textOriginal,
-            likeCount: commentSnippet.likeCount,
-            publishedAt: commentSnippet.publishedAt,
-            updatedAt: commentSnippet.updatedAt
+            maxResults: Math.min(100, maxComments - comments.length), // YouTube API limit is 100 per request
+            pageToken: nextPageToken || undefined,
+            order: 'relevance' // Get most relevant comments first
           });
+          
+          console.log(`API response received, items: ${response.data.items?.length || 0}`);
+          
+          if (!response.data.items || response.data.items.length === 0) {
+            console.log('No comments returned from API');
+            break;
+          }
+        
+          for (const item of response.data.items) {
+            if (!item.snippet || !item.snippet.topLevelComment || !item.snippet.topLevelComment.snippet) {
+              console.log('Skipping comment with missing data');
+              continue;
+            }
+            
+            const commentSnippet = item.snippet.topLevelComment.snippet;
+            
+            comments.push({
+              id: item.id || `comment-${comments.length}`,
+              videoId,
+              authorDisplayName: commentSnippet.authorDisplayName || 'Anonymous',
+              authorProfileImageUrl: commentSnippet.authorProfileImageUrl || '',
+              authorChannelId: commentSnippet.authorChannelId?.value,
+              textDisplay: commentSnippet.textDisplay || '',
+              textOriginal: commentSnippet.textOriginal || '',
+              likeCount: commentSnippet.likeCount || 0,
+              publishedAt: commentSnippet.publishedAt || new Date().toISOString(),
+              updatedAt: commentSnippet.updatedAt || new Date().toISOString()
+            });
+          }
+          
+          // Check if there are more comments to fetch
+          nextPageToken = response.data.nextPageToken || undefined;
+          if (!nextPageToken) {
+            break;
+          }
         }
         
-        // Check if there are more comments to fetch
-        nextPageToken = response.data.nextPageToken;
-        if (!nextPageToken) {
-          break;
+        console.log(`Successfully fetched ${comments.length} comments for video ${videoId}`);
+        return comments;
+      } catch (commentError: any) {
+        // If we get a specific error about comments being disabled, we log it but don't throw
+        if (commentError.message && (
+            commentError.message.includes('commentsDisabled') || 
+            commentError.message.includes('disabled comments')
+          )) {
+          console.log('Comments are disabled for this video.');
+          return [];
         }
+        // Otherwise, we rethrow the error
+        throw commentError;
       }
-      
-      return comments;
-    } catch (error) {
-      console.error('Error fetching comments:', error);
-      throw error;
+    } catch (error: any) {
+      console.error('Error fetching comments:', error.message);
+      return []; // Return empty array on error for graceful degradation
     }
   }
 }

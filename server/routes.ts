@@ -103,9 +103,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`Video found with ${videoData.comments.length} comments`);
       
+      // If there are no comments, we'll generate a simplified analysis
       if (videoData.comments.length === 0) {
         console.log("No comments available for video:", videoId);
-        return res.status(400).json({ message: "No comments available for this video" });
+        console.log("We'll generate a simplified analysis");
+        
+        // Check if simplified analysis already exists for this video
+        const existingAnalysis = await storage.getAnalysis(videoId);
+        if (existingAnalysis) {
+          console.log("Using existing simplified analysis");
+          return res.json(existingAnalysis);
+        }
+        
+        // Create a simplified analysis when there are no comments
+        const simplifiedAnalysis = {
+          videoId,
+          sentimentStats: { positive: 0, neutral: 100, negative: 0 },
+          keyPoints: [{ 
+            title: "No Comments Available", 
+            content: "This video either has comments disabled or no comments have been posted yet."
+          }],
+          comprehensive: "No comments were found for this video. The video creator may have disabled comments, or the video may be too recent to have received any comments. Without comments, we cannot provide a comprehensive analysis of viewer feedback.",
+          commentsAnalyzed: 0,
+          createdAt: new Date().toISOString()
+        };
+        
+        // Store the simplified analysis
+        await storage.createAnalysis({
+          videoId: simplifiedAnalysis.videoId,
+          sentimentStats: simplifiedAnalysis.sentimentStats,
+          keyPoints: simplifiedAnalysis.keyPoints,
+          comprehensive: simplifiedAnalysis.comprehensive,
+          commentsAnalyzed: simplifiedAnalysis.commentsAnalyzed,
+          createdAt: new Date()
+        });
+        
+        return res.json(simplifiedAnalysis);
       }
       
       // Check if analysis already exists
