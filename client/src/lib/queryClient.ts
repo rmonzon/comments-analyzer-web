@@ -29,7 +29,17 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey[0] as string, {
+    // The first item in queryKey is the base URL
+    let url = queryKey[0] as string;
+    
+    // If there's a second parameter in the queryKey (e.g., videoId), add it as a query parameter
+    if (queryKey.length > 1 && queryKey[1]) {
+      // Check if URL already has parameters
+      url += url.includes('?') ? '&' : '?';
+      url += `videoId=${queryKey[1]}`;
+    }
+    
+    const res = await fetch(url, {
       credentials: "include",
     });
 

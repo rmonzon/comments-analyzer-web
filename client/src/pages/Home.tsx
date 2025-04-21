@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from 'react';
 import { extractVideoId } from '@/lib/utils';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import { VideoData, VideoAnalysis } from '@shared/types';
 
 export default function Home() {
@@ -31,16 +31,35 @@ export default function Home() {
 
   const generateSummaryMutation = useMutation({
     mutationFn: async (videoId: string) => {
-      const response = await apiRequest('POST', '/api/youtube/summarize', { videoId });
-      return response.json();
+      try {
+        const response = await apiRequest('POST', '/api/youtube/summarize', { videoId });
+        return response.json();
+      } catch (error) {
+        console.error("Error in summary mutation:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
+      console.log("Summary generated successfully, invalidating queries");
       queryClient.invalidateQueries({ queryKey: ['/api/youtube/analysis', videoId] });
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error("Error in summary mutation:", error);
+      let errorMessage = "Failed to generate summary";
+      
+      if (error?.message) {
+        if (error.message.includes("404")) {
+          errorMessage = "Video not found or comments unavailable. Please check if the video exists and has public comments.";
+        } else if (error.message.includes("No comments available")) {
+          errorMessage = "No comments available for this video. Please try a different video with more engagement.";
+        } else {
+          errorMessage = `${errorMessage}: ${error.message}`;
+        }
+      }
+      
       toast({
         title: "Error",
-        description: `Failed to generate summary: ${error.message}`,
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -104,8 +123,8 @@ export default function Home() {
         
         {videoData && analysisData && !isLoading && !isError && (
           <ResultsSection 
-            videoData={videoData as VideoData} 
-            analysisData={analysisData as VideoAnalysis} 
+            videoData={videoData as unknown as VideoData} 
+            analysisData={analysisData as unknown as VideoAnalysis} 
           />
         )}
       </main>
