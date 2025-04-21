@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import IntroSection from '@/components/IntroSection';
@@ -7,7 +7,6 @@ import ResultsSection from '@/components/ResultsSection';
 import LoadingState from '@/components/LoadingState';
 import ErrorState from '@/components/ErrorState';
 import { useToast } from "@/hooks/use-toast";
-import { useState } from 'react';
 import { extractVideoId } from '@/lib/utils';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -127,6 +126,19 @@ export default function Home() {
   // Use the analysis data directly from the mutation or state
   const currentAnalysisData = analysisData || generateSummaryMutation.data;
 
+  // Debug information
+  useEffect(() => {
+    console.log("DEBUG - Current state:");
+    console.log("videoId:", videoId);
+    console.log("videoData:", videoData);
+    console.log("analysisData from state:", analysisData);
+    console.log("analysisData from mutation:", generateSummaryMutation.data);
+    console.log("currentAnalysisData:", currentAnalysisData);
+    console.log("isLoading:", isLoading);
+    console.log("isError:", isError);
+    console.log("Should render ResultsSection:", Boolean(videoData && currentAnalysisData && !isLoading && !isError));
+  }, [videoId, videoData, analysisData, generateSummaryMutation.data, isLoading, isError]);
+
   return (
     <div className="min-h-screen flex flex-col font-roboto">
       <Header />
@@ -148,6 +160,17 @@ export default function Home() {
             />
           </div>
         )}
+        
+        {/* Debug UI */}
+        <div className="mt-8 p-4 border border-gray-200 rounded-md bg-gray-50 text-xs">
+          <h3 className="font-bold">Debug Info:</h3>
+          <div>Video ID: {videoId || 'none'}</div>
+          <div>Has Video Data: {videoData ? 'Yes' : 'No'}</div>
+          <div>Has Analysis Data: {currentAnalysisData ? 'Yes' : 'No'}</div>
+          <div>Is Loading: {isLoading ? 'Yes' : 'No'}</div>
+          <div>Is Error: {isError ? 'Yes' : 'No'}</div>
+          <div>Should Render Results: {Boolean(videoData && currentAnalysisData && !isLoading && !isError) ? 'Yes' : 'No'}</div>
+        </div>
       </main>
       <Footer />
     </div>
