@@ -188,11 +188,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.json(analysis);
     } catch (error: any) {
       console.error("Error generating summary:", error);
-      return res
-        .status(500)
-        .json({
-          message: `Failed to generate summary: ${error.message || "Unknown error"}`,
+      
+      // Check if this is a rate limit or quota error
+      const isQuotaError = error.message && (
+        error.message.includes("429") || 
+        error.message.includes("exceeded your current quota") ||
+        error.message.includes("rate limit") ||
+        error.message.includes("insufficient_quota")
+      );
+      
+      if (isQuotaError) {
+        // For rate limit errors, return 429 status with special error code
+        console.log("Detected API rate limit error, returning 429 status");
+        return res.status(429).json({ 
+          message: "OpenAI API rate limit exceeded. Please try again later.",
+          error: "quota_exceeded",
+          videoId: videoId
         });
+      }
+      
+      // For other errors, return 500 status
+      return res.status(500).json({
+        message: `Failed to generate summary: ${error.message || "Unknown error"}`,
+      });
     }
   });
 
