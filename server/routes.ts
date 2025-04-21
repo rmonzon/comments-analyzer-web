@@ -70,9 +70,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       return res.json(videoData);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching video:", error);
-      return res.status(500).json({ message: `Failed to fetch video: ${error.message}` });
+      return res.status(500).json({ message: `Failed to fetch video: ${error.message || 'Unknown error'}` });
     }
   });
   
@@ -118,10 +118,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      return res.json({ message: "Analysis generated successfully" });
-    } catch (error) {
+      // Return the actual analysis data instead of just a success message
+      return res.json(analysis);
+    } catch (error: any) {
       console.error("Error generating summary:", error);
-      return res.status(500).json({ message: `Failed to generate summary: ${error.message}` });
+      return res.status(500).json({ message: `Failed to generate summary: ${error.message || 'Unknown error'}` });
     }
   });
   
@@ -140,9 +141,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       return res.json(analysis);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching analysis:", error);
-      return res.status(500).json({ message: `Failed to fetch analysis: ${error.message}` });
+      return res.status(500).json({ message: `Failed to fetch analysis: ${error.message || 'Unknown error'}` });
     }
   });
 

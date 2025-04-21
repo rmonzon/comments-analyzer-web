@@ -44,19 +44,22 @@ export default function Home() {
     enabled: !!videoId,
   });
 
-  const generateSummaryMutation = useMutation({
+  const [analysisData, setAnalysisData] = useState<VideoAnalysis | null>(null);
+
+  const generateSummaryMutation = useMutation<VideoAnalysis, Error, string>({
     mutationFn: async (videoId: string) => {
       try {
         const response = await apiRequest('POST', '/api/youtube/summarize', { videoId });
-        return response.json();
+        const data = await response.json();
+        return data as VideoAnalysis;
       } catch (error) {
         console.error("Error in summary mutation:", error);
         throw error;
       }
     },
-    onSuccess: () => {
-      console.log("Summary generated successfully, invalidating queries");
-      queryClient.invalidateQueries({ queryKey: ['/api/youtube/analysis', videoId] });
+    onSuccess: (data) => {
+      console.log("Summary generated successfully:", data);
+      setAnalysisData(data);
     },
     onError: (error: any) => {
       console.error("Error in summary mutation:", error);
@@ -80,21 +83,12 @@ export default function Home() {
     },
   });
 
-  const {
-    data: analysisData,
-    isLoading: isAnalysisLoading,
-    isError: isAnalysisError,
-    error: analysisError
-  } = useQuery<VideoAnalysis>({
-    queryKey: ['/api/youtube/analysis', videoId],
-    enabled: !!videoId && !isVideoLoading && !isVideoError && !generateSummaryMutation.isPending,
-  });
-
   const handleSubmit = async (submittedUrl: string) => {
     const id = extractVideoId(submittedUrl);
     if (id) {
       setVideoId(id);
       setUrl(submittedUrl);
+      setAnalysisData(null); // Clear previous analysis
       
       // If we have a new video ID, trigger the analysis
       if (id !== videoId) {
@@ -119,9 +113,12 @@ export default function Home() {
     }
   };
 
-  const isLoading = isVideoLoading || generateSummaryMutation.isPending || isAnalysisLoading;
-  const isError = isVideoError || isAnalysisError;
-  const errorMessage = (videoError || analysisError)?.toString() || "An unexpected error occurred";
+  const isLoading = isVideoLoading || generateSummaryMutation.isPending;
+  const isError = isVideoError || generateSummaryMutation.isError;
+  const errorMessage = videoError?.toString() || generateSummaryMutation.error?.message || "An unexpected error occurred";
+
+  // Use the analysis data directly from the mutation or state
+  const currentAnalysisData = analysisData || generateSummaryMutation.data;
 
   return (
     <div className="min-h-screen flex flex-col font-roboto">
@@ -136,11 +133,11 @@ export default function Home() {
           <ErrorState errorMessage={errorMessage} onTryAgain={handleTryAgain} />
         )}
         
-        {videoData && analysisData && !isLoading && !isError && (
+        {videoData && currentAnalysisData && !isLoading && !isError && (
           <div>
             <ResultsSection 
               videoData={videoData} 
-              analysisData={analysisData} 
+              analysisData={currentAnalysisData} 
             />
           </div>
         )}
