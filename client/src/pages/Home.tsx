@@ -30,6 +30,7 @@ function isVideoAnalysis(data: any): data is VideoAnalysis {
 export default function Home() {
   const [url, setUrl] = useState<string>('');
   const [videoId, setVideoId] = useState<string | null>(null);
+  const [manualRetryMode, setManualRetryMode] = useState<boolean>(false);
   const { toast } = useToast();
   
   const {
@@ -70,15 +71,27 @@ export default function Home() {
     onError: (error: any) => {
       console.error("Error in summary mutation:", error);
       let errorMessage = "Failed to generate summary";
+      let isQuotaError = false;
       
       if (error?.message) {
+        // Check for common error types
         if (error.message.includes("404")) {
           errorMessage = "Video not found or comments unavailable. Please check if the video exists and has public comments.";
         } else if (error.message.includes("No comments available")) {
           errorMessage = "No comments available for this video. Please try a different video with more engagement.";
+        } else if (error.message.includes("exceeded your current quota") || 
+                  error.message.includes("rate limit") || 
+                  error.message.includes("insufficient_quota")) {
+          errorMessage = "OpenAI API quota exceeded. Please try again later or update your API key.";
+          isQuotaError = true;
         } else {
           errorMessage = `${errorMessage}: ${error.message}`;
         }
+      }
+      
+      // Enable manual retry mode for API errors
+      if (isQuotaError) {
+        setManualRetryMode(true);
       }
       
       toast({
@@ -121,11 +134,29 @@ export default function Home() {
   const handleTryAgain = () => {
     if (videoId) {
       console.log("Trying again for video ID:", videoId);
+      
       // Clear analysis data
       setAnalysisData(null);
-      // Invalidate the video data to trigger a refresh
-      queryClient.invalidateQueries({ queryKey: ['/api/youtube/video', videoId] });
-      // The useEffect will trigger the analysis when the video data reloads
+      
+      // If we're in manual retry mode, trigger the analysis directly
+      if (manualRetryMode) {
+        // Reset manual retry mode to allow further auto-retries if this succeeds
+        setManualRetryMode(false);
+        
+        // Directly trigger analysis if we have video data already
+        if (videoData) {
+          console.log("Manual retry - directly triggering analysis");
+          generateSummaryMutation.mutate(videoId);
+        } else {
+          // If no video data, first fetch it then let the effect trigger the analysis
+          console.log("Manual retry - fetching video data first");
+          queryClient.invalidateQueries({ queryKey: ['/api/youtube/video', videoId] });
+        }
+      } else {
+        // Standard retry flow - refresh video data and let effect handle analysis
+        console.log("Standard retry - refreshing video data");
+        queryClient.invalidateQueries({ queryKey: ['/api/youtube/video', videoId] });
+      }
     }
   };
 
@@ -138,11 +169,16 @@ export default function Home() {
 
   // Effect to trigger analysis when video data is loaded
   useEffect(() => {
-    if (videoId && videoData && !analysisData && !generateSummaryMutation.isPending) {
+    // Only auto-generate if we're not in manual retry mode
+    if (videoId && 
+        videoData && 
+        !analysisData && 
+        !generateSummaryMutation.isPending && 
+        !manualRetryMode) {
       console.log("Video data loaded, triggering analysis for:", videoId);
       generateSummaryMutation.mutate(videoId);
     }
-  }, [videoId, videoData, analysisData, generateSummaryMutation.isPending]);
+  }, [videoId, videoData, analysisData, generateSummaryMutation.isPending, manualRetryMode]);
   
   // Debug information
   useEffect(() => {

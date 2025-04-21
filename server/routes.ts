@@ -4,7 +4,6 @@ import { storage } from "./storage";
 import { YouTubeService } from "./services/youtube";
 import { OpenAIService } from "./services/openai";
 import { z } from "zod";
-import { validateYouTubeUrl, extractVideoId } from "../client/src/lib/utils";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const youtubeService = new YouTubeService();
