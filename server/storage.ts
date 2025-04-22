@@ -82,11 +82,23 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
-  async createComments(comments: InsertComment[]): Promise<Comment[]> {
-    if (comments.length === 0) return [];
+  async createComments(commentsToInsert: InsertComment[]): Promise<Comment[]> {
+    if (commentsToInsert.length === 0) return [];
     
     try {
-      const results = await db.insert(comments).values(comments).returning();
+      // Insert one at a time to avoid batch issues
+      const results: Comment[] = [];
+      
+      for (const comment of commentsToInsert) {
+        try {
+          const [result] = await db.insert(comments).values(comment).returning();
+          results.push(result);
+        } catch (err) {
+          console.error(`Error inserting comment ${comment.id}:`, err);
+          // Continue with next comment instead of failing the entire batch
+        }
+      }
+      
       return results;
     } catch (error) {
       console.error("Database error in createComments:", error);
