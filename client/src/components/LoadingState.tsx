@@ -74,7 +74,7 @@ export default function LoadingState({ progress = 0 }: LoadingStateProps) {
 
   return (
     <section className="max-w-4xl mx-auto animate-fade-in">
-      <div className="bg-white rounded-lg shadow-md p-8 text-center">
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-8 text-center">
         <div className="mb-6 flex flex-col items-center">
           <div className="comment-loader mb-2">
             <div className="comment-loader__dot"></div>
@@ -82,16 +82,16 @@ export default function LoadingState({ progress = 0 }: LoadingStateProps) {
             <div className="comment-loader__dot"></div>
           </div>
           
-          <div className="w-16 h-16 flex items-center justify-center bg-gray-50 rounded-full mb-3">
+          <div className="w-16 h-16 flex items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-full mb-3">
             {stages[currentStage].icon}
           </div>
           
-          <h3 className="text-xl font-semibold mb-2">Analyzing YouTube Comments</h3>
-          <p className="text-gray-600">{message}</p>
+          <h3 className="text-xl font-semibold mb-2 dark:text-white">Analyzing YouTube Comments</h3>
+          <p className="text-gray-600 dark:text-gray-300">{message}</p>
           
           {/* Progress Tracker */}
           <div className="mt-8 w-full max-w-md">
-            <div className="flex justify-between mb-2 text-sm text-gray-500">
+            <div className="flex justify-between mb-2 text-sm text-gray-500 dark:text-gray-400">
               <span>Fetching</span>
               <span>Processing</span>
               <span>Analyzing</span>
@@ -99,16 +99,16 @@ export default function LoadingState({ progress = 0 }: LoadingStateProps) {
             </div>
             
             {/* Custom YouTube-style progress bar */}
-            <div className="relative h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+            <div className="relative h-2 w-full bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
               <div 
-                className="absolute h-full bg-youtube-red transition-all duration-500 ease-out"
+                className="absolute h-full bg-youtube-red dark:bg-red-500 transition-all duration-500 ease-out"
                 style={{ width: `${currentProgress}%` }}
               ></div>
             </div>
             
             <div className="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
               <div className="youtube-progress-bar w-full sm:w-24"></div>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 This may take a minute for videos with many comments...
               </p>
               <div className="youtube-progress-bar w-full sm:w-24"></div>

@@ -156,6 +156,10 @@
   background-color: #ff0000;
 }
 
+.dark .comment-loader__dot {
+  background-color: #ff4d4d;
+}
+
 .comment-loader__dot:nth-child(1) {
   animation: pulse 1.5s infinite 0s;
 }
@@ -166,5 +170,14 @@
 
 .comment-loader__dot:nth-child(3) {
   animation: pulse 1.5s infinite 0.4s;
+}
+
+/* Dark mode overrides for YouTube-style progress bar */
+.dark .youtube-progress-bar {
+  background-color: #333333;
+}
+
+.dark .youtube-progress-bar::after {
+  background: linear-gradient(90deg, transparent, #ff4d4d, transparent);
 }
 
