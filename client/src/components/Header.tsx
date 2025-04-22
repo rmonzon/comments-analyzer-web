@@ -1,4 +1,4 @@
-import ThemeToggle from './ThemeToggle';
+import { ThemeToggle } from './ThemeToggle';
 import { VideoIcon } from 'lucide-react';
 
 export default function Header() {

@@ -268,7 +268,7 @@ export default function Home() {
   ]);
 
   return (
-    <div className="min-h-screen flex flex-col font-roboto">
+    <div className="min-h-screen flex flex-col font-roboto bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-200">
       <Header />
       <main className="flex-grow container mx-auto px-4 py-6">
         <IntroSection />
