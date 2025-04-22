@@ -181,3 +181,61 @@
   background: linear-gradient(90deg, transparent, #ff4d4d, transparent);
 }
 
+/* Sentiment bar colors */
+.bg-positive {
+  background-color: #4ade80; /* Green for positive */
+  background-image: linear-gradient(135deg, #4ade80 0%, #2dd4bf 100%);
+}
+
+.bg-neutral {
+  background-color: #94a3b8; /* Gray for neutral */
+  background-image: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+}
+
+.bg-negative {
+  background-color: #f87171; /* Red for negative */
+  background-image: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+}
+
+/* Dark mode sentiment colors */
+.dark .bg-positive {
+  background-color: #22c55e;
+  background-image: linear-gradient(135deg, #22c55e 0%, #14b8a6 100%);
+}
+
+.dark .bg-neutral {
+  background-color: #64748b;
+  background-image: linear-gradient(135deg, #64748b 0%, #475569 100%);
+}
+
+.dark .bg-negative {
+  background-color: #ef4444;
+  background-image: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+/* Sentiment bar glow effects */
+.sentiment-glow .bg-positive {
+  box-shadow: 0 0 8px 1px rgba(74, 222, 128, 0.4);
+}
+
+.sentiment-glow .bg-neutral {
+  box-shadow: 0 0 8px 1px rgba(148, 163, 184, 0.3);
+}
+
+.sentiment-glow .bg-negative {
+  box-shadow: 0 0 8px 1px rgba(248, 113, 113, 0.4);
+}
+
+/* Dark mode glow colors */
+.dark.sentiment-glow .bg-positive {
+  box-shadow: 0 0 8px 1px rgba(34, 197, 94, 0.4);
+}
+
+.dark.sentiment-glow .bg-neutral {
+  box-shadow: 0 0 8px 1px rgba(100, 116, 139, 0.3);
+}
+
+.dark.sentiment-glow .bg-negative {
+  box-shadow: 0 0 8px 1px rgba(239, 68, 68, 0.4);
+}
+
