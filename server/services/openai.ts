@@ -6,8 +6,8 @@ import {
   SentimentStats,
 } from "@shared/types";
 
-// the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-const MODEL = "gpt-4o";
+// Using GPT-3.5 Turbo to reduce API costs
+const MODEL = "gpt-3.5-turbo";
 
 export class OpenAIService {
   private openai: OpenAI;
@@ -30,8 +30,8 @@ export class OpenAIService {
         throw new Error("OpenAI API key is not configured. Please provide a valid API key.");
       }
 
-      // Use only a subset of comments if there are too many
-      const MAX_COMMENTS = 100;
+      // Use only a subset of comments if there are too many - now using a smaller sample
+      const MAX_COMMENTS = 30; // Reduced from 100 to 30 to conserve tokens
       const commentsToAnalyze = videoData.comments.slice(0, MAX_COMMENTS);
       
       // If there are no comments, return a simplified analysis
@@ -50,47 +50,52 @@ export class OpenAIService {
         };
       }
 
-      // Prepare comments for analysis
+      // Prepare comments for analysis - truncate long comments to save tokens
       console.log(`Analyzing ${commentsToAnalyze.length} comments for video ${videoData.id}`);
-      const commentsText = commentsToAnalyze
-        .map(
-          (comment) => `${comment.authorDisplayName}: ${comment.textOriginal}`,
-        )
-        .join("\n\n");
-
-      const prompt = `
-        Analyze these YouTube comments for the video titled "${videoData.title}".
+      
+      // Process comments to reduce token usage
+      const MAX_COMMENT_LENGTH = 200; // Limit each comment to 200 characters
+      const processedComments = commentsToAnalyze.map(comment => {
+        // Truncate long comments
+        const truncatedText = comment.textOriginal.length > MAX_COMMENT_LENGTH 
+          ? comment.textOriginal.substring(0, MAX_COMMENT_LENGTH) + "..."
+          : comment.textOriginal;
         
-        VIDEO DETAILS:
-        - Title: ${videoData.title}
-        - Channel: ${videoData.channelTitle}
-        - Comment Count: ${videoData.commentCount}
+        return `${comment.authorDisplayName}: ${truncatedText}`;
+      });
+      
+      // Take only the first N comments to keep the context window smaller
+      const commentsText = processedComments.join("\n\n");
+
+      // Simplified prompt to conserve tokens
+      const prompt = `
+        Analyze these ${commentsToAnalyze.length} YouTube comments for the video "${videoData.title}" by ${videoData.channelTitle}.
         
         COMMENTS:
         ${commentsText}
         
-        Please create a comprehensive analysis and provide your response in the following JSON format:
+        Create a concise analysis in this JSON format:
         {
           "sentimentStats": {
-            "positive": (percentage of positive comments, as a number from 0-100),
-            "neutral": (percentage of neutral comments, as a number from 0-100),
-            "negative": (percentage of negative comments, as a number from 0-100)
+            "positive": (% of positive comments, 0-100),
+            "neutral": (% of neutral comments, 0-100),
+            "negative": (% of negative comments, 0-100)
           },
           "keyPoints": [
             {
-              "title": "Key point title or theme",
-              "content": "Detailed explanation of this discussion point with specific examples from comments"
+              "title": "Key point theme",
+              "content": "Brief explanation with examples"
             },
-            ... (3-5 key points in total)
+            ... (3 key points total)
           ],
-          "comprehensive": "A multi-paragraph summary (1-2 paragraphs) of the overall comment sentiment, main discussion points, controversies, questions, and patterns in the comments. The summary should be detailed, insightful and focus on what viewers are saying about the content."
+          "comprehensive": "A concise 1-paragraph summary of the overall sentiment and main discussion points."
         }
       `;
 
-      // Make a standard API call
+      // Make standard API call with GPT-3.5 Turbo to reduce costs
       console.log("Sending request to OpenAI API");
       const response = await this.openai.chat.completions.create({
-        model: MODEL,
+        model: MODEL, // Using GPT-3.5-Turbo to reduce costs
         messages: [
           {
             role: "user",
@@ -98,7 +103,8 @@ export class OpenAIService {
           },
         ],
         response_format: { type: "json_object" },
-        temperature: 0.5,
+        temperature: 0.3, // Lower temperature for more focused outputs
+        max_tokens: 800, // Limit the response size
       });
 
       const content = response.choices[0].message.content || "";
