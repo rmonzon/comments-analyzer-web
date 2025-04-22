@@ -42,7 +42,16 @@ export class DatabaseStorage implements IStorage {
       const videoComments = await this.getComments(id);
       
       return {
-        ...video,
+        id: video.id,
+        title: video.title,
+        description: video.description || "",
+        channelId: video.channelId,
+        channelTitle: video.channelTitle,
+        thumbnail: video.thumbnail || "",
+        viewCount: video.viewCount || 0,
+        likeCount: video.likeCount || 0,
+        commentCount: video.commentCount || 0,
+        publishedAt: video.publishedAt.toISOString(),
         comments: videoComments
       };
     } catch (error) {
@@ -65,7 +74,20 @@ export class DatabaseStorage implements IStorage {
   async getComments(videoId: string): Promise<Comment[]> {
     try {
       const results = await db.select().from(comments).where(eq(comments.videoId, videoId));
-      return results;
+      
+      // Map DB comment objects to Comment interface
+      return results.map(comment => ({
+        id: comment.id,
+        videoId: comment.videoId,
+        authorDisplayName: comment.authorDisplayName,
+        authorProfileImageUrl: comment.authorProfileImageUrl || undefined,
+        authorChannelId: comment.authorChannelId || undefined,
+        textDisplay: comment.textDisplay,
+        textOriginal: comment.textOriginal,
+        likeCount: comment.likeCount || 0,
+        publishedAt: comment.publishedAt.toISOString(),
+        updatedAt: comment.updatedAt.toISOString()
+      }));
     } catch (error) {
       console.error("Database error in getComments:", error);
       throw error;
@@ -86,19 +108,44 @@ export class DatabaseStorage implements IStorage {
     if (commentsToInsert.length === 0) return [];
     
     try {
-      // Insert one at a time to avoid batch issues
+      // Process comments in batches to avoid issues
+      const batchSize = 10;
       const results: Comment[] = [];
       
-      for (const comment of commentsToInsert) {
+      for (let i = 0; i < commentsToInsert.length; i += batchSize) {
+        const batch = commentsToInsert.slice(i, i + batchSize);
         try {
-          const [result] = await db.insert(comments).values(comment).returning();
-          results.push(result);
+          console.log(`Inserting batch of ${batch.length} comments`);
+          
+          // Use on conflict do nothing to handle duplicate IDs
+          const batchResults = await db
+            .insert(comments)
+            .values(batch)
+            .onConflictDoNothing({ target: comments.id })
+            .returning();
+            
+          results.push(...batchResults);
+          console.log(`Successfully inserted ${batchResults.length} comments`);
         } catch (err) {
-          console.error(`Error inserting comment ${comment.id}:`, err);
-          // Continue with next comment instead of failing the entire batch
+          console.error(`Error inserting comment batch:`, err);
+          // Try one by one if batch fails
+          for (const comment of batch) {
+            try {
+              const [result] = await db
+                .insert(comments)
+                .values(comment)
+                .onConflictDoNothing({ target: comments.id })
+                .returning();
+                
+              if (result) results.push(result);
+            } catch (innerErr) {
+              console.error(`Error inserting comment ${comment.id}:`, innerErr);
+            }
+          }
         }
       }
       
+      console.log(`Total comments inserted: ${results.length}`);
       return results;
     } catch (error) {
       console.error("Database error in createComments:", error);
