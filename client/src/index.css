@@ -103,6 +103,19 @@
   }
 }
 
+@keyframes grow-width {
+  from {
+    width: 0;
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 /* YouTube style progress pulse animation */
 .youtube-progress-bar {
   position: relative;
@@ -138,6 +151,31 @@
 
 .animate-bounce {
   animation: bounce 1s infinite;
+}
+
+.animate-grow-width {
+  animation: grow-width 1s ease-out forwards;
+}
+
+/* Animation delay utilities */
+.animation-delay-100 {
+  animation-delay: 100ms;
+}
+
+.animation-delay-200 {
+  animation-delay: 200ms;
+}
+
+.animation-delay-300 {
+  animation-delay: 300ms;
+}
+
+.animation-delay-400 {
+  animation-delay: 400ms;
+}
+
+.animation-delay-500 {
+  animation-delay: 500ms;
 }
 
 /* YouTube comment loading animation */
