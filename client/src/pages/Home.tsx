@@ -45,21 +45,46 @@ export default function Home() {
   });
 
   const [analysisData, setAnalysisData] = useState<VideoAnalysis | null>(null);
+  const [isCachedAnalysis, setIsCachedAnalysis] = useState<boolean>(false);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
-  const generateSummaryMutation = useMutation<VideoAnalysis, Error, string>({
-    mutationFn: async (videoId: string) => {
-      console.log("Starting summary generation for video ID:", videoId);
+  // Interface for summary params
+  interface SummaryParams {
+    videoId: string;
+    forceRefresh?: boolean;
+  }
+
+  const generateSummaryMutation = useMutation<VideoAnalysis, Error, SummaryParams>({
+    mutationFn: async ({ videoId, forceRefresh = false }) => {
+      console.log(`Starting summary generation for video ID: ${videoId} (forceRefresh: ${forceRefresh})`);
+      
+      if (forceRefresh) {
+        setIsRefreshing(true);
+      }
+      
       try {
-        const response = await apiRequest('POST', '/api/youtube/summarize', { videoId });
+        const response = await apiRequest('POST', '/api/youtube/summarize', { videoId, forceRefresh });
         console.log("Raw API response:", response);
         const data = await response.json();
         console.log("Parsed data from API:", data);
+        
         // Validate the shape of the data
         if (!data || typeof data !== 'object') {
           throw new Error("Invalid response data format");
         }
+        
+        // Mark as cached or fresh based on forceRefresh flag or the creation timestamp
+        // A fresh analysis will have a timestamp very close to now
+        const analysisDate = new Date(data.createdAt);
+        const now = new Date();
+        const isRecent = (now.getTime() - analysisDate.getTime()) < 5000; // 5 seconds
+        
+        setIsCachedAnalysis(!forceRefresh && !isRecent);
+        setIsRefreshing(false);
+        
         return data as VideoAnalysis;
       } catch (error) {
+        setIsRefreshing(false);
         console.error("Error in summary mutation:", error);
         throw error;
       }

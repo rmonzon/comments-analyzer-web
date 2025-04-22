@@ -94,6 +94,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const schema = z.object({
         videoId: z.string().min(1),
+        forceRefresh: z.boolean().optional().default(false),
       });
 
       const result = schema.safeParse(req.body);
@@ -107,8 +108,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
       }
 
-      const { videoId } = result.data;
-      console.log("Generating summary for videoId:", videoId);
+      const { videoId, forceRefresh } = result.data;
+      console.log(`Generating summary for videoId: ${videoId} (forceRefresh: ${forceRefresh})`); 
 
       // Get video data with comments
       const videoData = await storage.getVideo(videoId);
@@ -161,26 +162,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(simplifiedAnalysis);
       }
 
-      // Check if analysis already exists
+      // Check if analysis already exists and if we need to refresh
       let analysis = await storage.getAnalysis(videoId);
 
-      if (analysis) {
+      if (analysis && !forceRefresh) {
         console.log("Using existing analysis for video:", videoId);
       } else {
-        console.log("Generating new analysis for video:", videoId);
+        const actionType = analysis ? "refreshing" : "generating new";
+        console.log(`${actionType} analysis for video: ${videoId}`);
         // Generate analysis using OpenAI
         analysis = await openaiService.generateCommentAnalysis(videoData);
 
         console.log("Analysis generated, storing in database");
-        // Store the analysis
-        await storage.createAnalysis({
+        // Prepare the analysis data
+        const analysisData = {
           videoId: analysis.videoId,
           sentimentStats: analysis.sentimentStats,
           keyPoints: analysis.keyPoints,
           comprehensive: analysis.comprehensive,
           commentsAnalyzed: analysis.commentsAnalyzed,
           createdAt: new Date(),
-        });
+        };
+
+        // Check if we're updating or creating
+        if (forceRefresh && await storage.getAnalysis(videoId)) {
+          console.log("Updating existing analysis in database");
+          await storage.updateAnalysis(videoId, analysisData);
+        } else {
+          console.log("Creating new analysis in database");
+          await storage.createAnalysis(analysisData);
+        }
       }
 
       console.log("Returning analysis data");
