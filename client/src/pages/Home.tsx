@@ -171,7 +171,7 @@ export default function Home() {
         // Directly trigger analysis if we have video data already
         if (videoData) {
           console.log("Manual retry - directly triggering analysis");
-          generateSummaryMutation.mutate(videoId);
+          generateSummaryMutation.mutate({ videoId });
         } else {
           // If no video data, first fetch it then let the effect trigger the analysis
           console.log("Manual retry - fetching video data first");
@@ -201,7 +201,7 @@ export default function Home() {
         !generateSummaryMutation.isPending && 
         !manualRetryMode) {
       console.log("Video data loaded, triggering analysis for:", videoId);
-      generateSummaryMutation.mutate(videoId);
+      generateSummaryMutation.mutate({ videoId });
     }
   }, [videoId, videoData, analysisData, generateSummaryMutation.isPending, manualRetryMode]);
   
@@ -235,7 +235,16 @@ export default function Home() {
           <div>
             <ResultsSection 
               videoData={videoData} 
-              analysisData={currentAnalysisData} 
+              analysisData={currentAnalysisData}
+              isCachedAnalysis={isCachedAnalysis}
+              isRefreshing={isRefreshing}
+              onRefreshAnalysis={videoId ? () => {
+                // Force a refresh of the analysis
+                generateSummaryMutation.mutate({ 
+                  videoId, 
+                  forceRefresh: true 
+                });
+              } : undefined}
             />
           </div>
         )}
@@ -246,6 +255,8 @@ export default function Home() {
           <div>Video ID: {videoId || 'none'}</div>
           <div>Has Video Data: {videoData ? 'Yes' : 'No'}</div>
           <div>Has Analysis Data: {currentAnalysisData ? 'Yes' : 'No'}</div>
+          <div>Is Cached Analysis: {isCachedAnalysis ? 'Yes' : 'No'}</div>
+          <div>Is Refreshing: {isRefreshing ? 'Yes' : 'No'}</div>
           <div>Is Loading: {isLoading ? 'Yes' : 'No'}</div>
           <div>Is Error: {isError ? 'Yes' : 'No'}</div>
           <div>Should Render Results: {Boolean(videoData && currentAnalysisData && !isLoading && !isError) ? 'Yes' : 'No'}</div>
