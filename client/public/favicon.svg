@@ -1,0 +1,13 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- YouTube play button shape -->
+  <rect width="64" height="64" rx="14" fill="#FF0000"/>
+  
+  <!-- Chat bubble / comment shape -->
+  <path d="M45 22H19C17.3431 22 16 23.3431 16 25V39C16 40.6569 17.3431 42 19 42H25L32 48L39 42H45C46.6569 42 48 40.6569 48 39V25C48 23.3431 46.6569 22 45 22Z" fill="white"/>
+  
+  <!-- Play triangle -->
+  <path d="M28 30V38L36 34L28 30Z" fill="#FF0000"/>
+  
+  <!-- Summary lines -->
+  <rect x="24" y="26" width="16" height="2" rx="1" fill="#FF0000"/>
+</svg>
