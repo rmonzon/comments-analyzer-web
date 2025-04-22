@@ -44,6 +44,12 @@ export default {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
+        // YouTube specific colors
+        "youtube-red": "#FF0000",
+        "youtube-blue": "#065FD4",
+        "youtube-black": "#030303",
+        "youtube-dark-grey": "#606060",
+        "youtube-light-grey": "#F8F8F8",
         chart: {
           "1": "hsl(var(--chart-1))",
           "2": "hsl(var(--chart-2))",

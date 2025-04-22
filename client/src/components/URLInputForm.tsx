@@ -70,7 +70,7 @@ export default function URLInputForm({ onSubmit }: URLInputFormProps) {
               </button>
             </div>
             <p className="text-sm text-youtube-dark-grey mt-2">
-              <span className="material-icons text-xs align-middle">info</span>
+              <span className="material-icons text-xs align-middle mr-1">info</span>
               Supports standard YouTube URLs and Shorts
             </p>
           </div>
