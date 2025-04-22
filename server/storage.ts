@@ -10,6 +10,8 @@ import {
   type InsertAnalysis 
 } from "@shared/schema";
 import { VideoData, VideoAnalysis, KeyPoint, SentimentStats } from "@shared/types";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -28,102 +30,124 @@ export interface IStorage {
   updateAnalysis(videoId: string, analysis: Partial<InsertAnalysis>): Promise<Analysis | undefined>;
 }
 
-// In-memory storage implementation
-export class MemStorage implements IStorage {
-  private videos: Map<string, Video>;
-  private comments: Map<string, Comment[]>;
-  private analyses: Map<string, Analysis>;
-  private analysisCounter: number;
-  
-  constructor() {
-    this.videos = new Map();
-    this.comments = new Map();
-    this.analyses = new Map();
-    this.analysisCounter = 1;
-  }
-  
+// Database storage implementation
+export class DatabaseStorage implements IStorage {
   // Video operations
   async getVideo(id: string): Promise<VideoData | undefined> {
-    const video = this.videos.get(id);
-    if (!video) return undefined;
-    
-    const videoComments = this.comments.get(id) || [];
-    return {
-      ...video,
-      comments: videoComments
-    };
+    try {
+      const [video] = await db.select().from(videos).where(eq(videos.id, id));
+      
+      if (!video) return undefined;
+      
+      const videoComments = await this.getComments(id);
+      
+      return {
+        ...video,
+        comments: videoComments
+      };
+    } catch (error) {
+      console.error("Database error in getVideo:", error);
+      throw error;
+    }
   }
   
   async createVideo(video: InsertVideo): Promise<Video> {
-    this.videos.set(video.id, video as Video);
-    return video as Video;
+    try {
+      const [result] = await db.insert(videos).values(video).returning();
+      return result;
+    } catch (error) {
+      console.error("Database error in createVideo:", error);
+      throw error;
+    }
   }
   
   // Comment operations
   async getComments(videoId: string): Promise<Comment[]> {
-    return this.comments.get(videoId) || [];
+    try {
+      const results = await db.select().from(comments).where(eq(comments.videoId, videoId));
+      return results;
+    } catch (error) {
+      console.error("Database error in getComments:", error);
+      throw error;
+    }
   }
   
   async createComment(comment: InsertComment): Promise<Comment> {
-    const videoComments = this.comments.get(comment.videoId) || [];
-    videoComments.push(comment as Comment);
-    this.comments.set(comment.videoId, videoComments);
-    return comment as Comment;
+    try {
+      const [result] = await db.insert(comments).values(comment).returning();
+      return result;
+    } catch (error) {
+      console.error("Database error in createComment:", error);
+      throw error;
+    }
   }
   
   async createComments(comments: InsertComment[]): Promise<Comment[]> {
     if (comments.length === 0) return [];
     
-    const videoId = comments[0].videoId;
-    const existingComments = this.comments.get(videoId) || [];
-    
-    const newComments = comments.map(comment => comment as Comment);
-    this.comments.set(videoId, [...existingComments, ...newComments]);
-    
-    return newComments;
+    try {
+      const results = await db.insert(comments).values(comments).returning();
+      return results;
+    } catch (error) {
+      console.error("Database error in createComments:", error);
+      throw error;
+    }
   }
   
   // Analysis operations
   async getAnalysis(videoId: string): Promise<VideoAnalysis | undefined> {
-    const analysis = Array.from(this.analyses.values()).find(a => a.videoId === videoId);
-    if (!analysis) return undefined;
-    
-    return {
-      videoId: analysis.videoId,
-      sentimentStats: analysis.sentimentStats as SentimentStats,
-      keyPoints: analysis.keyPoints as KeyPoint[],
-      comprehensive: analysis.comprehensive,
-      commentsAnalyzed: analysis.commentsAnalyzed,
-      createdAt: analysis.createdAt.toISOString()
-    };
+    try {
+      const [analysis] = await db.select().from(analyses).where(eq(analyses.videoId, videoId));
+      
+      if (!analysis) return undefined;
+      
+      return {
+        videoId: analysis.videoId,
+        sentimentStats: analysis.sentimentStats as SentimentStats,
+        keyPoints: analysis.keyPoints as KeyPoint[],
+        comprehensive: analysis.comprehensive,
+        commentsAnalyzed: analysis.commentsAnalyzed,
+        createdAt: analysis.createdAt.toISOString()
+      };
+    } catch (error) {
+      console.error("Database error in getAnalysis:", error);
+      throw error;
+    }
   }
   
   async createAnalysis(analysis: InsertAnalysis): Promise<Analysis> {
-    const id = this.analysisCounter++;
-    const newAnalysis = {
-      ...analysis,
-      id,
-      createdAt: new Date()
-    } as Analysis;
-    
-    this.analyses.set(id.toString(), newAnalysis);
-    return newAnalysis;
+    try {
+      const [result] = await db.insert(analyses).values(analysis).returning();
+      return result;
+    } catch (error) {
+      console.error("Database error in createAnalysis:", error);
+      throw error;
+    }
   }
   
   async updateAnalysis(videoId: string, updatedAnalysis: Partial<InsertAnalysis>): Promise<Analysis | undefined> {
-    const existingAnalysis = Array.from(this.analyses.values()).find(a => a.videoId === videoId);
-    if (!existingAnalysis) return undefined;
-    
-    const updated = {
-      ...existingAnalysis,
-      ...updatedAnalysis,
-      createdAt: new Date()
-    };
-    
-    this.analyses.set(existingAnalysis.id.toString(), updated);
-    return updated;
+    try {
+      const [existingAnalysis] = await db.select().from(analyses).where(eq(analyses.videoId, videoId));
+      
+      if (!existingAnalysis) return undefined;
+      
+      const [updated] = await db
+        .update(analyses)
+        .set({
+          ...updatedAnalysis,
+          createdAt: new Date() // Update the timestamp
+        })
+        .where(eq(analyses.videoId, videoId))
+        .returning();
+      
+      return updated;
+    } catch (error) {
+      console.error("Database error in updateAnalysis:", error);
+      throw error;
+    }
   }
 }
 
 // Create and export the storage instance
-export const storage = new MemStorage();
+// We'll use the DatabaseStorage since we have a PostgreSQL database configured
+export const storage = new DatabaseStorage();
