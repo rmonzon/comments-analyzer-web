@@ -1,19 +1,23 @@
-import { VideoData } from '@shared/types';
-import { formatViewCount, formatPublishDate } from '@/lib/utils';
+import { VideoData } from "@shared/types";
+import { formatViewCount, formatPublishDate } from "@/lib/utils";
 
 interface VideoInfoCardProps {
   video: VideoData;
+  commentsAnalyzed?: number;
 }
 
-export default function VideoInfoCard({ video }: VideoInfoCardProps) {
+export default function VideoInfoCard({
+  video,
+  commentsAnalyzed,
+}: VideoInfoCardProps) {
   return (
     <div className="bg-white rounded-lg shadow-card p-6 mb-6 animate-fade-in">
       <div className="flex flex-col md:flex-row gap-4">
         <div className="md:w-1/3">
           <div className="aspect-video bg-youtube-light-grey rounded-lg overflow-hidden">
-            <img 
-              src={video.thumbnail} 
-              alt={`Thumbnail for ${video.title}`} 
+            <img
+              src={video.thumbnail}
+              alt={`Thumbnail for ${video.title}`}
               className="w-full h-full object-cover"
             />
           </div>
@@ -38,8 +42,10 @@ export default function VideoInfoCard({ video }: VideoInfoCardProps) {
           </p>
           <div className="mt-3">
             <span className="flex items-center text-sm font-medium">
-              <span className="material-icons text-youtube-dark-grey text-base mr-1">comment</span>
-              {video.commentCount} comments analyzed
+              <span className="material-icons text-youtube-dark-grey text-base mr-1">
+                comment
+              </span>
+              {commentsAnalyzed} of {video.commentCount} comments analyzed
             </span>
           </div>
         </div>
