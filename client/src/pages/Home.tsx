@@ -72,49 +72,26 @@ export default function Home() {
       console.error("Error in summary mutation:", error);
       let errorMessage = "Failed to generate summary";
       let isQuotaError = false;
-      let errorData = null;
       
-      // Try to extract the detailed error data if available
-      try {
-        if (error.response) {
-          errorData = error.response.data;
-        } else if (typeof error.message === 'string' && error.message.includes('{')) {
-          // Sometimes the error message contains a JSON string
-          const match = error.message.match(/{.*}/);
-          if (match) {
-            errorData = JSON.parse(match[0]);
-          }
+      if (error?.message) {
+        // Check for common error types
+        if (error.message.includes("404")) {
+          errorMessage = "Video not found or comments unavailable. Please check if the video exists and has public comments.";
+        } else if (error.message.includes("No comments available")) {
+          errorMessage = "No comments available for this video. Please try a different video with more engagement.";
+        } else if (error.message.includes("exceeded your current quota") || 
+                  error.message.includes("rate limit") || 
+                  error.message.includes("insufficient_quota")) {
+          errorMessage = "OpenAI API quota exceeded. Please try again later or update your API key.";
+          isQuotaError = true;
+        } else {
+          errorMessage = `${errorMessage}: ${error.message}`;
         }
-      } catch (e) {
-        console.error("Failed to parse error data:", e);
       }
       
-      // Check for HTTP 429 status or look for rate limit keywords in the message
-      if (
-        (error.response && error.response.status === 429) ||
-        (errorData && errorData.error === 'quota_exceeded') ||
-        (error.message && (
-          error.message.includes("429") || 
-          error.message.includes("exceeded your current quota") || 
-          error.message.includes("rate limit") || 
-          error.message.includes("insufficient_quota")
-        ))
-      ) {
-        errorMessage = "OpenAI API quota exceeded. Please try again later or update your API key.";
-        isQuotaError = true;
-      } else if (error.message && error.message.includes("404")) {
-        errorMessage = "Video not found or comments unavailable. Please check if the video exists and has public comments.";
-      } else if (error.message && error.message.includes("No comments available")) {
-        errorMessage = "No comments available for this video. Please try a different video with more engagement.";
-      } else {
-        // For other errors, include the error message
-        errorMessage = `${errorMessage}: ${error.message || 'Unknown error'}`;
-      }
-      
-      // Enable manual retry mode for quota errors
+      // Enable manual retry mode for API errors
       if (isQuotaError) {
         setManualRetryMode(true);
-        console.log("Setting manual retry mode due to quota error");
       }
       
       toast({
