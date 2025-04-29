@@ -8,6 +8,12 @@ import { z } from "zod";
 export async function registerRoutes(app: Express): Promise<Server> {
   const youtubeService = new YouTubeService();
   const openaiService = new OpenAIService();
+  
+  // Import schema for premium interest
+  const premiumInterestSchema = z.object({
+    email: z.string().email(),
+    commentCount: z.number().int().positive()
+  });
 
   // Get video data and comments by video ID
   app.get("/api/youtube/video", async (req, res) => {
@@ -233,6 +239,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .json({
           message: `Failed to fetch analysis: ${error.message || "Unknown error"}`,
         });
+    }
+  });
+
+  // Register premium interest (for users interested in analyzing more comments)
+  app.post("/api/premium/register-interest", async (req, res) => {
+    try {
+      console.log("Received premium interest with body:", req.body);
+      
+      const result = premiumInterestSchema.safeParse(req.body);
+      
+      if (!result.success) {
+        console.log("Invalid premium interest data:", result.error.format());
+        return res.status(400).json({
+          message: "Invalid data provided",
+          errors: result.error.format()
+        });
+      }
+      
+      const { email, commentCount } = result.data;
+      
+      // Record the premium interest in the database
+      const savedInterest = await storage.createPremiumInterest({
+        email,
+        commentCount,
+      });
+      
+      console.log(`Premium interest recorded for ${email} (${commentCount} comments)`);
+      
+      return res.status(201).json({
+        message: "Interest registered successfully",
+        data: {
+          email: savedInterest.email,
+          commentCount: savedInterest.commentCount,
+          recordedAt: savedInterest.createdAt
+        }
+      });
+    } catch (error: any) {
+      console.error("Error registering premium interest:", error);
+      return res.status(500).json({
+        message: `Failed to register interest: ${error.message || "Unknown error"}`
+      });
     }
   });
 

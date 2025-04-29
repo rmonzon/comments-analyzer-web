@@ -24,9 +24,26 @@ export default function PremiumFeatureInterest() {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Here we would typically submit to a backend endpoint
-    // For now, we'll just simulate a submission
-    setTimeout(() => {
+    try {
+      // Submit interest data to the API
+      const response = await fetch('/api/premium/register-interest', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          commentCount,
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to submit interest');
+      }
+      
+      // Show success message
       setIsSubmitting(false);
       setIsSubmitted(true);
       toast({
@@ -40,7 +57,15 @@ export default function PremiumFeatureInterest() {
         setIsSubmitted(false);
         setEmail('');
       }, 3000);
-    }, 1500);
+    } catch (error) {
+      console.error('Error submitting premium interest:', error);
+      setIsSubmitting(false);
+      toast({
+        title: "Submission Failed",
+        description: error instanceof Error ? error.message : "Failed to submit your interest. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
   
   return (
@@ -67,6 +92,7 @@ export default function PremiumFeatureInterest() {
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
                   <Button 
+                    id="premium-interest-trigger"
                     variant="outline" 
                     className="text-sm flex items-center hover:text-purple-600 hover:border-purple-300 transition-colors duration-200"
                   >
