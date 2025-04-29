@@ -42,14 +42,25 @@ export const analyses = pgTable("analyses", {
   createdAt: timestamp("created_at").notNull(),
 });
 
+// Premium interest entity to track users interested in analyzing more comments
+export const premiumInterest = pgTable("premium_interest", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull(),
+  commentCount: integer("comment_count").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull()
+});
+
 export const insertCommentSchema = createInsertSchema(comments);
 export const insertVideoSchema = createInsertSchema(videos);
 export const insertAnalysisSchema = createInsertSchema(analyses).omit({ id: true });
+export const insertPremiumInterestSchema = createInsertSchema(premiumInterest).omit({ id: true, createdAt: true });
 
 export type InsertComment = z.infer<typeof insertCommentSchema>;
 export type InsertVideo = z.infer<typeof insertVideoSchema>;
 export type InsertAnalysis = z.infer<typeof insertAnalysisSchema>;
+export type InsertPremiumInterest = z.infer<typeof insertPremiumInterestSchema>;
 
 export type Comment = typeof comments.$inferSelect;
 export type Video = typeof videos.$inferSelect;
 export type Analysis = typeof analyses.$inferSelect;
+export type PremiumInterest = typeof premiumInterest.$inferSelect;

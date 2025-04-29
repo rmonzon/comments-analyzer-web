@@ -2,12 +2,15 @@ import {
   videos, 
   comments, 
   analyses,
+  premiumInterest,
   type Comment, 
   type Video, 
   type Analysis, 
   type InsertComment, 
   type InsertVideo, 
-  type InsertAnalysis 
+  type InsertAnalysis,
+  type PremiumInterest,
+  type InsertPremiumInterest
 } from "@shared/schema";
 import { VideoData, VideoAnalysis, KeyPoint, SentimentStats } from "@shared/types";
 import { db } from "./db";
@@ -28,6 +31,10 @@ export interface IStorage {
   getAnalysis(videoId: string): Promise<VideoAnalysis | undefined>;
   createAnalysis(analysis: InsertAnalysis): Promise<Analysis>;
   updateAnalysis(videoId: string, analysis: Partial<InsertAnalysis>): Promise<Analysis | undefined>;
+  
+  // Premium interest operations
+  createPremiumInterest(interest: InsertPremiumInterest): Promise<PremiumInterest>;
+  getPremiumInterests(): Promise<PremiumInterest[]>;
 }
 
 // Database storage implementation
@@ -202,6 +209,29 @@ export class DatabaseStorage implements IStorage {
       return updated;
     } catch (error) {
       console.error("Database error in updateAnalysis:", error);
+      throw error;
+    }
+  }
+
+  // Premium interest operations
+  async createPremiumInterest(interest: InsertPremiumInterest): Promise<PremiumInterest> {
+    try {
+      console.log("Recording premium interest:", interest);
+      const [result] = await db.insert(premiumInterest).values(interest).returning();
+      console.log("Premium interest recorded successfully");
+      return result;
+    } catch (error) {
+      console.error("Database error in createPremiumInterest:", error);
+      throw error;
+    }
+  }
+
+  async getPremiumInterests(): Promise<PremiumInterest[]> {
+    try {
+      const results = await db.select().from(premiumInterest).orderBy(premiumInterest.createdAt);
+      return results;
+    } catch (error) {
+      console.error("Database error in getPremiumInterests:", error);
       throw error;
     }
   }
