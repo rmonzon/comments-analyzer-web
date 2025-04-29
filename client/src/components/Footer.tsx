@@ -11,6 +11,7 @@ export default function Footer() {
               <a
                 href="https://www.linkedin.com/in/rriverom"
                 target="_blank"
+                rel="noopener noreferrer"
                 className="text-sm font-bold text-gray-800 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors duration-300"
               >
                 Raul Rivero
@@ -37,12 +38,12 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <a
-                  href="#"
+                <Link
+                  href="/about"
                   className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                 >
                   About
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
