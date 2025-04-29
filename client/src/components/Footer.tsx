@@ -5,23 +5,40 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-4 md:mb-0">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              © {new Date().getFullYear()} YouTube Comments Summarizer - Not affiliated with YouTube
+              © {new Date().getFullYear()} YouTube Comments Summarizer by{" "}
+              <a
+                href="https://www.linkedin.com/in/rriverom"
+                target="_blank"
+                className="text-sm font-bold text-gray-800 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors duration-300"
+              >
+                Raul Rivero
+              </a>
+              . All rights reserved.
             </p>
           </div>
           <div>
             <ul className="flex space-x-6">
               <li>
-                <a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                <a
+                  href="#"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                >
                   Privacy Policy
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                <a
+                  href="#"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                >
                   Terms of Service
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                <a
+                  href="#"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                >
                   About
                 </a>
               </li>

@@ -1,4 +1,5 @@
 import { Link2, MessageSquare, Brain } from 'lucide-react';
+import PremiumFeatureInterest from './PremiumFeatureInterest';
 
 export default function IntroSection() {
   return (
@@ -20,7 +21,7 @@ export default function IntroSection() {
             <div className="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg h-full transition-colors">
               <MessageSquare className="text-youtube-blue dark:text-blue-400 w-6 h-6 mb-2" />
               <h3 className="font-medium text-center mb-1 dark:text-white">Fetch Comments</h3>
-              <p className="text-sm text-center text-gray-600 dark:text-gray-400">We collect the video's comments</p>
+              <p className="text-sm text-center text-gray-600 dark:text-gray-400">We analyze the top comments</p>
             </div>
           </div>
           <div className="px-2 w-full md:w-1/3 mb-4">
@@ -31,6 +32,9 @@ export default function IntroSection() {
             </div>
           </div>
         </div>
+
+        {/* Premium Feature Interest Banner */}
+        <PremiumFeatureInterest />
       </div>
     </section>
   );
