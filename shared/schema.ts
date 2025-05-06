@@ -60,20 +60,33 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow().notNull()
 });
 
+// Shared Analysis entity - for public sharing of analyses
+export const sharedAnalyses = pgTable("shared_analyses", {
+  shareId: text("share_id").primaryKey(),
+  videoId: text("video_id").notNull().references(() => videos.id),
+  userId: integer("user_id").references(() => users.id),
+  username: text("username"), // Denormalized for performance
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  views: integer("views").default(0),
+});
+
 export const insertCommentSchema = createInsertSchema(comments);
 export const insertVideoSchema = createInsertSchema(videos);
 export const insertAnalysisSchema = createInsertSchema(analyses).omit({ id: true });
 export const insertPremiumInterestSchema = createInsertSchema(premiumInterest).omit({ id: true, createdAt: true });
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertSharedAnalysisSchema = createInsertSchema(sharedAnalyses).omit({ views: true, createdAt: true });
 
 export type InsertComment = z.infer<typeof insertCommentSchema>;
 export type InsertVideo = z.infer<typeof insertVideoSchema>;
 export type InsertAnalysis = z.infer<typeof insertAnalysisSchema>;
 export type InsertPremiumInterest = z.infer<typeof insertPremiumInterestSchema>;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type InsertSharedAnalysis = z.infer<typeof insertSharedAnalysisSchema>;
 
 export type Comment = typeof comments.$inferSelect;
 export type Video = typeof videos.$inferSelect;
 export type Analysis = typeof analyses.$inferSelect;
 export type PremiumInterest = typeof premiumInterest.$inferSelect;
 export type User = typeof users.$inferSelect;
+export type SharedAnalysis = typeof sharedAnalyses.$inferSelect;

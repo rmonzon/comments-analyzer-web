@@ -217,7 +217,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get analysis for a video
+  // Get analysis for a video (private endpoint - requires authentication)
   app.get("/api/youtube/analysis", async (req, res) => {
     try {
       const videoId = req.query.videoId as string;
@@ -245,6 +245,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
     }
   });
+  
+  // Public endpoint to get shared analysis (no authentication required)
+  app.get("/api/shared/analysis/:shareId", async (req, res) => {
+    try {
+      const shareId = req.params.shareId;
+      
+      if (!shareId) {
+        return res.status(400).json({ message: "Share ID is required" });
+      }
+      
+      // Get the shared analysis
+      const sharedAnalysis = await storage.getSharedAnalysis(shareId);
+      
+      if (!sharedAnalysis) {
+        return res.status(404).json({ message: "Shared analysis not found" });
+      }
+      
+      // Get the video data and analysis data
+      const videoData = await storage.getVideo(sharedAnalysis.videoId);
+      const analysisData = await storage.getAnalysis(sharedAnalysis.videoId);
+      
+      if (!videoData || !analysisData) {
+        return res.status(404).json({ message: "Analysis data not found" });
+      }
+      
+      // Return both video and analysis data
+      return res.json({
+        shareId: shareId,
+        videoData: videoData,
+        analysisData: analysisData,
+        sharedBy: sharedAnalysis.userId ? {
+          username: sharedAnalysis.username
+        } : null,
+        createdAt: sharedAnalysis.createdAt
+      });
+    } catch (error: any) {
+      console.error("Error fetching shared analysis:", error);
+      return res.status(500).json({
+        message: `Failed to fetch shared analysis: ${error.message || "Unknown error"}`
+      });
+    }
+  });
+  
+  // Create a new shared analysis (requires authentication)
+  app.post("/api/shared/analysis", async (req, res) => {
+    try {
+      // Check if user is authenticated
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      const schema = z.object({
+        videoId: z.string().min(1)
+      });
+      
+      const result = schema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({
+          message: "Invalid request body",
+          errors: result.error.format()
+        });
+      }
+      
+      const { videoId } = result.data;
+      
+      // Check if the analysis exists
+      const analysis = await storage.getAnalysis(videoId);
+      if (!analysis) {
+        return res.status(404).json({ message: "Analysis not found for this video" });
+      }
+      
+      // Create a shared analysis
+      const sharedAnalysis = await storage.createSharedAnalysis({
+        shareId: generateUniqueId(),
+        videoId: videoId,
+        userId: req.user.id,
+        username: req.user.username,
+        createdAt: new Date()
+      });
+      
+      return res.status(201).json({
+        shareId: sharedAnalysis.shareId,
+        shareUrl: `${req.protocol}://${req.get('host')}/shared/${sharedAnalysis.shareId}`,
+        createdAt: sharedAnalysis.createdAt
+      });
+    } catch (error: any) {
+      console.error("Error creating shared analysis:", error);
+      return res.status(500).json({
+        message: `Failed to create shared analysis: ${error.message || "Unknown error"}`
+      });
+    }
+  });
+  
+  // Helper function to generate a unique ID for shared links
+  function generateUniqueId(): string {
+    const timestamp = Date.now().toString(36);
+    const randomPart = Math.random().toString(36).substring(2, 10);
+    return `${timestamp}-${randomPart}`;
+  }
 
   // Register premium interest (for users interested in analyzing more comments)
   app.post("/api/premium/register-interest", async (req, res) => {
