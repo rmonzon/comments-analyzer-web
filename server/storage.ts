@@ -3,6 +3,7 @@ import {
   comments, 
   analyses,
   premiumInterest,
+  users,
   type Comment, 
   type Video, 
   type Analysis, 
@@ -10,7 +11,9 @@ import {
   type InsertVideo, 
   type InsertAnalysis,
   type PremiumInterest,
-  type InsertPremiumInterest
+  type InsertPremiumInterest,
+  type User,
+  type InsertUser
 } from "@shared/schema";
 import { VideoData, VideoAnalysis, KeyPoint, SentimentStats } from "@shared/types";
 import { db } from "./db";
@@ -35,6 +38,12 @@ export interface IStorage {
   // Premium interest operations
   createPremiumInterest(interest: InsertPremiumInterest): Promise<PremiumInterest>;
   getPremiumInterests(): Promise<PremiumInterest[]>;
+
+  // User operations
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
 }
 
 // Database storage implementation
@@ -232,6 +241,53 @@ export class DatabaseStorage implements IStorage {
       return results;
     } catch (error) {
       console.error("Database error in getPremiumInterests:", error);
+      throw error;
+    }
+  }
+
+  // User operations
+  async getUser(id: number): Promise<User | undefined> {
+    try {
+      const [user] = await db.select().from(users).where(eq(users.id, id));
+      return user || undefined;
+    } catch (error) {
+      console.error("Database error in getUser:", error);
+      throw error;
+    }
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    try {
+      const [user] = await db.select().from(users).where(eq(users.username, username));
+      return user || undefined;
+    } catch (error) {
+      console.error("Database error in getUserByUsername:", error);
+      throw error;
+    }
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    try {
+      const [user] = await db.select().from(users).where(eq(users.email, email));
+      return user || undefined;
+    } catch (error) {
+      console.error("Database error in getUserByEmail:", error);
+      throw error;
+    }
+  }
+
+  async createUser(user: InsertUser): Promise<User> {
+    try {
+      console.log("Creating new user:", user.username);
+      const [result] = await db.insert(users).values({
+        ...user,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }).returning();
+      console.log("User created successfully");
+      return result;
+    } catch (error) {
+      console.error("Database error in createUser:", error);
       throw error;
     }
   }
