@@ -4,6 +4,7 @@ import {
   analyses,
   premiumInterest,
   users,
+  sessions,
   type Comment, 
   type Video, 
   type Analysis, 
@@ -13,7 +14,8 @@ import {
   type PremiumInterest,
   type InsertPremiumInterest,
   type User,
-  type InsertUser
+  type InsertUser,
+  type UpsertUser
 } from "@shared/schema";
 import { VideoData, VideoAnalysis, KeyPoint, SentimentStats } from "@shared/types";
 import { db } from "./db";
@@ -40,10 +42,14 @@ export interface IStorage {
   getPremiumInterests(): Promise<PremiumInterest[]>;
 
   // User operations
-  getUser(id: number): Promise<User | undefined>;
+  getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  upsertUser(user: UpsertUser): Promise<User>;
+  
+  // Session store
+  sessionStore: any;
 }
 
 // Database storage implementation
@@ -245,8 +251,16 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Session store property for Replit Auth
+  sessionStore: any;
+
+  constructor() {
+    // Session store will be initialized by the Replit Auth setup
+    this.sessionStore = null;
+  }
+
   // User operations
-  async getUser(id: number): Promise<User | undefined> {
+  async getUser(id: string): Promise<User | undefined> {
     try {
       const [user] = await db.select().from(users).where(eq(users.id, id));
       return user || undefined;
@@ -268,6 +282,7 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByEmail(email: string): Promise<User | undefined> {
     try {
+      if (!email) return undefined;
       const [user] = await db.select().from(users).where(eq(users.email, email));
       return user || undefined;
     } catch (error) {
@@ -288,6 +303,33 @@ export class DatabaseStorage implements IStorage {
       return result;
     } catch (error) {
       console.error("Database error in createUser:", error);
+      throw error;
+    }
+  }
+  
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    try {
+      console.log("Upserting user:", userData.username);
+      
+      const [user] = await db
+        .insert(users)
+        .values({
+          ...userData,
+          updatedAt: new Date(),
+        })
+        .onConflictDoUpdate({
+          target: users.id,
+          set: {
+            ...userData,
+            updatedAt: new Date(),
+          },
+        })
+        .returning();
+      
+      console.log("User upserted successfully");
+      return user;
+    } catch (error) {
+      console.error("Database error in upsertUser:", error);
       throw error;
     }
   }

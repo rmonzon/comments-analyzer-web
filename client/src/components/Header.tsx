@@ -1,7 +1,7 @@
 import { ThemeToggle } from "./ThemeToggle";
 import { VideoIcon, AlertCircle, LogOut, User, Loader2 } from "lucide-react";
 import { Link } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Tooltip,
   TooltipContent,
@@ -16,14 +16,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 
 export default function Header() {
-  const { user, isLoading, logoutMutation } = useAuth();
+  const { user, isLoading } = useAuth();
 
   const handleLogout = () => {
-    logoutMutation.mutate();
+    window.location.href = "/api/logout";
   };
 
   return (
@@ -65,6 +65,9 @@ export default function Header() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-9 w-9 rounded-full">
                   <Avatar className="h-9 w-9">
+                    {user.profileImageUrl && (
+                      <AvatarImage src={user.profileImageUrl} alt={user.username} />
+                    )}
                     <AvatarFallback className="bg-primary text-primary-foreground">
                       {user.username.slice(0, 2).toUpperCase()}
                     </AvatarFallback>
@@ -84,23 +87,21 @@ export default function Header() {
                 <DropdownMenuItem
                   className="cursor-pointer"
                   onClick={handleLogout}
-                  disabled={logoutMutation.isPending}
                 >
-                  {logoutMutation.isPending ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <LogOut className="mr-2 h-4 w-4" />
-                  )}
+                  <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button asChild variant="outline" size="sm" className="ml-2">
-              <Link href="/auth">
-                <User className="h-4 w-4 mr-2" />
-                <span>Sign In</span>
-              </Link>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="ml-2"
+              onClick={() => window.location.href = "/api/login"}
+            >
+              <User className="h-4 w-4 mr-2" />
+              <span>Sign In</span>
             </Button>
           )}
         </div>
