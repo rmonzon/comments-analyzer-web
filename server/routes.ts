@@ -4,8 +4,12 @@ import { storage } from "./storage";
 import { YouTubeService } from "./services/youtube";
 import { OpenAIService } from "./services/openai";
 import { z } from "zod";
+import { setupAuth } from "./auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Set up authentication
+  setupAuth(app);
+  
   const youtubeService = new YouTubeService();
   const openaiService = new OpenAIService();
   

@@ -42,7 +42,7 @@ export function setupAuth(app: Express) {
     resave: false,
     saveUninitialized: false,
     store: new PgSessionStore({
-      pool,
+      pool: pool!, // Assert non-null
       tableName: "session", // Use default table name
       createTableIfMissing: true
     }),
@@ -130,7 +130,7 @@ export function setupAuth(app: Express) {
 
   // Login endpoint
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err, user, info) => {
+    passport.authenticate("local", (err: any, user: UserType | false, info: { message: string } | undefined) => {
       if (err) return next(err);
       
       if (!user) {
