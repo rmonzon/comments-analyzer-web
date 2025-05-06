@@ -45,11 +45,13 @@ export default function PrivacyPolicy() {
               <strong>Technical Data</strong> includes internet protocol (IP)
               address, browser type and version, time zone setting and location,
               browser plug-in types and versions, operating system and platform,
-              and other technology on the devices you use to access this website.
+              and other technology on the devices you use to access this
+              website.
             </li>
             <li>
               <strong>Usage Data</strong> includes information about how you use
-              our website and services, including the YouTube videos you analyze.
+              our website and services, including the YouTube videos you
+              analyze.
             </li>
           </ul>
         </section>
@@ -62,15 +64,14 @@ export default function PrivacyPolicy() {
               To provide you with the services you have requested, such as
               analyzing YouTube video comments.
             </li>
-            <li>
-              To notify you about changes to our service or terms.
-            </li>
+            <li>To notify you about changes to our service or terms.</li>
             <li>
               To improve our website, products/services, marketing, or customer
               relationships.
             </li>
             <li>
-              To contact you about premium features if you have expressed interest.
+              To contact you about premium features if you have expressed
+              interest.
             </li>
             <li>
               To use data analytics to improve our website, products/services,
@@ -83,7 +84,8 @@ export default function PrivacyPolicy() {
           <h2 className="text-xl font-semibold mb-3">YouTube API Services</h2>
           <p>
             Our service uses the YouTube API Services to access and analyze
-            YouTube video comments. By using our service, you are also agreeing to be bound by the{" "}
+            YouTube video comments. By using our service, you are also agreeing
+            to be bound by the{" "}
             <a
               href="https://www.youtube.com/t/terms"
               target="_blank"
@@ -91,7 +93,8 @@ export default function PrivacyPolicy() {
               className="text-blue-600 dark:text-blue-400 underline"
             >
               YouTube Terms of Service
-            </a>.
+            </a>
+            .
           </p>
         </section>
 
@@ -100,9 +103,10 @@ export default function PrivacyPolicy() {
           <p>
             We have put in place appropriate security measures to prevent your
             personal data from being accidentally lost, used, or accessed in an
-            unauthorized way, altered, or disclosed. In addition, we limit access
-            to your personal data to those employees, agents, contractors, and
-            other third parties who have a business need to know.
+            unauthorized way, altered, or disclosed. In addition, we limit
+            access to your personal data to those employees, agents,
+            contractors, and other third parties who have a business need to
+            know.
           </p>
         </section>
 
@@ -141,10 +145,10 @@ export default function PrivacyPolicy() {
             If you have any questions about this privacy policy or our privacy
             practices, please contact us at:{" "}
             <a
-              href="mailto:privacy@ytcommentanalyzer.com"
+              href="mailto:privacy@commentsanalyzer.info"
               className="text-blue-600 dark:text-blue-400"
             >
-              privacy@ytcommentanalyzer.com
+              privacy@commentsanalyzer.info
             </a>
           </p>
         </section>
