@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, timestamp, jsonb, varchar } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, jsonb, varchar, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -50,27 +50,43 @@ export const premiumInterest = pgTable("premium_interest", {
   createdAt: timestamp("created_at").defaultNow().notNull()
 });
 
-// Users entity for authentication
+// Session storage table for Replit Auth
+export const sessions = pgTable(
+  "session",
+  {
+    sid: varchar("sid").primaryKey(),
+    sess: jsonb("sess").notNull(),
+    expire: timestamp("expire").notNull(),
+  },
+  (table) => [index("IDX_session_expire").on(table.expire)],
+);
+
+// Users entity for authentication with Replit Auth
 export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: varchar("username", { length: 100 }).notNull().unique(),
-  email: varchar("email", { length: 255 }).notNull().unique(),
-  password: text("password").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull()
+  id: varchar("id").primaryKey().notNull(),
+  username: varchar("username").unique().notNull(),
+  email: varchar("email").unique(),
+  firstName: varchar("first_name"),
+  lastName: varchar("last_name"),
+  bio: text("bio"),
+  profileImageUrl: varchar("profile_image_url"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const insertCommentSchema = createInsertSchema(comments);
 export const insertVideoSchema = createInsertSchema(videos);
 export const insertAnalysisSchema = createInsertSchema(analyses).omit({ id: true });
 export const insertPremiumInterestSchema = createInsertSchema(premiumInterest).omit({ id: true, createdAt: true });
-export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertUserSchema = createInsertSchema(users).omit({ createdAt: true, updatedAt: true });
+export const upsertUserSchema = createInsertSchema(users);
 
 export type InsertComment = z.infer<typeof insertCommentSchema>;
 export type InsertVideo = z.infer<typeof insertVideoSchema>;
 export type InsertAnalysis = z.infer<typeof insertAnalysisSchema>;
 export type InsertPremiumInterest = z.infer<typeof insertPremiumInterestSchema>;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type UpsertUser = z.infer<typeof upsertUserSchema>;
 
 export type Comment = typeof comments.$inferSelect;
 export type Video = typeof videos.$inferSelect;
