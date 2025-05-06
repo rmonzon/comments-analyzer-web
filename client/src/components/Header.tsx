@@ -1,29 +1,20 @@
 import { ThemeToggle } from "./ThemeToggle";
-import { VideoIcon, AlertCircle, LogOut, User, Loader2 } from "lucide-react";
+import { VideoIcon, AlertCircle, User } from "lucide-react";
 import { Link } from "wouter";
-import { useAuth } from "@/hooks/useAuth";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 
 export default function Header() {
-  const { user, isLoading } = useAuth();
-
-  const handleLogout = () => {
-    window.location.href = "/api/logout";
+  // Sign in button click handler (placeholder for future implementation)
+  const handleSignIn = () => {
+    // Will be implemented with a different auth flow later
+    console.log("Sign in clicked - to be implemented");
+    alert("Authentication will be implemented in a future update");
   };
 
   return (
@@ -58,52 +49,16 @@ export default function Header() {
         <div className="flex items-center gap-3">
           <ThemeToggle />
           
-          {isLoading ? (
-            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-          ) : user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                  <Avatar className="h-9 w-9">
-                    {user.profileImageUrl && (
-                      <AvatarImage src={user.profileImageUrl} alt={user.username} />
-                    )}
-                    <AvatarFallback className="bg-primary text-primary-foreground">
-                      {user.username.slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel>
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user.username}</p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {user.email}
-                    </p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="cursor-pointer"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="ml-2"
-              onClick={() => window.location.href = "/api/login"}
-            >
-              <User className="h-4 w-4 mr-2" />
-              <span>Sign In</span>
-            </Button>
-          )}
+          {/* Simplified login button for future auth implementation */}
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="ml-2"
+            onClick={handleSignIn}
+          >
+            <User className="h-4 w-4 mr-2" />
+            <span>Sign In</span>
+          </Button>
         </div>
       </div>
     </header>

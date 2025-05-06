@@ -1,30 +1,21 @@
-import { useQuery } from "@tanstack/react-query";
-import { getQueryFn } from "@/lib/queryClient";
-
-interface User {
+// Mock authentication hook for future implementation
+export interface User {
   id: string;
   username: string;
   email: string | null;
-  firstName: string | null;
-  lastName: string | null;
   profileImageUrl: string | null;
 }
 
 export function useAuth() {
-  const { 
-    data: user, 
-    isLoading,
-    error,
-  } = useQuery<User>({
-    queryKey: ["/api/auth/user"],
-    queryFn: getQueryFn({ on401: "returnNull" }),
-    retry: false,
-  });
-
+  // This is a placeholder for future authentication implementation
+  const user = null;
+  const isLoading = false;
+  const error = null;
+  
   return {
     user,
     isLoading,
     error,
-    isAuthenticated: !!user,
+    isAuthenticated: false,
   };
 }
