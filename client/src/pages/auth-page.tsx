@@ -78,10 +78,10 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="container flex h-screen py-10">
-      <div className="grid flex-1 grid-cols-1 md:grid-cols-2 gap-8 items-center max-w-5xl mx-auto">
+    <div className="container flex flex-col items-center justify-center min-h-screen py-10">
+      <div className="grid w-full grid-cols-1 md:grid-cols-2 gap-8 items-center max-w-5xl mx-auto">
         {/* Auth forms */}
-        <div className="flex flex-col space-y-6">
+        <div className="flex flex-col space-y-6 w-full">
           <div className="flex flex-col space-y-2 text-center mb-4">
             <h1 className="text-3xl font-bold">YouTube Comment Analyzer</h1>
             <p className="text-muted-foreground">Sign in or create an account to continue</p>
@@ -226,8 +226,8 @@ export default function AuthPage() {
         </div>
 
         {/* Hero section */}
-        <div className="hidden md:flex flex-col items-center justify-center p-8 bg-muted rounded-lg">
-          <div className="space-y-4 text-center">
+        <div className="hidden md:flex flex-col items-center justify-center h-full p-8 bg-muted rounded-lg">
+          <div className="space-y-4 text-center max-w-md mx-auto">
             <h2 className="text-2xl font-bold">YouTube Comment Analyzer</h2>
             <p className="text-muted-foreground">
               Instantly analyze YouTube comments to extract valuable insights. Our AI-powered tool 
@@ -235,21 +235,21 @@ export default function AuthPage() {
               viewer feedback at a glance.
             </p>
             <div className="py-4">
-              <ul className="space-y-2">
+              <ul className="space-y-3 text-left">
                 <li className="flex items-center">
-                  <span className="bg-primary text-primary-foreground p-1 rounded-full mr-2">✓</span>
+                  <span className="bg-primary text-primary-foreground p-1 rounded-full mr-2 flex-shrink-0">✓</span>
                   <span>Sentiment analysis of comments</span>
                 </li>
                 <li className="flex items-center">
-                  <span className="bg-primary text-primary-foreground p-1 rounded-full mr-2">✓</span>
+                  <span className="bg-primary text-primary-foreground p-1 rounded-full mr-2 flex-shrink-0">✓</span>
                   <span>Extract key discussion points</span>
                 </li>
                 <li className="flex items-center">
-                  <span className="bg-primary text-primary-foreground p-1 rounded-full mr-2">✓</span>
+                  <span className="bg-primary text-primary-foreground p-1 rounded-full mr-2 flex-shrink-0">✓</span>
                   <span>Comprehensive summary</span>
                 </li>
                 <li className="flex items-center">
-                  <span className="bg-primary text-primary-foreground p-1 rounded-full mr-2">✓</span>
+                  <span className="bg-primary text-primary-foreground p-1 rounded-full mr-2 flex-shrink-0">✓</span>
                   <span>Save analysis history</span>
                 </li>
               </ul>
