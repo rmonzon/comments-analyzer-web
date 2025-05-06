@@ -4,6 +4,7 @@ import {
   analyses,
   premiumInterest,
   users,
+  sharedAnalyses,
   type Comment, 
   type Video, 
   type Analysis, 
@@ -13,11 +14,13 @@ import {
   type PremiumInterest,
   type InsertPremiumInterest,
   type User,
-  type InsertUser
+  type InsertUser,
+  type SharedAnalysis,
+  type InsertSharedAnalysis
 } from "@shared/schema";
 import { VideoData, VideoAnalysis, KeyPoint, SentimentStats } from "@shared/types";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -44,6 +47,12 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  
+  // Shared Analysis operations
+  getSharedAnalysis(shareId: string): Promise<SharedAnalysis | undefined>;
+  createSharedAnalysis(sharedAnalysis: InsertSharedAnalysis): Promise<SharedAnalysis>;
+  getUserSharedAnalyses(userId: number): Promise<SharedAnalysis[]>;
+  incrementSharedAnalysisViews(shareId: string): Promise<void>;
 }
 
 // Database storage implementation
@@ -288,6 +297,57 @@ export class DatabaseStorage implements IStorage {
       return result;
     } catch (error) {
       console.error("Database error in createUser:", error);
+      throw error;
+    }
+  }
+  
+  // Shared Analysis operations
+  async getSharedAnalysis(shareId: string): Promise<SharedAnalysis | undefined> {
+    try {
+      const [sharedAnalysis] = await db.select().from(sharedAnalyses).where(eq(sharedAnalyses.shareId, shareId));
+      return sharedAnalysis || undefined;
+    } catch (error) {
+      console.error("Database error in getSharedAnalysis:", error);
+      throw error;
+    }
+  }
+  
+  async createSharedAnalysis(sharedAnalysis: InsertSharedAnalysis): Promise<SharedAnalysis> {
+    try {
+      console.log("Creating shared analysis for video:", sharedAnalysis.videoId);
+      const [result] = await db.insert(sharedAnalyses).values(sharedAnalysis).returning();
+      console.log("Shared analysis created successfully with ID:", result.shareId);
+      return result;
+    } catch (error) {
+      console.error("Database error in createSharedAnalysis:", error);
+      throw error;
+    }
+  }
+  
+  async getUserSharedAnalyses(userId: number): Promise<SharedAnalysis[]> {
+    try {
+      const results = await db
+        .select()
+        .from(sharedAnalyses)
+        .where(eq(sharedAnalyses.userId, userId))
+        .orderBy(sharedAnalyses.createdAt);
+      return results;
+    } catch (error) {
+      console.error("Database error in getUserSharedAnalyses:", error);
+      throw error;
+    }
+  }
+  
+  async incrementSharedAnalysisViews(shareId: string): Promise<void> {
+    try {
+      await db
+        .update(sharedAnalyses)
+        .set({
+          views: sql`${sharedAnalyses.views} + 1`
+        })
+        .where(eq(sharedAnalyses.shareId, shareId));
+    } catch (error) {
+      console.error("Database error in incrementSharedAnalysisViews:", error);
       throw error;
     }
   }
