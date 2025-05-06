@@ -6,10 +6,12 @@ import URLInputForm from "@/components/URLInputForm";
 import ResultsSection from "@/components/ResultsSection";
 import LoadingState from "@/components/LoadingState";
 import ErrorState from "@/components/ErrorState";
+import MySharedAnalyses from "@/components/MySharedAnalyses";
 import { useToast } from "@/hooks/use-toast";
 import { extractVideoId } from "@/lib/utils";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/use-auth";
 import {
   VideoData,
   VideoAnalysis,
@@ -42,6 +44,7 @@ export default function Home() {
   const [videoId, setVideoId] = useState<string | null>(null);
   const [manualRetryMode, setManualRetryMode] = useState<boolean>(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const {
     data: videoData,
@@ -306,6 +309,9 @@ export default function Home() {
           </div>
         )}
 
+        {/* Show my shared analyses only for authenticated users */}
+        {user && <MySharedAnalyses />}
+        
         {/* Debug UI */}
         {/* <div className="mt-8 p-4 border border-gray-200 rounded-md bg-gray-50 text-xs">
           <h3 className="font-bold">Debug Info:</h3>
