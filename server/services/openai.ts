@@ -4,10 +4,17 @@ import {
   VideoAnalysis,
   KeyPoint,
   SentimentStats,
+  Comment,
 } from "@shared/types";
 
 // Using GPT-3.5 Turbo to reduce API costs
 const MODEL = "gpt-3.5-turbo";
+
+// Constants for token optimization
+const MAX_COMMENTS = 40; // Increased from 20 to 40 for more comprehensive analysis
+const MAX_COMMENT_LENGTH = 200; // Reduced from 300 to 200 characters per comment
+const MIN_COMMENT_LIKES = 1; // Prioritize comments with at least 1 like
+const MAX_COMMENT_BATCH_SIZE = 15; // Process comments in batches of 15
 
 export class OpenAIService {
   private openai: OpenAI;
@@ -45,12 +52,8 @@ export class OpenAIService {
       
       console.log(`Filtered out ${videoData.comments.length - filteredComments.length} comments from the video creator`);
       
-      // Use only a subset of comments if there are too many - now using a smaller sample
-      const MAX_COMMENTS = 20; // Reduced from 100 to 20 to conserve tokens
-      const commentsToAnalyze = filteredComments.slice(0, MAX_COMMENTS);
-
       // If there are no comments, return a simplified analysis
-      if (commentsToAnalyze.length === 0) {
+      if (filteredComments.length === 0) {
         console.log(
           "No comments available for analysis, returning simplified response",
         );
@@ -71,97 +74,23 @@ export class OpenAIService {
         };
       }
 
-      // Prepare comments for analysis - truncate long comments to save tokens
+      // Prioritize comments with likes and longer content for more meaningful analysis
+      const prioritizedComments = this.prioritizeComments(filteredComments, MAX_COMMENTS);
+      
       console.log(
-        `Analyzing ${commentsToAnalyze.length} comments for video ${videoData.id}`,
+        `Analyzing ${prioritizedComments.length} comments for video ${videoData.id}`,
       );
 
       // Process comments to reduce token usage
-      const MAX_COMMENT_LENGTH = 300; // Limit each comment to 300 characters
-      const processedComments = commentsToAnalyze.map((comment) => {
-        // Truncate long comments
-        const truncatedText =
-          comment.textOriginal.length > MAX_COMMENT_LENGTH
-            ? comment.textOriginal.substring(0, MAX_COMMENT_LENGTH) + "..."
-            : comment.textOriginal;
+      const processedComments = this.preprocessComments(prioritizedComments);
 
-        return `${comment.authorDisplayName}: ${truncatedText}`;
-      });
-
-      // Take only the first N comments to keep the context window smaller
-      const commentsText = processedComments.join("\n\n");
-
-      // Simplified prompt to conserve tokens
-      const prompt = `
-        Analyze these ${commentsToAnalyze.length} YouTube comments for the video "${videoData.title}" by ${videoData.channelTitle}.
-        Note: Comments from the video creator have been excluded to focus on viewer feedback only.
-        
-        COMMENTS:
-        ${commentsText}
-        
-        Create a concise analysis in this JSON format:
-        {
-          "sentimentStats": {
-            "positive": (% of positive comments, 0-100),
-            "neutral": (% of neutral comments, 0-100),
-            "negative": (% of negative comments, 0-100)
-          },
-          "keyPoints": [
-            {
-              "title": "Key point theme",
-              "content": "Brief explanation with examples"
-            },
-            ... (3 key points total)
-          ],
-          "comprehensive": "A concise 1-paragraph summary of the overall sentiment and main discussion points."
-        }
-      `;
-
-      // Make standard API call with GPT-3.5 Turbo to reduce costs
-      console.log("Sending request to OpenAI API");
-      const response = await this.openai.chat.completions.create({
-        model: MODEL, // Using GPT-3.5-Turbo to reduce costs
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        response_format: { type: "json_object" },
-        temperature: 0.3, // Lower temperature for more focused outputs
-        max_tokens: 800, // Limit the response size
-      });
-
-      const content = response.choices[0].message.content || "";
-      console.log("OpenAI response received successfully");
-
-      try {
-        const analysis = JSON.parse(content);
-
-        // Validate the response format contains our expected fields
-        if (
-          !analysis.sentimentStats ||
-          !analysis.keyPoints ||
-          !analysis.comprehensive
-        ) {
-          console.error("Invalid response format from OpenAI", content);
-          throw new Error("OpenAI returned an invalid response format");
-        }
-
-        return {
-          videoId: videoData.id,
-          sentimentStats: analysis.sentimentStats,
-          keyPoints: analysis.keyPoints,
-          comprehensive: analysis.comprehensive,
-          commentsAnalyzed: commentsToAnalyze.length,
-          createdAt: new Date().toISOString(),
-        };
-      } catch (parseError: any) {
-        console.error("Failed to parse OpenAI response:", parseError);
-        throw new Error(
-          `Failed to parse analysis: ${parseError?.message || "JSON parsing error"}`,
-        );
+      // For very small comment sets, use single API call
+      if (prioritizedComments.length <= MAX_COMMENT_BATCH_SIZE) {
+        return await this.analyzeCommentsBatch(videoData, prioritizedComments, processedComments);
       }
+      
+      // For larger comment sets, use a more efficient two-step approach
+      return await this.analyzeLargeCommentSet(videoData, prioritizedComments, processedComments);
     } catch (error: any) {
       console.error("Error generating comment analysis:", error);
 
@@ -186,5 +115,243 @@ export class OpenAIService {
 
       throw new Error(errorMessage);
     }
+  }
+
+  /**
+   * Prioritize comments that are likely to be more meaningful for analysis
+   */
+  private prioritizeComments(comments: Comment[], maxComments: number): Comment[] {
+    // First, prioritize comments with more likes (they're usually more representative)
+    // Then prioritize longer comments that have more substance
+    return [...comments]
+      .sort((a, b) => {
+        // First sort by likes
+        if (a.likeCount !== b.likeCount) {
+          return b.likeCount - a.likeCount;
+        }
+        // Then by content length for comments with the same likes
+        return b.textOriginal.length - a.textOriginal.length;
+      })
+      .slice(0, maxComments);
+  }
+
+  /**
+   * Preprocess comments to reduce token usage
+   */
+  private preprocessComments(comments: Comment[]): string[] {
+    return comments.map((comment) => {
+      // Truncate long comments
+      const truncatedText =
+        comment.textOriginal.length > MAX_COMMENT_LENGTH
+          ? comment.textOriginal.substring(0, MAX_COMMENT_LENGTH) + "..."
+          : comment.textOriginal;
+
+      // Add like count for more context (only if it has likes)
+      const likeInfo = comment.likeCount > 0 ? ` [${comment.likeCount} likes]` : '';
+      
+      return `${truncatedText}${likeInfo}`;
+    });
+  }
+
+  /**
+   * Analyze a single batch of comments
+   */
+  private async analyzeCommentsBatch(
+    videoData: VideoData,
+    commentsToAnalyze: Comment[],
+    processedComments: string[]
+  ): Promise<VideoAnalysis> {
+    // Compact format for small batches
+    const commentsText = processedComments.join("\n");
+
+    // Simplified prompt to conserve tokens
+    const prompt = `
+      Analyze these YouTube comments for the video "${videoData.title}" by ${videoData.channelTitle}.
+      
+      COMMENTS:
+      ${commentsText}
+      
+      Respond with a JSON object containing:
+      1. "sentimentStats": percentage distribution of positive, neutral, and negative comments (numbers must sum to 100)
+      2. "keyPoints": exactly 3 key discussion points, each with a title and content explanation
+      3. "comprehensive": a concise one-paragraph summary of the overall sentiment and main points
+    `;
+
+    console.log("Sending request to OpenAI API");
+    const response = await this.openai.chat.completions.create({
+      model: MODEL,
+      messages: [
+        { role: "system", content: "You analyze YouTube comments and provide concise, accurate insights. Always provide exactly 3 key points." },
+        { role: "user", content: prompt }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.2, // Lower temperature for more consistent outputs
+      max_tokens: 600, // Reduced from 800 to 600 to save tokens
+    });
+
+    const content = response.choices[0].message.content || "";
+    console.log("OpenAI response received successfully");
+
+    try {
+      const analysis = JSON.parse(content);
+
+      // Validate the response format contains our expected fields
+      if (
+        !analysis.sentimentStats ||
+        !analysis.keyPoints ||
+        !analysis.comprehensive
+      ) {
+        console.error("Invalid response format from OpenAI", content);
+        throw new Error("OpenAI returned an invalid response format");
+      }
+
+      return {
+        videoId: videoData.id,
+        sentimentStats: analysis.sentimentStats,
+        keyPoints: analysis.keyPoints,
+        comprehensive: analysis.comprehensive,
+        commentsAnalyzed: commentsToAnalyze.length,
+        createdAt: new Date().toISOString(),
+      };
+    } catch (parseError: any) {
+      console.error("Failed to parse OpenAI response:", parseError);
+      throw new Error(
+        `Failed to parse analysis: ${parseError?.message || "JSON parsing error"}`,
+      );
+    }
+  }
+
+  /**
+   * Analyze a large set of comments using a two-step approach for efficiency
+   */
+  private async analyzeLargeCommentSet(
+    videoData: VideoData,
+    allComments: Comment[],
+    processedComments: string[]
+  ): Promise<VideoAnalysis> {
+    console.log("Using two-step analysis for large comment set");
+    
+    // Step 1: Split comments into batches and analyze each batch
+    const batches: string[][] = [];
+    for (let i = 0; i < processedComments.length; i += MAX_COMMENT_BATCH_SIZE) {
+      batches.push(processedComments.slice(i, i + MAX_COMMENT_BATCH_SIZE));
+    }
+    
+    // Generate initial analyses for each batch
+    const batchPromises = batches.map(async (batchComments, index) => {
+      console.log(`Analyzing batch ${index + 1} of ${batches.length}`);
+      
+      const commentsText = batchComments.join("\n");
+      const prompt = `
+        Analyze this batch of YouTube comments for "${videoData.title}".
+        COMMENTS:
+        ${commentsText}
+        
+        Provide a JSON with:
+        1. "sentimentCounts": count of {positive, neutral, negative} comments in this batch
+        2. "keyPoints": list of key discussion points in these specific comments (1-2 sentence each)
+        3. "summary": very brief 1-sentence summary of this batch
+      `;
+      
+      const response = await this.openai.chat.completions.create({
+        model: MODEL,
+        messages: [
+          { role: "system", content: "You extract key themes and sentiment from comment batches. Be extremely concise." },
+          { role: "user", content: prompt }
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.2,
+        max_tokens: 350, // Very limited tokens for batch analysis
+      });
+      
+      return JSON.parse(response.choices[0].message.content || "{}");
+    });
+    
+    const batchResults = await Promise.all(batchPromises);
+    
+    // Step 2: Synthesize the batch analyses into a final comprehensive analysis
+    const sentimentCounts = {
+      positive: 0,
+      neutral: 0,
+      negative: 0
+    };
+    
+    // Combine all batch key points and summaries
+    const allKeyPoints: string[] = [];
+    const batchSummaries: string[] = [];
+    
+    batchResults.forEach(result => {
+      if (result.sentimentCounts) {
+        sentimentCounts.positive += result.sentimentCounts.positive || 0;
+        sentimentCounts.neutral += result.sentimentCounts.neutral || 0;
+        sentimentCounts.negative += result.sentimentCounts.negative || 0;
+      }
+      
+      if (result.keyPoints) {
+        allKeyPoints.push(...result.keyPoints);
+      }
+      
+      if (result.summary) {
+        batchSummaries.push(result.summary);
+      }
+    });
+    
+    // Calculate sentiment percentages
+    const total = sentimentCounts.positive + sentimentCounts.neutral + sentimentCounts.negative;
+    const sentimentStats = {
+      positive: Math.round((sentimentCounts.positive / total) * 100) || 0,
+      neutral: Math.round((sentimentCounts.neutral / total) * 100) || 0,
+      negative: Math.round((sentimentCounts.negative / total) * 100) || 0
+    };
+    
+    // Ensure percentages add up to 100
+    const sum = sentimentStats.positive + sentimentStats.neutral + sentimentStats.negative;
+    if (sum !== 100 && sum > 0) {
+      // Adjust the largest value to make sum 100
+      const largest = Object.entries(sentimentStats).reduce(
+        (a, b) => (a[1] > b[1] ? a : b)
+      );
+      sentimentStats[largest[0] as keyof SentimentStats] += (100 - sum);
+    }
+    
+    // Final synthesis to get top key points and comprehensive summary
+    const finalPrompt = `
+      Synthesize analyses from ${batches.length} batches of YouTube comments for "${videoData.title}".
+      
+      BATCH SUMMARIES:
+      ${batchSummaries.join("\n")}
+      
+      KEY POINT CANDIDATES:
+      ${allKeyPoints.slice(0, 15).join("\n")}
+      
+      Create a final analysis JSON with:
+      1. "keyPoints": exactly 3 most important overall key points, each with a "title" and "content"
+      2. "comprehensive": concise 1-paragraph overall summary of the comment section
+    `;
+    
+    const finalResponse = await this.openai.chat.completions.create({
+      model: MODEL,
+      messages: [
+        { 
+          role: "system", 
+          content: "You synthesize multiple analyses into a coherent final analysis. Always provide exactly 3 key points with clear titles."
+        },
+        { role: "user", content: finalPrompt }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.3,
+      max_tokens: 500,
+    });
+    
+    const finalAnalysis = JSON.parse(finalResponse.choices[0].message.content || "{}");
+    
+    return {
+      videoId: videoData.id,
+      sentimentStats: sentimentStats,
+      keyPoints: finalAnalysis.keyPoints || [],
+      comprehensive: finalAnalysis.comprehensive || "Analysis could not be completed.",
+      commentsAnalyzed: allComments.length,
+      createdAt: new Date().toISOString(),
+    };
   }
 }
