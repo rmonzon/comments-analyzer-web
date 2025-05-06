@@ -270,6 +270,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Analysis data not found" });
       }
       
+      // Increment view count asynchronously
+      storage.incrementSharedAnalysisViews(shareId).catch(err => {
+        console.error(`Error incrementing view count for shared analysis ${shareId}:`, err);
+      });
+      
       // Return both video and analysis data
       return res.json({
         shareId: shareId,
@@ -278,7 +283,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sharedBy: sharedAnalysis.userId ? {
           username: sharedAnalysis.username
         } : null,
-        createdAt: sharedAnalysis.createdAt
+        createdAt: sharedAnalysis.createdAt.toISOString()
       });
     } catch (error: any) {
       console.error("Error fetching shared analysis:", error);
@@ -321,8 +326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         shareId: generateUniqueId(),
         videoId: videoId,
         userId: req.user.id,
-        username: req.user.username,
-        createdAt: new Date()
+        username: req.user.username
       });
       
       return res.status(201).json({
@@ -382,6 +386,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error registering premium interest:", error);
       return res.status(500).json({
         message: `Failed to register interest: ${error.message || "Unknown error"}`
+      });
+    }
+  });
+  
+  // Get all shared analyses for the authenticated user
+  app.get("/api/user/shared-analyses", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      const userId = req.user.id;
+      const sharedAnalyses = await storage.getUserSharedAnalyses(userId);
+      
+      // Add shareUrl to each analysis
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      const result = sharedAnalyses.map(analysis => ({
+        ...analysis,
+        shareUrl: `${baseUrl}/shared/${analysis.shareId}`
+      }));
+      
+      return res.json(result);
+    } catch (error: any) {
+      console.error("Error fetching user's shared analyses:", error);
+      return res.status(500).json({
+        message: `Failed to fetch shared analyses: ${error.message || "Unknown error"}`
       });
     }
   });

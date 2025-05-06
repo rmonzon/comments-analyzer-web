@@ -12,6 +12,7 @@ import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import TermsOfService from "@/pages/TermsOfService";
 import About from "@/pages/About";
 import AuthPage from "@/pages/auth-page";
+import SharedAnalysis from "@/pages/SharedAnalysis";
 import "./index.css";
 
 function Router() {
@@ -22,6 +23,7 @@ function Router() {
       <Route path="/privacy" component={PrivacyPolicy} />
       <Route path="/terms" component={TermsOfService} />
       <Route path="/about" component={About} />
+      <Route path="/shared/:shareId" component={SharedAnalysis} />
       <Route component={NotFound} />
     </Switch>
   );

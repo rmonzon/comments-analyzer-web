@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { useLocation, Link } from "wouter";
+import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { VideoData, VideoAnalysis } from "@shared/types";
 import { getQueryFn } from "@/lib/queryClient";
@@ -22,16 +21,8 @@ type SharedAnalysisData = {
 
 export default function SharedAnalysis() {
   const [, setLocation] = useLocation();
-  const [shareId, setShareId] = useState<string | null>(null);
-
-  // Extract share ID from URL path
-  useEffect(() => {
-    const path = window.location.pathname;
-    const match = path.match(/\/shared\/([^\/]+)$/);
-    if (match && match[1]) {
-      setShareId(match[1]);
-    }
-  }, []);
+  const params = useParams();
+  const shareId = params.shareId;
 
   const {
     data: sharedData,
