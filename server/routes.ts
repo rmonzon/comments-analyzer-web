@@ -4,11 +4,9 @@ import { storage } from "./storage";
 import { YouTubeService } from "./services/youtube";
 import { OpenAIService } from "./services/openai";
 import { z } from "zod";
-import { setupAuth, isAuthenticated } from "./replitAuth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Set up authentication with Replit Auth
-  await setupAuth(app);
+  // Authentication has been removed for future implementation
   
   const youtubeService = new YouTubeService();
   const openaiService = new OpenAIService();
@@ -287,24 +285,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Auth routes for current user
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      
-      // Return user without sending sensitive data
-      const { id, username, email, firstName, lastName, profileImageUrl } = user;
-      res.json({ id, username, email, firstName, lastName, profileImageUrl });
-    } catch (error: any) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
+  // Auth routes have been removed for future implementation
 
   const httpServer = createServer(app);
   return httpServer;

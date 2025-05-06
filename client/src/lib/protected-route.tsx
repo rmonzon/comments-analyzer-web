@@ -1,32 +1,17 @@
-import { useAuth } from "@/hooks/useAuth";
-import { Loader2 } from "lucide-react";
-import { Route, Redirect } from "wouter";
+import { Route } from "wouter";
 
 interface ProtectedRouteProps {
   path: string;
   component: React.ComponentType;
 }
 
+// Simplified ProtectedRoute without authentication checks for now
 export function ProtectedRoute({ path, component: Component }: ProtectedRouteProps) {
-  const { user, isLoading, isAuthenticated } = useAuth();
-
-  if (isLoading) {
-    return (
-      <Route path={path}>
-        <div className="flex items-center justify-center min-h-screen">
-          <Loader2 className="h-8 w-8 animate-spin text-border" />
-        </div>
-      </Route>
-    );
-  }
-
+  // Since we've removed authentication, we'll just render the component directly
+  // This will be updated when we implement a new authentication system
   return (
     <Route path={path}>
-      {isAuthenticated ? (
-        <Component />
-      ) : (
-        <Redirect to="/" />
-      )}
+      <Component />
     </Route>
   );
 }
