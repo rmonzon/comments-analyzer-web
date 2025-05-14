@@ -9,6 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { VideoData, VideoAnalysis } from "@shared/types";
 import { queryClient } from "@/lib/queryClient";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, RefreshCw } from "lucide-react";
 
 export default function SharedAnalysis() {
   const [, setLocation] = useLocation();
@@ -77,15 +79,30 @@ export default function SharedAnalysis() {
       <Header />
       <main className="flex-grow container mx-auto px-4 py-6">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold mb-2">Shared YouTube Analysis</h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            View this saved analysis or{" "}
-            <button 
-              onClick={handleGoHome}
-              className="text-youtube-blue hover:underline"
-            >
-              create a new one
-            </button>
+          <div className="flex items-center justify-between gap-4">
+            <h1 className="text-2xl font-bold">Shared YouTube Analysis</h1>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={handleGoHome}
+                className="flex items-center gap-1"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Go Back Home
+              </Button>
+              
+              <Button 
+                variant="outline"
+                onClick={handleRefreshAnalysis}
+                className="flex items-center gap-1 text-youtube-blue border-youtube-blue hover:bg-youtube-blue/10"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Fresh Analysis
+              </Button>
+            </div>
+          </div>
+          <p className="text-gray-600 dark:text-gray-400 mt-2 mb-4">
+            Viewing a previously generated analysis. This analysis is cached and permanently available at this link.
           </p>
         </div>
 

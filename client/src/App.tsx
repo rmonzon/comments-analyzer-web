@@ -10,12 +10,14 @@ import Home from "@/pages/Home";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import TermsOfService from "@/pages/TermsOfService";
 import About from "@/pages/About";
+import SharedAnalysis from "@/pages/SharedAnalysis";
 import "./index.css";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/shared" component={SharedAnalysis} />
       <Route path="/privacy" component={PrivacyPolicy} />
       <Route path="/terms" component={TermsOfService} />
       <Route path="/about" component={About} />

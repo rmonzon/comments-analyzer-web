@@ -45,6 +45,28 @@ export default function Home() {
   const [videoId, setVideoId] = useState<string | null>(null);
   const [manualRetryMode, setManualRetryMode] = useState<boolean>(false);
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
+  
+  // Check for video ID in URL parameters (for direct analysis from links)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const analysisId = params.get('analyze');
+    
+    if (analysisId) {
+      // Clear the URL parameter without page reload
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+      
+      // Set the video ID to trigger analysis
+      setVideoId(analysisId);
+      
+      // Show notification
+      toast({
+        title: "Analysis Requested",
+        description: `Analyzing video ID: ${analysisId}`,
+      });
+    }
+  }, [toast]);
 
   const {
     data: videoData,
@@ -306,6 +328,41 @@ export default function Home() {
                   : undefined
               }
             />
+            
+            <div className="mt-8 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 max-w-4xl mx-auto">
+              <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                <Share2 className="w-5 h-5" />
+                Share this analysis
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                Create a permanent link to share this analysis with others.
+              </p>
+              <Button
+                onClick={() => {
+                  if (videoId) {
+                    // Generate a shareable URL
+                    const shareUrl = `${window.location.origin}/shared?id=${videoId}`;
+                    
+                    // Copy to clipboard
+                    navigator.clipboard.writeText(shareUrl).then(() => {
+                      toast({
+                        title: "Link copied!",
+                        description: "Share link has been copied to your clipboard.",
+                      });
+                    }).catch(() => {
+                      toast({
+                        title: "Failed to copy",
+                        description: "The share link is: " + shareUrl,
+                        variant: "destructive",
+                      });
+                    });
+                  }
+                }}
+                className="bg-youtube-blue hover:bg-blue-700 text-white"
+              >
+                Copy Share Link
+              </Button>
+            </div>
           </div>
         )}
 
