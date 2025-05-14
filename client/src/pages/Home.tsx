@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import IntroSection from "@/components/IntroSection";
@@ -10,6 +11,8 @@ import { useToast } from "@/hooks/use-toast";
 import { extractVideoId } from "@/lib/utils";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { Button } from "@/components/ui/button";
+import { Share2 } from "lucide-react";
 import {
   VideoData,
   VideoAnalysis,
