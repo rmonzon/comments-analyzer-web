@@ -46,20 +46,20 @@ export default function Home() {
   const [manualRetryMode, setManualRetryMode] = useState<boolean>(false);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
-  
+
   // Check for video ID in URL parameters (for direct analysis from links)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const analysisId = params.get('analyze');
-    
+    const analysisId = params.get("analyze");
+
     if (analysisId) {
       // Clear the URL parameter without page reload
       const newUrl = window.location.pathname;
       window.history.replaceState({}, document.title, newUrl);
-      
+
       // Set the video ID to trigger analysis
       setVideoId(analysisId);
-      
+
       // Show notification
       toast({
         title: "Analysis Requested",
@@ -329,15 +329,16 @@ export default function Home() {
               }
             />
             
-            <div className="mt-8 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 max-w-4xl mx-auto">
-              <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                <Share2 className="w-5 h-5" />
-                Share this analysis
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                Create a permanent link to share this analysis with others.
-              </p>
+            <div className="mt-6 mb-2 flex items-center justify-between max-w-4xl mx-auto bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-2">
+                <Share2 className="w-5 h-5 text-youtube-blue" />
+                <div>
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">Share this analysis</h3>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">Get a permanent link to share</p>
+                </div>
+              </div>
               <Button
+                size="sm"
                 onClick={() => {
                   if (videoId) {
                     // Generate a shareable URL
@@ -360,7 +361,7 @@ export default function Home() {
                 }}
                 className="bg-youtube-blue hover:bg-blue-700 text-white"
               >
-                Copy Share Link
+                Copy Link
               </Button>
             </div>
           </div>
