@@ -36,7 +36,7 @@ export interface IStorage {
   getAnalysis(videoId: string): Promise<VideoAnalysis | undefined>;
   createAnalysis(analysis: InsertAnalysis): Promise<Analysis>;
   updateAnalysis(videoId: string, analysis: Partial<InsertAnalysis>): Promise<Analysis | undefined>;
-  getAllAnalyzedVideos(): Promise<{videoId: string; title: string; channelTitle: string; publishedAt: string; thumbnail: string; viewCount: number; commentsAnalyzed: number; analysisDate: string}[]>;
+  getAllAnalyzedVideos(): Promise<{videoId: string; title: string; channelTitle: string; publishedAt: string; thumbnail: string | null; viewCount: number | null; commentsAnalyzed: number; analysisDate: string}[]>;
   
   // Premium interest operations
   createPremiumInterest(interest: InsertPremiumInterest): Promise<PremiumInterest>;
@@ -255,35 +255,62 @@ export class DatabaseStorage implements IStorage {
   // Get all analyzed videos with their analysis information
   async getAllAnalyzedVideos(): Promise<{videoId: string; title: string; channelTitle: string; publishedAt: string; thumbnail: string | null; viewCount: number | null; commentsAnalyzed: number; analysisDate: string}[]> {
     try {
-      if (!db) throw new Error("Database not initialized");
+      console.log("Getting all analyzed videos");
       
-      // Join analyses and videos tables to get complete information
-      const results = await db
-        .select({
-          videoId: analyses.videoId,
-          title: videos.title,
-          channelTitle: videos.channelTitle,
-          publishedAt: videos.publishedAt,
-          thumbnail: videos.thumbnail,
-          viewCount: videos.viewCount,
-          commentsAnalyzed: analyses.commentsAnalyzed,
-          analysisDate: analyses.createdAt
-        })
-        .from(analyses)
-        .innerJoin(videos, eq(analyses.videoId, videos.id))
-        .orderBy(analyses.createdAt); // Most recent analyses first
+      // For safety, we'll use a simpler approach to get all analyzed videos
+      // First get all analyses
+      const allAnalyses = await this.getAllAnalyses();
+      console.log(`Found ${allAnalyses.length} analyses`);
       
-      // Format dates for display
-      return results.map(item => ({
-        ...item,
-        publishedAt: item.publishedAt.toISOString(),
-        analysisDate: item.analysisDate.toISOString(),
-        thumbnail: item.thumbnail || null,
-        viewCount: item.viewCount || 0
+      // Then get video data for each analysis
+      const analyzedVideos = [];
+      for (const analysis of allAnalyses) {
+        try {
+          // Get the video for this analysis
+          const videoData = await this.getVideo(analysis.videoId);
+          if (videoData) {
+            analyzedVideos.push({
+              videoId: analysis.videoId,
+              title: videoData.title,
+              channelTitle: videoData.channelTitle,
+              publishedAt: videoData.publishedAt,
+              thumbnail: videoData.thumbnail || null,
+              viewCount: videoData.viewCount || null,
+              commentsAnalyzed: analysis.commentsAnalyzed,
+              analysisDate: analysis.createdAt
+            });
+          }
+        } catch (err) {
+          console.error(`Error getting video data for analysis ${analysis.videoId}:`, err);
+        }
+      }
+      
+      console.log(`Returning ${analyzedVideos.length} analyzed videos`);
+      return analyzedVideos;
+    } catch (error) {
+      console.error("Error in getAllAnalyzedVideos:", error);
+      return []; // Return empty array on error instead of throwing
+    }
+  }
+  
+  // Helper method to get all analyses
+  private async getAllAnalyses(): Promise<VideoAnalysis[]> {
+    try {
+      if (!db) return [];
+      
+      const allAnalyses = await db.select().from(analyses);
+      
+      return allAnalyses.map(analysis => ({
+        videoId: analysis.videoId,
+        sentimentStats: analysis.sentimentStats as SentimentStats,
+        keyPoints: analysis.keyPoints as KeyPoint[],
+        comprehensive: analysis.comprehensive,
+        commentsAnalyzed: analysis.commentsAnalyzed,
+        createdAt: analysis.createdAt.toISOString()
       }));
     } catch (error) {
-      console.error("Database error in getAllAnalyzedVideos:", error);
-      throw error;
+      console.error("Error in getAllAnalyses:", error);
+      return [];
     }
   }
 
