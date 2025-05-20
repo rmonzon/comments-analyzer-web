@@ -51,13 +51,17 @@ export default function AnalyzedVideosList() {
           throw new Error(`API request failed with status ${response.status}`);
         }
         
-        // Check content type to ensure we're getting JSON
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-          throw new Error('Response is not JSON');
-        }
+        // Handle the response data
+        const text = await response.text();
+        let data;
         
-        const data = await response.json();
+        try {
+          // Try to parse as JSON
+          data = JSON.parse(text);
+        } catch (e) {
+          console.error('Failed to parse response as JSON:', text);
+          throw new Error('Failed to parse server response as JSON');
+        }
         console.log('Fetched analyzed videos:', data);
         
         // If no videos were found, use an empty array
