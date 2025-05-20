@@ -36,11 +36,25 @@ export default function AnalyzedVideosList() {
         setIsLoading(true);
         setIsError(false);
         
-        // Fetch real data from our API
-        const response = await fetch('/api/youtube/analysis-history');
+        // Make sure we include credentials and proper headers
+        const response = await fetch('/api/youtube/analysis-history', {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          credentials: 'same-origin'
+        });
         
+        // Handle non-200 responses
         if (!response.ok) {
           throw new Error(`API request failed with status ${response.status}`);
+        }
+        
+        // Check content type to ensure we're getting JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('Response is not JSON');
         }
         
         const data = await response.json();
@@ -51,9 +65,6 @@ export default function AnalyzedVideosList() {
       } catch (error) {
         console.error('Error fetching analyzed videos:', error);
         setIsError(true);
-        
-        // When in development/testing, we could use mock data as fallback
-        // but for production we should show the error state
         setVideos([]);
       } finally {
         setIsLoading(false);
@@ -211,13 +222,13 @@ export default function AnalyzedVideosList() {
                           >
                             <ExternalLink className="h-5 w-5" />
                           </a>
-                          <Link 
+                          <a 
                             href={`/?videoId=${video.videoId}`}
                             className="text-blue-500 hover:text-blue-700 transition-colors"
                             title="View Analysis"
                           >
                             <Eye className="h-5 w-5" />
-                          </Link>
+                          </a>
                         </div>
                       </TableCell>
                     </TableRow>

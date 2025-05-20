@@ -58,6 +58,8 @@ export class DatabaseStorage implements IStorage {
   // Video operations
   async getVideo(id: string): Promise<VideoData | undefined> {
     try {
+      if (!db) throw new Error("Database is not initialized");
+      
       const [video] = await db.select().from(videos).where(eq(videos.id, id));
       
       if (!video) return undefined;

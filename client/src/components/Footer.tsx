@@ -22,12 +22,12 @@ export default function Footer() {
           <div>
             <ul className="flex space-x-6">
               <li>
-                <Link
+                <a
                   href="/?showHistory=true"
                   className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                 >
                   Analyzed Videos
-                </Link>
+                </a>
               </li>
               <li>
                 <Link
