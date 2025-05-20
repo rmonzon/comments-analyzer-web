@@ -29,44 +29,28 @@ export default function AnalyzedVideosList() {
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   
-  // Load videos when component mounts - use a reliable approach
+  // Load videos when component mounts - get all videos from database
   useEffect(() => {
     const fetchVideoHistory = async () => {
       try {
         setIsLoading(true);
         
-        // We know the Rick Astley video was successfully analyzed
-        const videoId = 'dQw4w9WgXcQ';
+        // Fetch all analyzed videos from our endpoint
+        const response = await fetch('/api/youtube/videos');
         
-        // Get the analysis data from our endpoint
-        const analysisResponse = await fetch(`/api/youtube/analysis?videoId=${videoId}`);
-        if (!analysisResponse.ok) {
-          throw new Error(`Failed to fetch analysis: ${analysisResponse.status}`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch video history: ${response.status}`);
         }
         
-        const analysisData = await analysisResponse.json();
-        console.log('Fetched analysis data:', analysisData);
-        
-        // For video data - use the EXACT parameter name from the server route
-        const videoResponse = await fetch(`/api/youtube/video?videoId=${videoId}`);
-        if (!videoResponse.ok) {
-          throw new Error(`Failed to fetch video: ${videoResponse.status}`);
+        // Check content type to ensure we got JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error(`Unexpected content type: ${contentType}`);
         }
         
-        const videoData = await videoResponse.json();
-        console.log('Fetched video data:', videoData);
-        
-        // Create a history record from the real data
-        const historyData = [{
-          videoId: videoId,
-          title: videoData.title || 'Rick Astley - Never Gonna Give You Up',
-          channelTitle: videoData.channelTitle || 'Rick Astley',
-          publishedAt: videoData.publishedAt || '2009-10-25T06:57:33Z',
-          thumbnail: videoData.thumbnail || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
-          viewCount: videoData.viewCount || 1234567890,
-          commentsAnalyzed: analysisData.commentsAnalyzed || 100,
-          analysisDate: analysisData.createdAt || new Date().toISOString()
-        }];
+        // Parse the JSON data
+        const historyData = await response.json();
+        console.log('Fetched all analyzed videos:', historyData);
         
         if (Array.isArray(historyData) && historyData.length > 0) {
           // Set the analyzed videos
