@@ -38,7 +38,9 @@ export function extractVideoId(url: string): string | null {
 
 // Format view count
 export function formatViewCount(count: number): string {
-  if (count >= 1000000) {
+  if (count >= 1000000000) {
+    return `${(count / 1000000000).toFixed(1)}B`;
+  } else if (count >= 1000000) {
     return `${(count / 1000000).toFixed(1)}M`;
   } else if (count >= 1000) {
     return `${(count / 1000).toFixed(1)}K`;

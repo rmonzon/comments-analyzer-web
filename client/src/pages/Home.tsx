@@ -319,19 +319,13 @@ export default function Home() {
                 className="flex items-center gap-2"
                 onClick={() => {
                   setShowHistory(false);
-                  // Update URL without causing a page reload
-                  const url = new URL(window.location.href);
-                  url.searchParams.delete('showHistory');
-                  window.history.replaceState({}, '', url);
+                  // Navigate back to the home page
+                  setLocation('/');
                 }}
               >
                 <ArrowLeft className="w-4 h-4" />
                 Back to Analyzer
               </Button>
-              <h1 className="text-3xl font-bold mt-4 mb-2">YouTube Video Analysis History</h1>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                Browse all previously analyzed YouTube videos and their summaries.
-              </p>
             </div>
             <AnalyzedVideosList />
           </>

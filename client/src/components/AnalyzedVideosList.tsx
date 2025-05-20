@@ -50,7 +50,6 @@ export default function AnalyzedVideosList() {
         
         // Parse the JSON data
         const historyData = await response.json();
-        console.log('Fetched all analyzed videos:', historyData);
         
         if (Array.isArray(historyData) && historyData.length > 0) {
           // Set the analyzed videos
@@ -123,9 +122,9 @@ export default function AnalyzedVideosList() {
     <div className="mt-8 mb-8">
       <Card className="w-full shadow-card">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold">Analyzed Videos</CardTitle>
+          <CardTitle className="text-2xl font-bold">Historical Analysis of Videos</CardTitle>
           <CardDescription>
-            A list of YouTube videos that have been analyzed by our AI.
+            A list of YouTube videos that have been analyzed by other users using our platform.
           </CardDescription>
         </CardHeader>
         
@@ -154,12 +153,12 @@ export default function AnalyzedVideosList() {
           ) : (
             <div className="overflow-x-auto">
               <Table>
-                <TableCaption>List of all analyzed YouTube videos.</TableCaption>
+                <TableCaption>List of other YouTube videos analyzed by other users</TableCaption>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[250px]">Video</TableHead>
-                    <TableHead>Channel</TableHead>
-                    <TableHead className="w-[100px]">
+                    <TableHead>Video Title</TableHead>
+                    <TableHead className="w-[200px]">Channel Name</TableHead>
+                    <TableHead className="w-[140px]">
                       <button 
                         className="flex items-center space-x-1 focus:outline-none"
                         onClick={() => handleSort('publishedAt')}
@@ -177,7 +176,7 @@ export default function AnalyzedVideosList() {
                         <ArrowUpDown className="h-4 w-4" />
                       </button>
                     </TableHead>
-                    <TableHead>
+                    <TableHead className="w-[190px]">
                       <button 
                         className="flex items-center space-x-1 focus:outline-none"
                         onClick={() => handleSort('commentsAnalyzed')}
@@ -210,7 +209,7 @@ export default function AnalyzedVideosList() {
                               className="w-full h-full object-cover"
                             />
                           </div>
-                          <span className="truncate max-w-[180px]" title={video.title}>
+                          <span className="truncate max-w-[480px]" title={video.title}>
                             {video.title}
                           </span>
                         </div>
@@ -227,14 +226,14 @@ export default function AnalyzedVideosList() {
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="text-gray-500 hover:text-gray-700 transition-colors"
-                            title="Watch on YouTube"
+                            title="Watch video on YouTube"
                           >
                             <ExternalLink className="h-5 w-5" />
                           </a>
                           <a 
                             href={`/?videoId=${video.videoId}`}
                             className="text-blue-500 hover:text-blue-700 transition-colors"
-                            title="View Analysis"
+                            title="View video analysis"
                           >
                             <Eye className="h-5 w-5" />
                           </a>
