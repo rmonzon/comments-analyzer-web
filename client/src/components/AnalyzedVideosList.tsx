@@ -36,13 +36,14 @@ export default function AnalyzedVideosList() {
         setIsLoading(true);
         setIsError(false);
         
-        // Make sure we include credentials and proper headers
+        // Use POST to avoid routing conflicts
         const response = await fetch('/api/youtube/analysis-history', {
-          method: 'GET',
+          method: 'POST',
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
           },
+          body: JSON.stringify({}),
           credentials: 'same-origin'
         });
         
