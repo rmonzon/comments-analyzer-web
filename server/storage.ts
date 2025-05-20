@@ -36,6 +36,7 @@ export interface IStorage {
   getAnalysis(videoId: string): Promise<VideoAnalysis | undefined>;
   createAnalysis(analysis: InsertAnalysis): Promise<Analysis>;
   updateAnalysis(videoId: string, analysis: Partial<InsertAnalysis>): Promise<Analysis | undefined>;
+  getAllAnalyzedVideos(): Promise<{videoId: string; title: string; channelTitle: string; publishedAt: string; thumbnail: string; viewCount: number; commentsAnalyzed: number; analysisDate: string}[]>;
   
   // Premium interest operations
   createPremiumInterest(interest: InsertPremiumInterest): Promise<PremiumInterest>;
@@ -247,6 +248,37 @@ export class DatabaseStorage implements IStorage {
       return results;
     } catch (error) {
       console.error("Database error in getPremiumInterests:", error);
+      throw error;
+    }
+  }
+  
+  // Get all analyzed videos with their analysis information
+  async getAllAnalyzedVideos(): Promise<{videoId: string; title: string; channelTitle: string; publishedAt: string; thumbnail: string; viewCount: number; commentsAnalyzed: number; analysisDate: string}[]> {
+    try {
+      // Join analyses and videos tables to get complete information
+      const results = await db
+        .select({
+          videoId: analyses.videoId,
+          title: videos.title,
+          channelTitle: videos.channelTitle,
+          publishedAt: videos.publishedAt,
+          thumbnail: videos.thumbnail,
+          viewCount: videos.viewCount,
+          commentsAnalyzed: analyses.commentsAnalyzed,
+          analysisDate: analyses.createdAt
+        })
+        .from(analyses)
+        .innerJoin(videos, eq(analyses.videoId, videos.id))
+        .orderBy(analyses.createdAt, 'desc'); // Most recent analyses first
+      
+      // Format dates for display
+      return results.map(item => ({
+        ...item,
+        publishedAt: item.publishedAt.toISOString(),
+        analysisDate: item.analysisDate.toISOString()
+      }));
+    } catch (error) {
+      console.error("Database error in getAllAnalyzedVideos:", error);
       throw error;
     }
   }
