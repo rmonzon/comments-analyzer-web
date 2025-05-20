@@ -286,7 +286,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Get all videos that have been analyzed
-  app.get("/api/videos/analyzed", async (req, res) => {
+  app.get("/api/videos-list", async (req, res) => {
     try {
       console.log("Fetching all analyzed videos");
       

@@ -31,7 +31,9 @@ export default function VideosList() {
 
   // Fetch all analyzed videos
   const { data: videos, isLoading, isError } = useQuery<AnalyzedVideo[]>({
-    queryKey: ['/api/videos/analyzed'],
+    queryKey: ['/api/videos-list'],
+    retry: 1,
+    refetchOnWindowFocus: false,
   });
 
   // Function to handle sort changes
