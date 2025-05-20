@@ -288,12 +288,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Special endpoint for the history page
-  app.get("/api/youtube/history-data", async (req, res) => {
+  // New combined endpoint for the history page
+  app.get("/api/youtube/complete-history", async (req, res) => {
     try {
-      console.log("Fetching all analyses from database");
+      console.log("Preparing complete history data");
       
-      // Get all analyses from the database
+      // Set content type header first
+      res.setHeader('Content-Type', 'application/json');
+      
+      // Connect to the database
       const db = await getDb();
       
       if (!db) {
@@ -302,19 +305,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // Get all analyses
       const analyses = await db.query.analyses.findMany({
         orderBy: (analyses, { desc }) => [desc(analyses.createdAt)]
       });
       
       console.log(`Found ${analyses.length} analyses`);
       
-      // Set proper content type header
-      res.setHeader('Content-Type', 'application/json');
-      return res.json(analyses);
+      // Create complete history entries for each analysis
+      const historyItems = [];
+      
+      // Go through each analysis and get the video data
+      for (const analysis of analyses) {
+        try {
+          // Get the video data
+          const videoId = analysis.videoId;
+          console.log(`Looking up video with id: ${videoId}`);
+          // In our database schema, the video ID is stored in videos.id
+          // But need to make sure we're querying correctly
+          const video = await db.query.videos.findFirst({
+            where: eq(videos.id, videoId)
+          });
+          
+          if (!video) {
+            console.log(`No video found with id ${videoId}, trying to get it directly`);
+            // Try to fetch the video directly if not in database
+            try {
+              const googleApiKey = process.env.YOUTUBE_API_KEY;
+              if (googleApiKey) {
+                const youtube = google.youtube({
+                  version: 'v3',
+                  auth: googleApiKey
+                });
+                
+                const videoResponse = await youtube.videos.list({
+                  part: ['snippet', 'statistics'],
+                  id: [videoId]
+                });
+                
+                if (videoResponse.data.items && videoResponse.data.items.length > 0) {
+                  const ytVideo = videoResponse.data.items[0];
+                  const snippet = ytVideo.snippet;
+                  const statistics = ytVideo.statistics;
+                  
+                  // Add this video to history even though it wasn't properly stored
+                  historyItems.push({
+                    videoId: videoId,
+                    title: snippet?.title || 'Unknown Video',
+                    channelTitle: snippet?.channelTitle || 'Unknown Channel',
+                    publishedAt: snippet?.publishedAt || new Date().toISOString(),
+                    thumbnail: snippet?.thumbnails?.default?.url || `https://i.ytimg.com/vi/${videoId}/default.jpg`,
+                    viewCount: Number(statistics?.viewCount) || 0,
+                    commentsAnalyzed: analysis.commentsAnalyzed,
+                    analysisDate: analysis.createdAt
+                  });
+                  
+                  // Skip the regular if(video) block
+                  continue;
+                }
+              }
+            } catch (fetchErr) {
+              console.error(`Error fetching video ${videoId} from YouTube:`, fetchErr);
+            }
+          }
+          
+          if (video) {
+            // Create a complete history item with both video and analysis data
+            historyItems.push({
+              videoId: videoId,
+              title: video.title,
+              channelTitle: video.channelTitle,
+              publishedAt: video.publishedAt,
+              thumbnail: video.thumbnail,
+              viewCount: video.viewCount,
+              commentsAnalyzed: analysis.commentsAnalyzed,
+              analysisDate: analysis.createdAt
+            });
+          }
+        } catch (err) {
+          console.error(`Error processing video ${analysis.videoId}:`, err);
+        }
+      }
+      
+      // Return the complete history data
+      return res.json(historyItems);
     } catch (error: any) {
-      console.error("Error fetching analyses:", error);
+      console.error("Error fetching complete history:", error);
       return res.status(500).json({
-        message: `Failed to fetch analyses: ${error.message || "Unknown error"}`
+        message: `Failed to fetch history: ${error.message || "Unknown error"}`
       });
     }
   });
