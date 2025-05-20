@@ -4,6 +4,9 @@ import { storage } from "./storage";
 import { YouTubeService } from "./services/youtube";
 import { OpenAIService } from "./services/openai";
 import { z } from "zod";
+import { db } from "./db";
+import { analyses, videos } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication has been removed for future implementation
@@ -285,13 +288,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Get all videos that have been analyzed (using POST to avoid routing issues)
-  app.post("/api/youtube/analysis-history", async (req, res) => {
+  // Get all videos that have been analyzed (using GET method for better RESTful design)
+  app.get("/api/youtube/analysis-history", async (req, res) => {
     try {
       console.log("Fetching all analyzed videos");
       
+      // Use the storage interface instead of direct DB access
       const analyzedVideos = await storage.getAllAnalyzedVideos();
-      
       console.log(`Found ${analyzedVideos.length} analyzed videos`);
       
       return res.json(analyzedVideos);

@@ -31,78 +31,36 @@ export default function AnalyzedVideosList() {
   
   // Load videos when component mounts
   useEffect(() => {
-    // Since we're having issues with the API endpoint, 
-    // we'll use mock data directly for now
-    const loadVideos = () => {
+    const fetchVideos = async () => {
       try {
         setIsLoading(true);
         setIsError(false);
         
-        // Mock data for demonstration purposes
-        const mockData: AnalyzedVideo[] = [
-          {
-            videoId: 'dQw4w9WgXcQ',
-            title: 'Rick Astley - Never Gonna Give You Up (Official Music Video)',
-            channelTitle: 'Rick Astley',
-            publishedAt: '2009-10-25T06:57:33Z',
-            thumbnail: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg',
-            viewCount: 1250000000,
-            commentsAnalyzed: 100,
-            analysisDate: '2023-05-15T14:30:00Z'
-          },
-          {
-            videoId: '9bZkp7q19f0',
-            title: 'PSY - GANGNAM STYLE(강남스타일) M/V',
-            channelTitle: 'officialpsy',
-            publishedAt: '2012-07-15T07:46:32Z',
-            thumbnail: 'https://i.ytimg.com/vi/9bZkp7q19f0/hqdefault.jpg',
-            viewCount: 4750000000,
-            commentsAnalyzed: 200,
-            analysisDate: '2023-06-20T10:15:00Z'
-          },
-          {
-            videoId: 'kJQP7kiw5Fk',
-            title: 'Luis Fonsi - Despacito ft. Daddy Yankee',
-            channelTitle: 'Luis Fonsi',
-            publishedAt: '2017-01-12T15:23:41Z',
-            thumbnail: 'https://i.ytimg.com/vi/kJQP7kiw5Fk/hqdefault.jpg',
-            viewCount: 8020000000,
-            commentsAnalyzed: 150,
-            analysisDate: '2023-04-10T08:45:00Z'
-          },
-          {
-            videoId: 'JGwWNGJdvx8',
-            title: 'Ed Sheeran - Shape of You (Official Music Video)',
-            channelTitle: 'Ed Sheeran',
-            publishedAt: '2017-01-30T05:00:02Z',
-            thumbnail: 'https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg',
-            viewCount: 5830000000,
-            commentsAnalyzed: 175,
-            analysisDate: '2023-07-05T11:20:00Z'
-          },
-          {
-            videoId: 'fJ9rUzIMcZQ',
-            title: 'Queen - Bohemian Rhapsody (Official Video Remastered)',
-            channelTitle: 'Queen Official',
-            publishedAt: '2008-08-01T11:06:40Z',
-            thumbnail: 'https://i.ytimg.com/vi/fJ9rUzIMcZQ/hqdefault.jpg',
-            viewCount: 1650000000,
-            commentsAnalyzed: 220,
-            analysisDate: '2023-08-12T09:45:00Z'
-          }
-        ];
+        // Fetch real data from our API
+        const response = await fetch('/api/youtube/analysis-history');
         
-        setVideos(mockData);
-        setIsLoading(false);
+        if (!response.ok) {
+          throw new Error(`API request failed with status ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Fetched analyzed videos:', data);
+        
+        // If no videos were found, use an empty array
+        setVideos(data || []);
       } catch (error) {
-        console.error('Error loading video data:', error);
+        console.error('Error fetching analyzed videos:', error);
         setIsError(true);
+        
+        // When in development/testing, we could use mock data as fallback
+        // but for production we should show the error state
+        setVideos([]);
+      } finally {
         setIsLoading(false);
       }
     };
     
-    // Artificial delay to simulate loading
-    setTimeout(loadVideos, 600);
+    fetchVideos();
   }, []);
 
   // Function to handle sort changes
@@ -163,7 +121,15 @@ export default function AnalyzedVideosList() {
           ) : sortedVideos.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <p>No videos have been analyzed yet.</p>
-              <Button className="mt-4">Analyze Your First Video</Button>
+              <Button 
+                className="mt-4"
+                onClick={() => {
+                  // Go back to home page
+                  window.location.href = '/';
+                }}
+              >
+                Analyze Your First Video
+              </Button>
             </div>
           ) : (
             <div className="overflow-x-auto">
