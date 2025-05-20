@@ -48,7 +48,7 @@ export default function SummaryContent({ analysis }: SummaryContentProps) {
   };
 
   return (
-    <div className="p-6 animate-fade-in">
+    <div className="animate-fade-in">
       {/* Overall Sentiment */}
       <div className="mb-8 animate-fade-in">
         <h3 className="font-medium mb-3 dark:text-white">Overall Sentiment</h3>

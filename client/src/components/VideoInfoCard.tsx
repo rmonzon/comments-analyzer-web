@@ -11,7 +11,7 @@ export default function VideoInfoCard({
   commentsAnalyzed,
 }: VideoInfoCardProps) {
   return (
-    <div className="bg-white rounded-lg shadow-card p-6 mb-6 animate-fade-in">
+    <div className="bg-white rounded-lg shadow-card mb-6 animate-fade-in">
       <div className="flex flex-col md:flex-row gap-4">
         <div className="md:w-1/3">
           <div className="aspect-video bg-youtube-light-grey rounded-lg overflow-hidden">

@@ -295,7 +295,7 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col font-roboto bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-200">
       <Header />
-      <main className="flex-grow container mx-auto px-4 py-6">
+      <main className="flex-grow container mx-auto px-4">
         <IntroSection />
         <URLInputForm onSubmit={handleSubmit} />
 
@@ -311,6 +311,49 @@ export default function Home() {
 
         {videoData && currentAnalysisData && !isLoading && !isError && (
           <div>
+            <div className="mb-6 flex items-center justify-between max-w-4xl mx-auto bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-2">
+                <Share2 className="w-5 h-5 text-youtube-blue" />
+                <div>
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                    Share this analysis
+                  </h3>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    Get a permanent link to share
+                  </p>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                onClick={() => {
+                  if (videoId) {
+                    // Generate a shareable URL
+                    const shareUrl = `${window.location.origin}/shared?id=${videoId}`;
+
+                    // Copy to clipboard
+                    navigator.clipboard
+                      .writeText(shareUrl)
+                      .then(() => {
+                        toast({
+                          title: "Link copied!",
+                          description:
+                            "Share link has been copied to your clipboard.",
+                        });
+                      })
+                      .catch(() => {
+                        toast({
+                          title: "Failed to copy",
+                          description: "The share link is: " + shareUrl,
+                          variant: "destructive",
+                        });
+                      });
+                  }
+                }}
+                className="bg-youtube-blue hover:bg-blue-700 text-white"
+              >
+                Copy Link
+              </Button>
+            </div>
             <ResultsSection
               videoData={videoData}
               analysisData={currentAnalysisData}
@@ -328,57 +371,8 @@ export default function Home() {
                   : undefined
               }
             />
-            
-            <div className="mt-6 mb-2 flex items-center justify-between max-w-4xl mx-auto bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
-              <div className="flex items-center gap-2">
-                <Share2 className="w-5 h-5 text-youtube-blue" />
-                <div>
-                  <h3 className="font-medium text-gray-900 dark:text-gray-100">Share this analysis</h3>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">Get a permanent link to share</p>
-                </div>
-              </div>
-              <Button
-                size="sm"
-                onClick={() => {
-                  if (videoId) {
-                    // Generate a shareable URL
-                    const shareUrl = `${window.location.origin}/shared?id=${videoId}`;
-                    
-                    // Copy to clipboard
-                    navigator.clipboard.writeText(shareUrl).then(() => {
-                      toast({
-                        title: "Link copied!",
-                        description: "Share link has been copied to your clipboard.",
-                      });
-                    }).catch(() => {
-                      toast({
-                        title: "Failed to copy",
-                        description: "The share link is: " + shareUrl,
-                        variant: "destructive",
-                      });
-                    });
-                  }
-                }}
-                className="bg-youtube-blue hover:bg-blue-700 text-white"
-              >
-                Copy Link
-              </Button>
-            </div>
           </div>
         )}
-
-        {/* Debug UI */}
-        {/* <div className="mt-8 p-4 border border-gray-200 rounded-md bg-gray-50 text-xs">
-          <h3 className="font-bold">Debug Info:</h3>
-          <div>Video ID: {videoId || 'none'}</div>
-          <div>Has Video Data: {videoData ? 'Yes' : 'No'}</div>
-          <div>Has Analysis Data: {currentAnalysisData ? 'Yes' : 'No'}</div>
-          <div>Is Cached Analysis: {isCachedAnalysis ? 'Yes' : 'No'}</div>
-          <div>Is Refreshing: {isRefreshing ? 'Yes' : 'No'}</div>
-          <div>Is Loading: {isLoading ? 'Yes' : 'No'}</div>
-          <div>Is Error: {isError ? 'Yes' : 'No'}</div>
-          <div>Should Render Results: {Boolean(videoData && currentAnalysisData && !isLoading && !isError) ? 'Yes' : 'No'}</div>
-        </div> */}
       </main>
       <Footer />
     </div>

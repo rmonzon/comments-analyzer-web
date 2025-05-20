@@ -40,7 +40,7 @@ export default function URLInputForm({ onSubmit }: URLInputFormProps) {
   };
 
   return (
-    <section className="mb-8">
+    <section className="mb-6">
       <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6 max-w-4xl mx-auto">
         <h2 className="text-xl font-medium mb-4 font-roboto dark:text-white">Enter YouTube Video URL</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
