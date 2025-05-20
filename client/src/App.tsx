@@ -21,6 +21,7 @@ function Router() {
       <Route path="/privacy" component={PrivacyPolicy} />
       <Route path="/terms" component={TermsOfService} />
       <Route path="/about" component={About} />
+      <Route path="/history" component={Home} />
       <Route component={NotFound} />
     </Switch>
   );

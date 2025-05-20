@@ -49,56 +49,39 @@ export default function Home() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
-  // Handle URL parameters on page load and navigation
+  // Handle URL parameters and current route
   useEffect(() => {
-    const handleUrlParams = () => {
-      const params = new URLSearchParams(window.location.search);
-      const analysisId = params.get("analyze");
-      const videoIdParam = params.get("videoId");
-      const showHistoryParam = params.get("showHistory");
-
-      // Handle different URL parameters
-      if (analysisId) {
-        // Clear the URL parameter without page reload
-        const newUrl = window.location.pathname;
-        window.history.replaceState({}, document.title, newUrl);
-
-        // Set the video ID to trigger analysis
-        setVideoId(analysisId);
-        setShowHistory(false);
-
-        // Show notification
-        toast({
-          title: "Analysis Requested",
-          description: `Analyzing video ID: ${analysisId}`,
-        });
-      } else if (videoIdParam) {
-        // Set the video ID but don't clear the URL
-        setVideoId(videoIdParam);
-        setShowHistory(false);
-      }
+    // Check if we're on the history page
+    const isHistoryPage = window.location.pathname === "/history";
+    if (isHistoryPage) {
+      setShowHistory(true);
+      setVideoId(null);
+      return;
+    }
+    
+    // Handle regular URL parameters
+    const params = new URLSearchParams(window.location.search);
+    const analysisId = params.get("analyze");
+    const videoIdParam = params.get("videoId");
+    
+    if (analysisId) {
+      // Clear the URL parameter without page reload
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
       
-      // Handle history view parameter
-      if (showHistoryParam === "true") {
-        setShowHistory(true);
-        // Only clear video ID if we're showing history
-        setVideoId(null);
-      } else if (showHistoryParam === "false") {
-        setShowHistory(false);
-      }
-    };
-
-    // Initial handling of URL parameters
-    handleUrlParams();
-
-    // Set up listener for back/forward navigation
-    window.addEventListener('popstate', handleUrlParams);
-
-    // Clean up
-    return () => {
-      window.removeEventListener('popstate', handleUrlParams);
-    };
-  }, [toast]);
+      // Set the video ID to trigger analysis
+      setVideoId(analysisId);
+      
+      // Show notification
+      toast({
+        title: "Analysis Requested",
+        description: `Analyzing video ID: ${analysisId}`,
+      });
+    } else if (videoIdParam) {
+      // Set the video ID but don't clear the URL
+      setVideoId(videoIdParam);
+    }
+  }, [toast, window.location.pathname, window.location.search]);
 
   const {
     data: videoData,
