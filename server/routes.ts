@@ -288,6 +288,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get all analyses from the database
+  app.get("/api/youtube/analyses", async (req, res) => {
+    try {
+      console.log("Fetching all analyses from database");
+      
+      // Get all analyses from the database
+      const db = await getDb();
+      
+      if (!db) {
+        return res.status(500).json({
+          message: "Database connection failed"
+        });
+      }
+      
+      const analyses = await db.query.analyses.findMany({
+        orderBy: (analyses, { desc }) => [desc(analyses.createdAt)]
+      });
+      
+      console.log(`Found ${analyses.length} analyses`);
+      
+      // Set proper content type header
+      res.setHeader('Content-Type', 'application/json');
+      return res.json(analyses);
+    } catch (error: any) {
+      console.error("Error fetching analyses:", error);
+      return res.status(500).json({
+        message: `Failed to fetch analyses: ${error.message || "Unknown error"}`
+      });
+    }
+  });
+  
   // Get all videos that have been analyzed
   app.get("/api/youtube/videos", async (req, res) => {
     try {
