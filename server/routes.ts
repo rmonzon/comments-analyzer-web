@@ -288,8 +288,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Get all analyses from the database
-  app.get("/api/youtube/analyses", async (req, res) => {
+  // Special endpoint for the history page
+  app.get("/api/youtube/history-data", async (req, res) => {
     try {
       console.log("Fetching all analyses from database");
       

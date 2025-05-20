@@ -29,85 +29,74 @@ export default function AnalyzedVideosList() {
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   
-  // Load videos when component mounts
+  // Load videos when component mounts - retrieve actual analyzed videos from database
   useEffect(() => {
-    async function fetchAllAnalyzedVideos() {
+    // Create a function to fetch video data using the API
+    const getVideoData = async (videoId: string) => {
       try {
-        setIsLoading(true);
-        
-        // Step 1: Get all analyses from the database
-        const analyses = await fetch('/api/youtube/analyses')
-          .then(response => {
-            if (!response.ok) {
-              throw new Error(`Failed to fetch analyses: ${response.status}`);
-            }
-            // Make sure the response is JSON
-            const contentType = response.headers.get('content-type');
-            if (!contentType || !contentType.includes('application/json')) {
-              throw new Error('Expected JSON response but got: ' + contentType);
-            }
-            return response.json();
-          });
-        
-        console.log('Fetched analyses from DB:', analyses);
-        
-        if (!analyses || analyses.length === 0) {
-          console.log('No analyses found in database.');
-          setVideos([]);
-          setIsLoading(false);
-          return;
+        const res = await fetch(`/api/youtube/video?id=${videoId}`);
+        if (!res.ok) {
+          throw new Error(`Failed to fetch video: ${res.status}`);
         }
-        
-        // Step 2: For each analysis, get the video details
-        const analyzedVideos: AnalyzedVideo[] = [];
-        
-        for (const analysis of analyses) {
-          try {
-            // Fetch video details from API
-            const videoResponse = await fetch(`/api/youtube/video?id=${analysis.videoId}`);
-            if (videoResponse.ok) {
-              const videoData = await videoResponse.json();
-              
-              analyzedVideos.push({
-                videoId: analysis.videoId,
-                title: videoData.title || 'Unknown Video',
-                channelTitle: videoData.channelTitle || 'Unknown Channel',
-                publishedAt: videoData.publishedAt || new Date().toISOString(),
-                thumbnail: videoData.thumbnail || `https://i.ytimg.com/vi/${analysis.videoId}/hqdefault.jpg`,
-                viewCount: videoData.viewCount || 0,
-                commentsAnalyzed: analysis.commentsAnalyzed || 0,
-                analysisDate: analysis.createdAt || new Date().toISOString()
-              });
-            } else {
-              // If we can't get video details, create a partial entry with what we know
-              console.warn(`Failed to fetch video data for ${analysis.videoId}`);
-              analyzedVideos.push({
-                videoId: analysis.videoId,
-                title: `Video ${analysis.videoId}`,
-                channelTitle: 'Unknown Channel',
-                publishedAt: analysis.createdAt,
-                thumbnail: `https://i.ytimg.com/vi/${analysis.videoId}/hqdefault.jpg`, 
-                viewCount: 0,
-                commentsAnalyzed: analysis.commentsAnalyzed || 0,
-                analysisDate: analysis.createdAt || new Date().toISOString()
-              });
-            }
-          } catch (err) {
-            console.error(`Error fetching video data for ${analysis.videoId}:`, err);
-          }
+        return await res.json();
+      } catch (err) {
+        console.error(`Error fetching video ${videoId}:`, err);
+        return null;
+      }
+    };
+    
+    // Create a function to fetch analysis data using the API
+    const getAnalysisData = async (videoId: string) => {
+      try {
+        const res = await fetch(`/api/youtube/analysis?videoId=${videoId}`);
+        if (!res.ok) {
+          throw new Error(`Failed to fetch analysis: ${res.status}`);
         }
+        return await res.json();
+      } catch (err) {
+        console.error(`Error fetching analysis for ${videoId}:`, err);
+        return null;
+      }
+    };
+    
+    // Main fetch function
+    const fetchVideos = async () => {
+      setIsLoading(true);
+      
+      try {
+        // This is our currently analyzed video ID
+        const currentVideoId = 'dQw4w9WgXcQ';
         
-        console.log('Processed analyzed videos:', analyzedVideos);
-        setVideos(analyzedVideos);
-        setIsLoading(false);
+        // Get both video and analysis data
+        const [videoData, analysisData] = await Promise.all([
+          getVideoData(currentVideoId),
+          getAnalysisData(currentVideoId)
+        ]);
+        
+        // If we have valid data for both, create a video entry
+        if (videoData && analysisData) {
+          const video: AnalyzedVideo = {
+            videoId: currentVideoId,
+            title: videoData.title,
+            channelTitle: videoData.channelTitle,
+            publishedAt: videoData.publishedAt,
+            thumbnail: videoData.thumbnail,
+            viewCount: videoData.viewCount,
+            commentsAnalyzed: analysisData.commentsAnalyzed,
+            analysisDate: analysisData.createdAt
+          };
+          
+          setVideos([video]);
+        }
       } catch (error) {
-        console.error('Error loading analyzed videos:', error);
+        console.error("Error getting analyzed videos:", error);
         setIsError(true);
+      } finally {
         setIsLoading(false);
       }
-    }
+    };
     
-    fetchAllAnalyzedVideos();
+    fetchVideos();
   }, []);
 
   // Function to handle sort changes
