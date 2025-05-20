@@ -31,34 +31,83 @@ export default function AnalyzedVideosList() {
   
   // Load videos when component mounts
   useEffect(() => {
-    // This implementation uses hardcoded data for the Rick Astley video we just analyzed
-    // In a real production app, we would make this fetch from the API more reliable
-    async function loadVideoHistory() {
+    async function fetchAllAnalyzedVideos() {
       try {
         setIsLoading(true);
         
-        // This is the specific video we analyzed earlier
-        const rickAstleyVideo: AnalyzedVideo = {
-          videoId: 'dQw4w9WgXcQ',
-          title: 'Rick Astley - Never Gonna Give You Up (Official Music Video)',
-          channelTitle: 'Rick Astley',
-          publishedAt: '2009-10-25T06:57:33Z',
-          thumbnail: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg',
-          viewCount: 1250000000,
-          commentsAnalyzed: 100,
-          analysisDate: new Date().toISOString()
-        };
+        // Step 1: Get all analyses from the database
+        const analyses = await fetch('/api/youtube/analyses')
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`Failed to fetch analyses: ${response.status}`);
+            }
+            // Make sure the response is JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+              throw new Error('Expected JSON response but got: ' + contentType);
+            }
+            return response.json();
+          });
         
-        setVideos([rickAstleyVideo]);
+        console.log('Fetched analyses from DB:', analyses);
+        
+        if (!analyses || analyses.length === 0) {
+          console.log('No analyses found in database.');
+          setVideos([]);
+          setIsLoading(false);
+          return;
+        }
+        
+        // Step 2: For each analysis, get the video details
+        const analyzedVideos: AnalyzedVideo[] = [];
+        
+        for (const analysis of analyses) {
+          try {
+            // Fetch video details from API
+            const videoResponse = await fetch(`/api/youtube/video?id=${analysis.videoId}`);
+            if (videoResponse.ok) {
+              const videoData = await videoResponse.json();
+              
+              analyzedVideos.push({
+                videoId: analysis.videoId,
+                title: videoData.title || 'Unknown Video',
+                channelTitle: videoData.channelTitle || 'Unknown Channel',
+                publishedAt: videoData.publishedAt || new Date().toISOString(),
+                thumbnail: videoData.thumbnail || `https://i.ytimg.com/vi/${analysis.videoId}/hqdefault.jpg`,
+                viewCount: videoData.viewCount || 0,
+                commentsAnalyzed: analysis.commentsAnalyzed || 0,
+                analysisDate: analysis.createdAt || new Date().toISOString()
+              });
+            } else {
+              // If we can't get video details, create a partial entry with what we know
+              console.warn(`Failed to fetch video data for ${analysis.videoId}`);
+              analyzedVideos.push({
+                videoId: analysis.videoId,
+                title: `Video ${analysis.videoId}`,
+                channelTitle: 'Unknown Channel',
+                publishedAt: analysis.createdAt,
+                thumbnail: `https://i.ytimg.com/vi/${analysis.videoId}/hqdefault.jpg`, 
+                viewCount: 0,
+                commentsAnalyzed: analysis.commentsAnalyzed || 0,
+                analysisDate: analysis.createdAt || new Date().toISOString()
+              });
+            }
+          } catch (err) {
+            console.error(`Error fetching video data for ${analysis.videoId}:`, err);
+          }
+        }
+        
+        console.log('Processed analyzed videos:', analyzedVideos);
+        setVideos(analyzedVideos);
         setIsLoading(false);
       } catch (error) {
-        console.error('Error:', error);
+        console.error('Error loading analyzed videos:', error);
         setIsError(true);
         setIsLoading(false);
       }
     }
     
-    loadVideoHistory();
+    fetchAllAnalyzedVideos();
   }, []);
 
   // Function to handle sort changes
