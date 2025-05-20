@@ -7,12 +7,13 @@ import URLInputForm from "@/components/URLInputForm";
 import ResultsSection from "@/components/ResultsSection";
 import LoadingState from "@/components/LoadingState";
 import ErrorState from "@/components/ErrorState";
+import AnalyzedVideosList from "@/components/AnalyzedVideosList";
 import { useToast } from "@/hooks/use-toast";
 import { extractVideoId } from "@/lib/utils";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
-import { Share2 } from "lucide-react";
+import { Share2, ArrowLeft } from "lucide-react";
 import {
   VideoData,
   VideoAnalysis,
@@ -44,13 +45,16 @@ export default function Home() {
   const [url, setUrl] = useState<string>("");
   const [videoId, setVideoId] = useState<string | null>(null);
   const [manualRetryMode, setManualRetryMode] = useState<boolean>(false);
+  const [showHistory, setShowHistory] = useState<boolean>(false);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
-  // Check for video ID in URL parameters (for direct analysis from links)
+  // Check for URL parameters (videoId for direct analysis or showHistory to display videos list)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const analysisId = params.get("analyze");
+    const videoIdParam = params.get("videoId");
+    const showHistoryParam = params.get("showHistory");
 
     if (analysisId) {
       // Clear the URL parameter without page reload
@@ -65,6 +69,13 @@ export default function Home() {
         title: "Analysis Requested",
         description: `Analyzing video ID: ${analysisId}`,
       });
+    } else if (videoIdParam) {
+      // Set the video ID but don't clear the URL
+      setVideoId(videoIdParam);
+    }
+    
+    if (showHistoryParam === "true") {
+      setShowHistory(true);
     }
   }, [toast]);
 
@@ -296,82 +307,110 @@ export default function Home() {
     <div className="min-h-screen flex flex-col font-roboto bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-200">
       <Header />
       <main className="flex-grow container mx-auto px-4">
-        <IntroSection />
-        <URLInputForm onSubmit={handleSubmit} />
-
-        {isLoading && (
-          <LoadingState
-            progress={generateSummaryMutation.isPending ? 70 : 30}
-          />
-        )}
-
-        {isError && !isLoading && (
-          <ErrorState errorMessage={errorMessage} onTryAgain={handleTryAgain} />
-        )}
-
-        {videoData && currentAnalysisData && !isLoading && !isError && (
-          <div>
-            <div className="mb-6 flex items-center justify-between max-w-4xl mx-auto bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
-              <div className="flex items-center gap-2">
-                <Share2 className="w-5 h-5 text-youtube-blue" />
-                <div>
-                  <h3 className="font-medium text-gray-900 dark:text-gray-100">
-                    Share this analysis
-                  </h3>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                    Get a permanent link to share
-                  </p>
-                </div>
-              </div>
-              <Button
-                size="sm"
+        {showHistory ? (
+          <>
+            <div className="pt-8 pb-4">
+              <Button 
+                variant="outline" 
+                className="flex items-center gap-2"
                 onClick={() => {
-                  if (videoId) {
-                    // Generate a shareable URL
-                    const shareUrl = `${window.location.origin}/shared?id=${videoId}`;
-
-                    // Copy to clipboard
-                    navigator.clipboard
-                      .writeText(shareUrl)
-                      .then(() => {
-                        toast({
-                          title: "Link copied!",
-                          description:
-                            "Share link has been copied to your clipboard.",
-                        });
-                      })
-                      .catch(() => {
-                        toast({
-                          title: "Failed to copy",
-                          description: "The share link is: " + shareUrl,
-                          variant: "destructive",
-                        });
-                      });
-                  }
+                  setShowHistory(false);
+                  // Update URL without causing a page reload
+                  const url = new URL(window.location.href);
+                  url.searchParams.delete('showHistory');
+                  window.history.replaceState({}, '', url);
                 }}
-                className="bg-youtube-blue hover:bg-blue-700 text-white"
               >
-                Copy Link
+                <ArrowLeft className="w-4 h-4" />
+                Back to Analyzer
               </Button>
+              <h1 className="text-3xl font-bold mt-4 mb-2">YouTube Video Analysis History</h1>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                Browse all previously analyzed YouTube videos and their summaries.
+              </p>
             </div>
-            <ResultsSection
-              videoData={videoData}
-              analysisData={currentAnalysisData}
-              isCachedAnalysis={isCachedAnalysis}
-              isRefreshing={isRefreshing}
-              onRefreshAnalysis={
-                videoId
-                  ? () => {
-                      // Force a refresh of the analysis
-                      generateSummaryMutation.mutate({
-                        videoId,
-                        forceRefresh: true,
-                      });
-                    }
-                  : undefined
-              }
-            />
-          </div>
+            <AnalyzedVideosList />
+          </>
+        ) : (
+          <>
+            <IntroSection />
+            <URLInputForm onSubmit={handleSubmit} />
+
+            {isLoading && (
+              <LoadingState
+                progress={generateSummaryMutation.isPending ? 70 : 30}
+              />
+            )}
+
+            {isError && !isLoading && (
+              <ErrorState errorMessage={errorMessage} onTryAgain={handleTryAgain} />
+            )}
+
+            {videoData && currentAnalysisData && !isLoading && !isError && (
+              <div>
+                <div className="mb-6 flex items-center justify-between max-w-4xl mx-auto bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center gap-2">
+                    <Share2 className="w-5 h-5 text-youtube-blue" />
+                    <div>
+                      <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                        Share this analysis
+                      </h3>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">
+                        Get a permanent link to share
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      if (videoId) {
+                        // Generate a shareable URL
+                        const shareUrl = `${window.location.origin}/shared?id=${videoId}`;
+
+                        // Copy to clipboard
+                        navigator.clipboard
+                          .writeText(shareUrl)
+                          .then(() => {
+                            toast({
+                              title: "Link copied!",
+                              description:
+                                "Share link has been copied to your clipboard.",
+                            });
+                          })
+                          .catch(() => {
+                            toast({
+                              title: "Failed to copy",
+                              description: "The share link is: " + shareUrl,
+                              variant: "destructive",
+                            });
+                          });
+                      }
+                    }}
+                    className="bg-youtube-blue hover:bg-blue-700 text-white"
+                  >
+                    Copy Link
+                  </Button>
+                </div>
+                <ResultsSection
+                  videoData={videoData}
+                  analysisData={currentAnalysisData}
+                  isCachedAnalysis={isCachedAnalysis}
+                  isRefreshing={isRefreshing}
+                  onRefreshAnalysis={
+                    videoId
+                      ? () => {
+                          // Force a refresh of the analysis
+                          generateSummaryMutation.mutate({
+                            videoId,
+                            forceRefresh: true,
+                          });
+                        }
+                      : undefined
+                  }
+                />
+              </div>
+            )}
+          </>
         )}
       </main>
       <Footer />
