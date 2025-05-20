@@ -264,33 +264,57 @@ export class DatabaseStorage implements IStorage {
         return [];
       }
       
-      // Create a simple dataset of analyzed videos for testing
-      // In production, this would be replaced with a proper database query
-      const sampleVideos = [
-        {
-          videoId: "dQw4w9WgXcQ",
-          title: "Rick Astley - Never Gonna Give You Up",
-          channelTitle: "Rick Astley",
-          publishedAt: new Date().toISOString(),
-          thumbnail: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
-          viewCount: 1234567,
-          commentsAnalyzed: 100,
-          analysisDate: new Date().toISOString()
-        },
-        {
-          videoId: "9bZkp7q19f0",
-          title: "PSY - GANGNAM STYLE",
-          channelTitle: "officialpsy",
-          publishedAt: new Date().toISOString(),
-          thumbnail: "https://i.ytimg.com/vi/9bZkp7q19f0/hqdefault.jpg",
-          viewCount: 4567890,
-          commentsAnalyzed: 150,
-          analysisDate: new Date().toISOString()
-        }
-      ];
+      // First, get all analyses to find which videos have been analyzed
+      const allAnalyses = await db
+        .select({
+          videoId: analyses.videoId,
+          commentsAnalyzed: analyses.commentsAnalyzed,
+          analysisDate: analyses.createdAt
+        })
+        .from(analyses);
       
-      console.log("Returning sample data for development purposes");
-      return sampleVideos;
+      console.log(`Found ${allAnalyses.length} analyses in database`);
+      
+      if (allAnalyses.length === 0) {
+        return [];
+      }
+      
+      // Now get all videos that have been analyzed
+      const result = [];
+      
+      for (const analysis of allAnalyses) {
+        // Get the video data for each analyzed video
+        const videoData = await db
+          .select({
+            id: videos.id,
+            title: videos.title,
+            channelTitle: videos.channelTitle,
+            publishedAt: videos.publishedAt,
+            thumbnail: videos.thumbnail,
+            viewCount: videos.viewCount
+          })
+          .from(videos)
+          .where(eq(videos.id, analysis.videoId))
+          .limit(1);
+          
+        if (videoData.length > 0) {
+          const video = videoData[0];
+          
+          result.push({
+            videoId: video.id,
+            title: video.title,
+            channelTitle: video.channelTitle,
+            publishedAt: video.publishedAt.toISOString(),
+            thumbnail: video.thumbnail,
+            viewCount: video.viewCount,
+            commentsAnalyzed: analysis.commentsAnalyzed,
+            analysisDate: analysis.analysisDate.toISOString()
+          });
+        }
+      }
+      
+      console.log(`Returning ${result.length} actual videos from database`);
+      return result;
     } catch (error) {
       console.error("Error in getAllAnalyzedVideos:", error);
       return []; // Return empty array on error instead of throwing
