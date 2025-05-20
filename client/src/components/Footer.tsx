@@ -23,6 +23,14 @@ export default function Footer() {
             <ul className="flex space-x-6">
               <li>
                 <Link
+                  href="/videos"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                >
+                  Analyzed Videos
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/privacy"
                   className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                 >

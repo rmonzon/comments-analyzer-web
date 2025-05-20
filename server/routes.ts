@@ -284,6 +284,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  
+  // Get all videos that have been analyzed
+  app.get("/api/videos/analyzed", async (req, res) => {
+    try {
+      console.log("Fetching all analyzed videos");
+      
+      const analyzedVideos = await storage.getAllAnalyzedVideos();
+      
+      console.log(`Found ${analyzedVideos.length} analyzed videos`);
+      
+      return res.json(analyzedVideos);
+    } catch (error: any) {
+      console.error("Error fetching analyzed videos:", error);
+      return res.status(500).json({
+        message: `Failed to fetch analyzed videos: ${error.message || "Unknown error"}`
+      });
+    }
+  });
 
   // Auth routes have been removed for future implementation
 
