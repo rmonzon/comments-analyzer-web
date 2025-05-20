@@ -285,8 +285,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Get all videos that have been analyzed
-  app.get("/api/videos-list", async (req, res) => {
+  // Get all videos that have been analyzed (using POST to avoid routing issues)
+  app.post("/api/youtube/analysis-history", async (req, res) => {
     try {
       console.log("Fetching all analyzed videos");
       

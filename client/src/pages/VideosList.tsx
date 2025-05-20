@@ -29,12 +29,40 @@ export default function VideosList() {
   const [sortField, setSortField] = useState<SortField>('analysisDate');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
-  // Fetch all analyzed videos
-  const { data: videos, isLoading, isError } = useQuery<AnalyzedVideo[]>({
-    queryKey: ['/api/videos-list'],
-    retry: 1,
-    refetchOnWindowFocus: false,
-  });
+  // Fetch all analyzed videos using a mutation instead of a query to use POST method
+  const [videos, setVideos] = useState<AnalyzedVideo[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
+  
+  // Load videos when component mounts
+  useEffect(() => {
+    const fetchVideos = async () => {
+      try {
+        setIsLoading(true);
+        setIsError(false);
+        const response = await fetch('/api/youtube/analysis-history', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch analyzed videos');
+        }
+        
+        const data = await response.json();
+        setVideos(data);
+      } catch (error) {
+        console.error('Error fetching analyzed videos:', error);
+        setIsError(true);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchVideos();
+  }, []);
 
   // Function to handle sort changes
   const handleSort = (field: SortField) => {

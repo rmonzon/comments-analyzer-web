@@ -253,8 +253,10 @@ export class DatabaseStorage implements IStorage {
   }
   
   // Get all analyzed videos with their analysis information
-  async getAllAnalyzedVideos(): Promise<{videoId: string; title: string; channelTitle: string; publishedAt: string; thumbnail: string; viewCount: number; commentsAnalyzed: number; analysisDate: string}[]> {
+  async getAllAnalyzedVideos(): Promise<{videoId: string; title: string; channelTitle: string; publishedAt: string; thumbnail: string | null; viewCount: number | null; commentsAnalyzed: number; analysisDate: string}[]> {
     try {
+      if (!db) throw new Error("Database not initialized");
+      
       // Join analyses and videos tables to get complete information
       const results = await db
         .select({
@@ -269,13 +271,15 @@ export class DatabaseStorage implements IStorage {
         })
         .from(analyses)
         .innerJoin(videos, eq(analyses.videoId, videos.id))
-        .orderBy(analyses.createdAt, 'desc'); // Most recent analyses first
+        .orderBy(analyses.createdAt); // Most recent analyses first
       
       // Format dates for display
       return results.map(item => ({
         ...item,
         publishedAt: item.publishedAt.toISOString(),
-        analysisDate: item.analysisDate.toISOString()
+        analysisDate: item.analysisDate.toISOString(),
+        thumbnail: item.thumbnail || null,
+        viewCount: item.viewCount || 0
       }));
     } catch (error) {
       console.error("Database error in getAllAnalyzedVideos:", error);
