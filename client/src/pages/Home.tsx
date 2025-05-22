@@ -194,7 +194,7 @@ export default function Home() {
     },
   });
 
-  const handleSubmit = async (submittedUrl: string) => {
+  const handleSubmit = async (submittedUrl: string, maxComments: number = 100) => {
     const id = extractVideoId(submittedUrl);
     if (id) {
       // Only trigger fetching if it's a new ID
@@ -202,14 +202,15 @@ export default function Home() {
 
       setUrl(submittedUrl);
       setAnalysisData(null); // Clear previous analysis
+      setMaxCommentsForAnalysis(maxComments); // Store the selected comment count
 
       if (isNewVideo) {
-        console.log("New video ID detected, setting videoId:", id);
+        console.log("New video ID detected, setting videoId:", id, "with maxComments:", maxComments);
         // Set videoId which will trigger the useQuery automatically
         // The useEffect will trigger analysis after data is loaded
         setVideoId(id);
       } else {
-        console.log("Same video ID, re-analyzing:", id);
+        console.log("Same video ID, re-analyzing:", id, "with maxComments:", maxComments);
         // For the same video ID, we should invalidate the query to refresh the data
         queryClient.invalidateQueries({ queryKey: ["/api/youtube/video", id] });
         // The useEffect will trigger analysis after data is refreshed
@@ -238,7 +239,7 @@ export default function Home() {
         // Directly trigger analysis if we have video data already
         if (videoData) {
           console.log("Manual retry - directly triggering analysis");
-          generateSummaryMutation.mutate({ videoId });
+          generateSummaryMutation.mutate({ videoId, maxComments: maxCommentsForAnalysis });
         } else {
           // If no video data, first fetch it then let the effect trigger the analysis
           console.log("Manual retry - fetching video data first");
@@ -276,8 +277,8 @@ export default function Home() {
       !generateSummaryMutation.isPending &&
       !manualRetryMode
     ) {
-      console.log("Video data loaded, triggering analysis for:", videoId);
-      generateSummaryMutation.mutate({ videoId });
+      console.log("Video data loaded, triggering analysis for:", videoId, "with maxComments:", maxCommentsForAnalysis);
+      generateSummaryMutation.mutate({ videoId, maxComments: maxCommentsForAnalysis });
     }
   }, [
     videoId,
