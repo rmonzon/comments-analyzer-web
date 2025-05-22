@@ -26,7 +26,7 @@ export class OpenAIService {
   /**
    * Generate a comprehensive analysis of video comments
    */
-  async generateCommentAnalysis(videoData: VideoData): Promise<VideoAnalysis> {
+  async generateCommentAnalysis(videoData: VideoData, maxComments: number = 100): Promise<VideoAnalysis> {
     console.log("Starting OpenAI comment analysis for video:", videoData.id);
     try {
       // Check if API key is available
