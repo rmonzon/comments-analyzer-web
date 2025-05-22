@@ -46,6 +46,7 @@ export default function Home() {
   const [videoId, setVideoId] = useState<string | null>(null);
   const [manualRetryMode, setManualRetryMode] = useState<boolean>(false);
   const [showHistory, setShowHistory] = useState<boolean>(false);
+  const [maxCommentsForAnalysis, setMaxCommentsForAnalysis] = useState<number>(100);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
@@ -102,6 +103,7 @@ export default function Home() {
   interface SummaryParams {
     videoId: string;
     forceRefresh?: boolean;
+    maxComments?: number;
   }
 
   const generateSummaryMutation = useMutation<
@@ -109,9 +111,9 @@ export default function Home() {
     Error,
     SummaryParams
   >({
-    mutationFn: async ({ videoId, forceRefresh = false }) => {
+    mutationFn: async ({ videoId, forceRefresh = false, maxComments = 100 }) => {
       console.log(
-        `Starting summary generation for video ID: ${videoId} (forceRefresh: ${forceRefresh})`,
+        `Starting summary generation for video ID: ${videoId} (forceRefresh: ${forceRefresh}, maxComments: ${maxComments})`,
       );
 
       if (forceRefresh) {
@@ -122,6 +124,7 @@ export default function Home() {
         const response = await apiRequest("POST", "/api/youtube/summarize", {
           videoId,
           forceRefresh,
+          maxComments,
         });
         console.log("Raw API response:", response);
         const data = await response.json();

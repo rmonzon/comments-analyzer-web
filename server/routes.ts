@@ -106,6 +106,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schema = z.object({
         videoId: z.string().min(1),
         forceRefresh: z.boolean().optional().default(false),
+        maxComments: z.number().int().min(1).max(1000).optional().default(100),
       });
 
       const result = schema.safeParse(req.body);
