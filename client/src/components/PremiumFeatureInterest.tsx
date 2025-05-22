@@ -90,7 +90,7 @@ export default function PremiumFeatureInterest() {
               </h3>
 
               <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">
-                Currently limited to <b>40</b> comments per analysis. Leave your
+                Currently limited to <b>50</b> comments per analysis. Leave your
                 info and we'll reach out once we expand analysis support of 100+
                 of comments.
               </p>

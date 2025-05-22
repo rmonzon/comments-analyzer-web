@@ -2,7 +2,6 @@ import OpenAI from "openai";
 import {
   VideoData,
   VideoAnalysis,
-  KeyPoint,
   SentimentStats,
   Comment,
 } from "@shared/types";
@@ -11,9 +10,8 @@ import {
 const MODEL = "gpt-3.5-turbo";
 
 // Constants for token optimization
-const MAX_COMMENTS = 40; // Increased from 20 to 40 for more comprehensive analysis
-const MAX_COMMENT_LENGTH = 200; // Reduced from 300 to 200 characters per comment
-const MIN_COMMENT_LIKES = 1; // Prioritize comments with at least 1 like
+const MAX_COMMENTS = 50; // Increased from 20 to 50 for more comprehensive analysis
+const MAX_COMMENT_LENGTH = 300; // 300 characters per comment
 const MAX_COMMENT_BATCH_SIZE = 15; // Process comments in batches of 15
 
 export class OpenAIService {
