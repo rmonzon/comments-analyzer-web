@@ -72,23 +72,22 @@ export class OpenAIService {
         };
       }
 
-      // Prioritize comments with likes and longer content for more meaningful analysis
-      const prioritizedComments = this.prioritizeComments(filteredComments, MAX_COMMENTS);
+      // Calculate optimal analysis size based on maxComments for token efficiency
+      const analysisSize = Math.min(filteredComments.length, Math.ceil(maxComments * 0.4)); // Use 40% of max for analysis
+      const prioritizedComments = this.prioritizeComments(filteredComments, analysisSize);
       
       console.log(
         `Analyzing ${prioritizedComments.length} comments for video ${videoData.id}`,
       );
 
-      // Process comments to reduce token usage
-      const processedComments = this.preprocessComments(prioritizedComments);
-
-      // For very small comment sets, use single API call
-      if (prioritizedComments.length <= MAX_COMMENT_BATCH_SIZE) {
-        return await this.analyzeCommentsBatch(videoData, prioritizedComments, processedComments);
+      // Use optimized approach based on comment count
+      if (prioritizedComments.length > 50) {
+        // For large sets (500-1000 comments), use highly optimized multi-step analysis
+        return await this.analyzeLargeCommentSet(videoData, prioritizedComments);
+      } else {
+        // For smaller sets, use standard analysis
+        return await this.analyzeCommentsBatch(videoData, prioritizedComments);
       }
-      
-      // For larger comment sets, use a more efficient two-step approach
-      return await this.analyzeLargeCommentSet(videoData, prioritizedComments, processedComments);
     } catch (error: any) {
       console.error("Error generating comment analysis:", error);
 
@@ -156,10 +155,10 @@ export class OpenAIService {
    */
   private async analyzeCommentsBatch(
     videoData: VideoData,
-    commentsToAnalyze: Comment[],
-    processedComments: string[]
+    commentsToAnalyze: Comment[]
   ): Promise<VideoAnalysis> {
-    // Compact format for small batches
+    // Process comments to reduce token usage
+    const processedComments = this.preprocessComments(commentsToAnalyze);
     const commentsText = processedComments.join("\n");
 
     // Simplified prompt to conserve tokens
