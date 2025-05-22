@@ -72,8 +72,8 @@ export class OpenAIService {
         };
       }
 
-      // Calculate optimal analysis size based on maxComments for token efficiency
-      const analysisSize = Math.min(filteredComments.length, Math.ceil(maxComments * 0.4)); // Use 40% of max for analysis
+      // Use the full amount of comments the user selected
+      const analysisSize = Math.min(filteredComments.length, maxComments);
       const prioritizedComments = this.prioritizeComments(filteredComments, analysisSize);
       
       console.log(
