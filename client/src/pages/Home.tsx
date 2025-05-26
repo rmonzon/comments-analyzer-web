@@ -69,7 +69,19 @@ export default function Home() {
     error: videoError,
     refetch: refetchVideo,
   } = useQuery<VideoData>({
-    queryKey: ["/api/youtube/video", videoId],
+    queryKey: ["/api/youtube/video", videoId, maxCommentsForAnalysis],
+    queryFn: async () => {
+      if (!videoId) throw new Error("No video ID");
+      const params = new URLSearchParams({
+        videoId,
+        maxComments: maxCommentsForAnalysis.toString(),
+      });
+      const response = await fetch(`/api/youtube/video?${params}`);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      return response.json();
+    },
     enabled: !!videoId,
   });
 
