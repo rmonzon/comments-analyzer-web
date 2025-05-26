@@ -10,6 +10,7 @@ import {
 const MODEL = "gpt-3.5-turbo";
 
 // Constants for token optimization
+const MAX_COMMENTS = 50; // Increased from 20 to 50 for more comprehensive analysis
 const MAX_COMMENT_LENGTH = 300; // 300 characters per comment
 const MAX_COMMENT_BATCH_SIZE = 15; // Process comments in batches of 15
 
@@ -25,7 +26,7 @@ export class OpenAIService {
   /**
    * Generate a comprehensive analysis of video comments
    */
-  async generateCommentAnalysis(videoData: VideoData, maxComments: number = 1000): Promise<VideoAnalysis> {
+  async generateCommentAnalysis(videoData: VideoData, maxComments: number = 100): Promise<VideoAnalysis> {
     console.log("Starting OpenAI comment analysis for video:", videoData.id);
     try {
       // Check if API key is available
@@ -80,10 +81,9 @@ export class OpenAIService {
       );
 
       // Use optimized approach based on comment count
-      if (prioritizedComments.length > 100) {
-        // For large sets (100-1000 comments), use highly optimized multi-step analysis
-        const processedComments = this.preprocessComments(prioritizedComments);
-        return await this.analyzeLargeCommentSet(videoData, prioritizedComments, processedComments);
+      if (prioritizedComments.length > 50) {
+        // For large sets (500-1000 comments), use highly optimized multi-step analysis
+        return await this.analyzeLargeCommentSet(videoData, prioritizedComments);
       } else {
         // For smaller sets, use standard analysis
         return await this.analyzeCommentsBatch(videoData, prioritizedComments);
@@ -258,7 +258,7 @@ export class OpenAIService {
         ],
         response_format: { type: "json_object" },
         temperature: 0.2,
-        max_tokens: 500, // Very limited tokens for batch analysis
+        max_tokens: 350, // Very limited tokens for batch analysis
       });
       
       return JSON.parse(response.choices[0].message.content || "{}");
@@ -284,7 +284,7 @@ export class OpenAIService {
         sentimentCounts.negative += result.sentimentCounts.negative || 0;
       }
       
-      if (result.keyPoints && Array.isArray(result.keyPoints)) {
+      if (result.keyPoints) {
         allKeyPoints.push(...result.keyPoints);
       }
       
@@ -337,7 +337,7 @@ export class OpenAIService {
       ],
       response_format: { type: "json_object" },
       temperature: 0.3,
-      max_tokens: 5000,
+      max_tokens: 500,
     });
     
     const finalAnalysis = JSON.parse(finalResponse.choices[0].message.content || "{}");

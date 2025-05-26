@@ -4,7 +4,8 @@ import { storage } from "./storage";
 import { YouTubeService } from "./services/youtube";
 import { OpenAIService } from "./services/openai";
 import { z } from "zod";
-import { videos } from "@shared/schema";
+import { db } from "./db";
+import { analyses, videos } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -57,25 +58,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           fetchedAt: new Date(),
         });
 
-        videoData = await storage.getVideo(videoId);
-      }
-
-      // Check if we need to fetch more comments based on maxComments parameter
-      const existingComments = await storage.getComments(videoId);
-      if (existingComments.length < maxComments) {
-        console.log(`Need more comments. Have ${existingComments.length}, requested ${maxComments}`);
-        // Fetch and store additional comments
+        // Fetch and store comments using maxComments from the request
         const comments = await youtubeService.getVideoComments(videoId, maxComments);
         console.log(`Fetched ${comments.length} comments for video ${videoId}`);
-        
-        // Only insert comments that we don't already have
-        const newComments = comments.filter(comment => 
-          !existingComments.some(existing => existing.id === comment.id)
-        );
-        
-        if (newComments.length > 0) {
+        if (comments.length > 0) {
           await storage.createComments(
-            newComments.map((comment) => ({
+            comments.map((comment) => ({
               id: comment.id,
               videoId: comment.videoId,
               authorDisplayName: comment.authorDisplayName,
@@ -90,7 +78,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           );
         }
 
-        // Get the updated video data with comments
+        // Get the complete video data with comments
         videoData = await storage.getVideo(videoId);
       }
 
