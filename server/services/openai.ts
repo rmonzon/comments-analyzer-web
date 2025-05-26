@@ -283,7 +283,7 @@ export class OpenAIService {
         sentimentCounts.negative += result.sentimentCounts.negative || 0;
       }
       
-      if (result.keyPoints) {
+      if (result.keyPoints && Array.isArray(result.keyPoints)) {
         allKeyPoints.push(...result.keyPoints);
       }
       
