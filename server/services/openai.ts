@@ -82,7 +82,8 @@ export class OpenAIService {
       // Use optimized approach based on comment count
       if (prioritizedComments.length > 100) {
         // For large sets (100-1000 comments), use highly optimized multi-step analysis
-        return await this.analyzeLargeCommentSet(videoData, prioritizedComments);
+        const processedComments = this.preprocessComments(prioritizedComments);
+        return await this.analyzeLargeCommentSet(videoData, prioritizedComments, processedComments);
       } else {
         // For smaller sets, use standard analysis
         return await this.analyzeCommentsBatch(videoData, prioritizedComments);
