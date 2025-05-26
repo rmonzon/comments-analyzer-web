@@ -17,36 +17,14 @@ import { Share2, ArrowLeft } from "lucide-react";
 import {
   VideoData,
   VideoAnalysis,
-  Comment,
-  KeyPoint,
-  SentimentStats,
 } from "@shared/types";
-
-// Helper function to validate and convert data to correct types
-function isVideoData(data: any): data is VideoData {
-  return (
-    data &&
-    typeof data.id === "string" &&
-    typeof data.title === "string" &&
-    Array.isArray(data.comments)
-  );
-}
-
-function isVideoAnalysis(data: any): data is VideoAnalysis {
-  return (
-    data &&
-    typeof data.videoId === "string" &&
-    typeof data.comprehensive === "string" &&
-    typeof data.commentsAnalyzed === "number"
-  );
-}
 
 export default function Home() {
   const [url, setUrl] = useState<string>("");
   const [videoId, setVideoId] = useState<string | null>(null);
   const [manualRetryMode, setManualRetryMode] = useState<boolean>(false);
   const [showHistory, setShowHistory] = useState<boolean>(false);
-  const [maxCommentsForAnalysis, setMaxCommentsForAnalysis] = useState<number>(100);
+  const [maxCommentsForAnalysis, setMaxCommentsForAnalysis] = useState<number>(1000);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
@@ -152,7 +130,6 @@ export default function Home() {
       }
     },
     onSuccess: (data) => {
-      console.log("Summary generated successfully:", data);
       setAnalysisData(data);
     },
     onError: (error: any) => {
@@ -205,12 +182,10 @@ export default function Home() {
       setMaxCommentsForAnalysis(maxComments); // Store the selected comment count
 
       if (isNewVideo) {
-        console.log("New video ID detected, setting videoId:", id, "with maxComments:", maxComments);
         // Set videoId which will trigger the useQuery automatically
         // The useEffect will trigger analysis after data is loaded
         setVideoId(id);
       } else {
-        console.log("Same video ID, re-analyzing:", id, "with maxComments:", maxComments);
         // For the same video ID, we should invalidate the query to refresh the data
         queryClient.invalidateQueries({ queryKey: ["/api/youtube/video", id] });
         // The useEffect will trigger analysis after data is refreshed
@@ -226,8 +201,6 @@ export default function Home() {
 
   const handleTryAgain = () => {
     if (videoId) {
-      console.log("Trying again for video ID:", videoId);
-
       // Clear analysis data
       setAnalysisData(null);
 
@@ -238,18 +211,15 @@ export default function Home() {
 
         // Directly trigger analysis if we have video data already
         if (videoData) {
-          console.log("Manual retry - directly triggering analysis");
           generateSummaryMutation.mutate({ videoId, maxComments: maxCommentsForAnalysis });
         } else {
           // If no video data, first fetch it then let the effect trigger the analysis
-          console.log("Manual retry - fetching video data first");
           queryClient.invalidateQueries({
             queryKey: ["/api/youtube/video", videoId],
           });
         }
       } else {
         // Standard retry flow - refresh video data and let effect handle analysis
-        console.log("Standard retry - refreshing video data");
         queryClient.invalidateQueries({
           queryKey: ["/api/youtube/video", videoId],
         });
@@ -290,18 +260,18 @@ export default function Home() {
 
   // Debug information
   useEffect(() => {
-    console.log("DEBUG - Current state:");
-    console.log("videoId:", videoId);
-    console.log("videoData:", videoData);
-    console.log("analysisData from state:", analysisData);
-    console.log("analysisData from mutation:", generateSummaryMutation.data);
-    console.log("currentAnalysisData:", currentAnalysisData);
-    console.log("isLoading:", isLoading);
-    console.log("isError:", isError);
-    console.log(
-      "Should render ResultsSection:",
-      Boolean(videoData && currentAnalysisData && !isLoading && !isError),
-    );
+    // console.log("DEBUG - Current state:");
+    // console.log("videoId:", videoId);
+    // console.log("videoData:", videoData);
+    // console.log("analysisData from state:", analysisData);
+    // console.log("analysisData from mutation:", generateSummaryMutation.data);
+    // console.log("currentAnalysisData:", currentAnalysisData);
+    // console.log("isLoading:", isLoading);
+    // console.log("isError:", isError);
+    // console.log(
+    //   "Should render ResultsSection:",
+    //   Boolean(videoData && currentAnalysisData && !isLoading && !isError),
+    // );
   }, [
     videoId,
     videoData,

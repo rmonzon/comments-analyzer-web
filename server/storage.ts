@@ -320,27 +320,6 @@ export class DatabaseStorage implements IStorage {
       return []; // Return empty array on error instead of throwing
     }
   }
-  
-  // Helper method to get all analyses
-  private async getAllAnalyses(): Promise<VideoAnalysis[]> {
-    try {
-      if (!db) return [];
-      
-      const allAnalyses = await db.select().from(analyses);
-      
-      return allAnalyses.map(analysis => ({
-        videoId: analysis.videoId,
-        sentimentStats: analysis.sentimentStats as SentimentStats,
-        keyPoints: analysis.keyPoints as KeyPoint[],
-        comprehensive: analysis.comprehensive,
-        commentsAnalyzed: analysis.commentsAnalyzed,
-        createdAt: analysis.createdAt.toISOString()
-      }));
-    } catch (error) {
-      console.error("Error in getAllAnalyses:", error);
-      return [];
-    }
-  }
 
   // Session store property for Replit Auth
   sessionStore: any;

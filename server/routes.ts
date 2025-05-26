@@ -4,8 +4,7 @@ import { storage } from "./storage";
 import { YouTubeService } from "./services/youtube";
 import { OpenAIService } from "./services/openai";
 import { z } from "zod";
-import { db } from "./db";
-import { analyses, videos } from "@shared/schema";
+import { videos } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
 export async function registerRoutes(app: Express): Promise<Server> {
