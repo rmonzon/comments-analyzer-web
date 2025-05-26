@@ -57,12 +57,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
           fetchedAt: new Date(),
         });
 
-        // Fetch and store comments using maxComments from the request
+        videoData = await storage.getVideo(videoId);
+      }
+
+      // Check if we need to fetch more comments based on maxComments parameter
+      const existingComments = await storage.getComments(videoId);
+      if (existingComments.length < maxComments) {
+        console.log(`Need more comments. Have ${existingComments.length}, requested ${maxComments}`);
+        // Fetch and store additional comments
         const comments = await youtubeService.getVideoComments(videoId, maxComments);
         console.log(`Fetched ${comments.length} comments for video ${videoId}`);
-        if (comments.length > 0) {
+        
+        // Only insert comments that we don't already have
+        const newComments = comments.filter(comment => 
+          !existingComments.some(existing => existing.id === comment.id)
+        );
+        
+        if (newComments.length > 0) {
           await storage.createComments(
-            comments.map((comment) => ({
+            newComments.map((comment) => ({
               id: comment.id,
               videoId: comment.videoId,
               authorDisplayName: comment.authorDisplayName,
@@ -77,7 +90,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           );
         }
 
-        // Get the complete video data with comments
+        // Get the updated video data with comments
         videoData = await storage.getVideo(videoId);
       }
 
