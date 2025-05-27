@@ -4,8 +4,7 @@ import { storage } from "./storage";
 import { YouTubeService } from "./services/youtube";
 import { OpenAIService } from "./services/openai";
 import { z } from "zod";
-import { db } from "./db";
-import { analyses, videos } from "@shared/schema";
+import { videos } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -179,8 +178,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (analysis && !forceRefresh) {
         console.log("Using existing analysis for video:", videoId);
       } else {
-        const actionType = analysis ? "refreshing" : "generating new";
-        console.log(`${actionType} analysis for video: ${videoId}`);
         // Generate analysis using OpenAI
         analysis = await openaiService.generateCommentAnalysis(videoData);
 
@@ -204,8 +201,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await storage.createAnalysis(analysisData);
         }
       }
-
-      console.log("Returning analysis data");
       // Return the actual analysis data instead of just a success message
       return res.json(analysis);
     } catch (error: any) {

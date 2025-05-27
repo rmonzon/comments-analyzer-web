@@ -90,9 +90,7 @@ export default function PremiumFeatureInterest() {
               </h3>
 
               <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">
-                Currently limited to <b>40</b> comments per analysis. Leave your
-                info and we'll reach out once we expand analysis support of 100+
-                of comments.
+                Currently limited to <b>100</b> comments per analysis. Let us know if you're interested in analyzing more.
               </p>
 
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -125,7 +123,7 @@ export default function PremiumFeatureInterest() {
                           How many comments would you like to analyze?
                         </label>
                         <div className="flex space-x-4">
-                          {[50, 100, 500, 1000].map((count) => (
+                          {[100, 500, 1000, 5000].map((count) => (
                             <button
                               key={count}
                               type="button"

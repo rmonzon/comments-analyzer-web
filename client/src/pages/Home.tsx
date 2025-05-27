@@ -17,29 +17,7 @@ import { Share2, ArrowLeft } from "lucide-react";
 import {
   VideoData,
   VideoAnalysis,
-  Comment,
-  KeyPoint,
-  SentimentStats,
 } from "@shared/types";
-
-// Helper function to validate and convert data to correct types
-function isVideoData(data: any): data is VideoData {
-  return (
-    data &&
-    typeof data.id === "string" &&
-    typeof data.title === "string" &&
-    Array.isArray(data.comments)
-  );
-}
-
-function isVideoAnalysis(data: any): data is VideoAnalysis {
-  return (
-    data &&
-    typeof data.videoId === "string" &&
-    typeof data.comprehensive === "string" &&
-    typeof data.commentsAnalyzed === "number"
-  );
-}
 
 export default function Home() {
   const [url, setUrl] = useState<string>("");
