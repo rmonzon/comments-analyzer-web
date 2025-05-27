@@ -262,29 +262,6 @@ export default function Home() {
     manualRetryMode,
   ]);
 
-  // Debug information
-  useEffect(() => {
-    console.log("DEBUG - Current state:");
-    console.log("videoId:", videoId);
-    console.log("videoData:", videoData);
-    console.log("analysisData from state:", analysisData);
-    console.log("analysisData from mutation:", generateSummaryMutation.data);
-    console.log("currentAnalysisData:", currentAnalysisData);
-    console.log("isLoading:", isLoading);
-    console.log("isError:", isError);
-    console.log(
-      "Should render ResultsSection:",
-      Boolean(videoData && currentAnalysisData && !isLoading && !isError),
-    );
-  }, [
-    videoId,
-    videoData,
-    analysisData,
-    generateSummaryMutation.data,
-    isLoading,
-    isError,
-  ]);
-
   return (
     <div className="min-h-screen flex flex-col font-roboto bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-200">
       <Header />
