@@ -24,7 +24,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/youtube/video", async (req, res) => {
     try {
       const videoId = req.query.videoId as string;
-      const maxComments = parseInt(req.query.maxComments as string) || 100;
       console.log("Fetching video data for videoId:", videoId);
 
       if (!videoId) {
@@ -58,8 +57,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           fetchedAt: new Date(),
         });
 
-        // Fetch and store comments using maxComments from the request
-        const comments = await youtubeService.getVideoComments(videoId, maxComments);
+        // Fetch and store comments
+        const comments = await youtubeService.getVideoComments(videoId);
         console.log(`Fetched ${comments.length} comments for video ${videoId}`);
         if (comments.length > 0) {
           await storage.createComments(
@@ -107,7 +106,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schema = z.object({
         videoId: z.string().min(1),
         forceRefresh: z.boolean().optional().default(false),
-        maxComments: z.number().int().min(1).max(1000).optional().default(100),
       });
 
       const result = schema.safeParse(req.body);
@@ -121,8 +119,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
       }
 
-      const { videoId, forceRefresh, maxComments } = result.data;
-      console.log(`Generating summary for videoId: ${videoId} (forceRefresh: ${forceRefresh}, maxComments: ${maxComments})`); 
+      const { videoId, forceRefresh } = result.data;
+      console.log(`Generating summary for videoId: ${videoId} (forceRefresh: ${forceRefresh})`); 
 
       // Get video data with comments
       const videoData = await storage.getVideo(videoId);
@@ -183,8 +181,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         const actionType = analysis ? "refreshing" : "generating new";
         console.log(`${actionType} analysis for video: ${videoId}`);
-        // Generate analysis using OpenAI with the specified maxComments
-        analysis = await openaiService.generateCommentAnalysis(videoData, maxComments);
+        // Generate analysis using OpenAI
+        analysis = await openaiService.generateCommentAnalysis(videoData);
 
         console.log("Analysis generated, storing in database");
         // Prepare the analysis data

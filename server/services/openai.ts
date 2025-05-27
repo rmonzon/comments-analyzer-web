@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import {
   VideoData,
   VideoAnalysis,
+  KeyPoint,
   SentimentStats,
   Comment,
 } from "@shared/types";
@@ -10,8 +11,9 @@ import {
 const MODEL = "gpt-3.5-turbo";
 
 // Constants for token optimization
-const MAX_COMMENTS = 50; // Increased from 20 to 50 for more comprehensive analysis
-const MAX_COMMENT_LENGTH = 300; // 300 characters per comment
+const MAX_COMMENTS = 40; // Increased from 20 to 40 for more comprehensive analysis
+const MAX_COMMENT_LENGTH = 200; // Reduced from 300 to 200 characters per comment
+const MIN_COMMENT_LIKES = 1; // Prioritize comments with at least 1 like
 const MAX_COMMENT_BATCH_SIZE = 15; // Process comments in batches of 15
 
 export class OpenAIService {
@@ -26,7 +28,7 @@ export class OpenAIService {
   /**
    * Generate a comprehensive analysis of video comments
    */
-  async generateCommentAnalysis(videoData: VideoData, maxComments: number = 100): Promise<VideoAnalysis> {
+  async generateCommentAnalysis(videoData: VideoData): Promise<VideoAnalysis> {
     console.log("Starting OpenAI comment analysis for video:", videoData.id);
     try {
       // Check if API key is available
@@ -72,23 +74,23 @@ export class OpenAIService {
         };
       }
 
-      // Use the full amount of comments the user selected
-      const analysisSize = Math.min(filteredComments.length, maxComments);
-      const prioritizedComments = this.prioritizeComments(filteredComments, analysisSize);
+      // Prioritize comments with likes and longer content for more meaningful analysis
+      const prioritizedComments = this.prioritizeComments(filteredComments, MAX_COMMENTS);
       
       console.log(
         `Analyzing ${prioritizedComments.length} comments for video ${videoData.id}`,
       );
 
-      // Use optimized approach based on comment count
-      if (prioritizedComments.length > 50) {
-        // For large sets (500-1000 comments), use highly optimized multi-step analysis
-        const processedComments = this.preprocessComments(prioritizedComments);
-        return await this.analyzeLargeCommentSet(videoData, prioritizedComments, processedComments);
-      } else {
-        // For smaller sets, use standard analysis
-        return await this.analyzeCommentsBatch(videoData, prioritizedComments);
+      // Process comments to reduce token usage
+      const processedComments = this.preprocessComments(prioritizedComments);
+
+      // For very small comment sets, use single API call
+      if (prioritizedComments.length <= MAX_COMMENT_BATCH_SIZE) {
+        return await this.analyzeCommentsBatch(videoData, prioritizedComments, processedComments);
       }
+      
+      // For larger comment sets, use a more efficient two-step approach
+      return await this.analyzeLargeCommentSet(videoData, prioritizedComments, processedComments);
     } catch (error: any) {
       console.error("Error generating comment analysis:", error);
 
@@ -156,10 +158,10 @@ export class OpenAIService {
    */
   private async analyzeCommentsBatch(
     videoData: VideoData,
-    commentsToAnalyze: Comment[]
+    commentsToAnalyze: Comment[],
+    processedComments: string[]
   ): Promise<VideoAnalysis> {
-    // Process comments to reduce token usage
-    const processedComments = this.preprocessComments(commentsToAnalyze);
+    // Compact format for small batches
     const commentsText = processedComments.join("\n");
 
     // Simplified prompt to conserve tokens

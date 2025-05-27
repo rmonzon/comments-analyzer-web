@@ -1,17 +1,14 @@
 import { useState, FormEvent, ChangeEvent } from 'react';
 import { validateYouTubeUrl } from '@/lib/utils';
 import { PlayCircle, Info } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
 
 interface URLInputFormProps {
-  onSubmit: (url: string, maxComments?: number) => void;
+  onSubmit: (url: string) => void;
 }
 
 export default function URLInputForm({ onSubmit }: URLInputFormProps) {
   const [url, setUrl] = useState<string>('');
   const [isValidUrl, setIsValidUrl] = useState<boolean>(true);
-  const [maxComments, setMaxComments] = useState<string>('100');
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
@@ -36,7 +33,7 @@ export default function URLInputForm({ onSubmit }: URLInputFormProps) {
     
     if (validateYouTubeUrl(url)) {
       setIsValidUrl(true);
-      onSubmit(url, parseInt(maxComments));
+      onSubmit(url);
     } else {
       setIsValidUrl(false);
     }
@@ -47,21 +44,6 @@ export default function URLInputForm({ onSubmit }: URLInputFormProps) {
       <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6 max-w-4xl mx-auto">
         <h2 className="text-xl font-medium mb-4 font-roboto dark:text-white">Enter YouTube Video URL</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="comment-count" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-              Comments to Analyze
-            </Label>
-            <Select value={maxComments} onValueChange={setMaxComments}>
-              <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="Select comment count" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="100">100 comments</SelectItem>
-                <SelectItem value="500">500 comments</SelectItem>
-                <SelectItem value="1000">1000 comments</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
           <div>
             <div className="flex flex-col sm:flex-row">
               <div className="relative flex-grow mb-2 sm:mb-0">
