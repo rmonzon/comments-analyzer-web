@@ -58,6 +58,14 @@ export default function Footer() {
                   How It Works
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/faq"
+                  className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
+                >
+                  FAQ
+                </Link>
+              </li>
             </ul>
           </div>
           

@@ -8,7 +8,7 @@ import ResultsSection from "@/components/ResultsSection";
 import LoadingState from "@/components/LoadingState";
 import ErrorState from "@/components/ErrorState";
 import AnalyzedVideosList from "@/components/AnalyzedVideosList";
-import FAQSection from "@/components/FAQSection";
+
 import { useToast } from "@/hooks/use-toast";
 import { extractVideoId } from "@/lib/utils";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -365,10 +365,7 @@ export default function Home() {
               </div>
             )}
 
-            {/* FAQ Section - only show when not displaying results */}
-            {!videoData && !currentAnalysisData && !isLoading && (
-              <FAQSection />
-            )}
+
           </>
         )}
       </main>
