@@ -1,4 +1,4 @@
-import { Link2, MessageSquare, Brain } from "lucide-react";
+import { Link2, MessageSquare, Brain, Chrome, ExternalLink } from "lucide-react";
 import PremiumFeatureInterest from "./PremiumFeatureInterest";
 
 export default function IntroSection() {
@@ -45,6 +45,36 @@ export default function IntroSection() {
               <p className="text-sm text-center text-gray-600 dark:text-gray-400">
                 Get concise AI-powered insights
               </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Chrome Extension Call-to-Action */}
+        <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center space-x-3">
+              <div className="flex-shrink-0">
+                <Chrome className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 dark:text-white text-lg">
+                  Try Our Chrome Extension!
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 text-sm">
+                  Analyze YouTube comments directly from any video page with one click
+                </p>
+              </div>
+            </div>
+            <div className="flex-shrink-0">
+              <a
+                href="https://chromewebstore.google.com/detail/youtube-comments-analyzer/jojpopolngligeffhficnhlhliebahep"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
+              >
+                <span className="mr-2">Add to Chrome</span>
+                <ExternalLink className="w-4 h-4" />
+              </a>
             </div>
           </div>
         </div>
