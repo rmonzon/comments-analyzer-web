@@ -24,7 +24,7 @@ export default function Header() {
           <VideoIcon className="text-youtube-red h-6 w-6 mr-2" />
           <h1 className="text-xl md:text-2xl font-medium font-roboto text-gray-900 dark:text-white">
             <Link href="/" className="hover:opacity-90 transition-opacity">
-              YouTube Comments Summarizer
+              YouTube Comments Analyzer
             </Link>
             <TooltipProvider>
               <Tooltip>

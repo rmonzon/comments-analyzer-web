@@ -5,14 +5,24 @@ export default function IntroSection() {
   return (
     <section className="mb-8">
       <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6 max-w-4xl mx-auto">
-        <h2 className="text-xl font-medium mb-3 font-roboto dark:text-white">
-          AI-Powered Comment Analysis
+        <h2 className="text-2xl font-semibold mb-4 font-roboto dark:text-white">
+          AI-Powered YouTube Comment Analysis Tool
         </h2>
-        <p className="text-gray-600 dark:text-gray-300 font-open-sans mb-5">
-          Paste any YouTube video URL to get an AI-generated summary of the
-          comment section. Quickly understand viewer opinions, sentiment, and
-          main discussion points without scrolling through hundreds of comments.
+        <p className="text-gray-600 dark:text-gray-300 font-open-sans mb-5 text-lg leading-relaxed">
+          Analyze YouTube video comments instantly with our advanced AI technology. Get comprehensive sentiment analysis, key insights, and detailed summaries from any YouTube video's comment section. Perfect for content creators, marketers, researchers, and anyone who wants to understand audience feedback quickly and efficiently.
         </p>
+        
+        <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-l-4 border-blue-500">
+          <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-300 mb-2">
+            Why Use YouTube Comment Analysis?
+          </h3>
+          <ul className="text-sm text-blue-700 dark:text-blue-200 space-y-1">
+            <li>• <strong>Save Time:</strong> No more scrolling through hundreds of comments</li>
+            <li>• <strong>Understand Sentiment:</strong> Get instant positive, negative, and neutral feedback analysis</li>
+            <li>• <strong>Extract Key Insights:</strong> Discover the main topics and opinions viewers are discussing</li>
+            <li>• <strong>Make Data-Driven Decisions:</strong> Use audience feedback to improve your content strategy</li>
+          </ul>
+        </div>
         <div className="flex flex-wrap -mx-2">
           <div className="px-2 w-full md:w-1/3 mb-4">
             <div className="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg h-full transition-colors">

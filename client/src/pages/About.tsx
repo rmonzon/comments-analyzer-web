@@ -12,9 +12,12 @@ export default function About() {
             Back to Home
           </Link>
         </Button>
-        <h1 className="text-3xl font-bold mb-6">
-          About YouTube Comments Analyzer
+        <h1 className="text-4xl font-bold mb-6 text-gray-900 dark:text-white">
+          About YouTube Comments Analyzer - AI-Powered Social Media Analytics
         </h1>
+        <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
+          The most advanced YouTube comment analysis tool powered by artificial intelligence. Transform overwhelming comment sections into actionable insights for content creators, marketers, and researchers.
+        </p>
       </div>
 
       <div className="space-y-8 text-gray-700 dark:text-gray-300">
