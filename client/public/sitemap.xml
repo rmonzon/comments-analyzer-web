@@ -5,42 +5,42 @@
                             http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
   
   <url>
-    <loc>https://youtube-comments-analyzer.replit.app/</loc>
+    <loc>https://commentsanalyzer.info/</loc>
     <lastmod>2025-01-28T00:00:00+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   
   <url>
-    <loc>https://youtube-comments-analyzer.replit.app/history</loc>
+    <loc>https://commentsanalyzer.info/history</loc>
     <lastmod>2025-01-28T00:00:00+00:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   
   <url>
-    <loc>https://youtube-comments-analyzer.replit.app/about</loc>
+    <loc>https://commentsanalyzer.info/about</loc>
     <lastmod>2025-01-28T00:00:00+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   
   <url>
-    <loc>https://youtube-comments-analyzer.replit.app/faq</loc>
+    <loc>https://commentsanalyzer.info/faq</loc>
     <lastmod>2025-01-28T00:00:00+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
-    <loc>https://youtube-comments-analyzer.replit.app/privacy</loc>
+    <loc>https://commentsanalyzer.info/privacy</loc>
     <lastmod>2025-01-28T00:00:00+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
-    <loc>https://youtube-comments-analyzer.replit.app/terms</loc>
+    <loc>https://commentsanalyzer.info/terms</loc>
     <lastmod>2025-01-28T00:00:00+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>

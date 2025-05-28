@@ -12,7 +12,7 @@ export default function IntroSection() {
           Analyze YouTube video comments instantly with our advanced AI technology. Get comprehensive sentiment analysis, key insights, and detailed summaries from any YouTube video's comment section. Perfect for content creators, marketers, researchers, and anyone who wants to understand audience feedback quickly and efficiently.
         </p>
         
-        <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-l-4 border-blue-500">
+        {/* <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-l-4 border-blue-500">
           <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-300 mb-2">
             Why Use YouTube Comment Analysis?
           </h3>
@@ -22,7 +22,7 @@ export default function IntroSection() {
             <li>• <strong>Extract Key Insights:</strong> Discover the main topics and opinions viewers are discussing</li>
             <li>• <strong>Make Data-Driven Decisions:</strong> Use audience feedback to improve your content strategy</li>
           </ul>
-        </div>
+        </div> */}
         <div className="flex flex-wrap -mx-2">
           <div className="px-2 w-full md:w-1/3 mb-4">
             <div className="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg h-full transition-colors">
@@ -90,7 +90,7 @@ export default function IntroSection() {
         </div>
 
         {/* Premium Feature Interest Banner */}
-        <PremiumFeatureInterest />
+        {/* <PremiumFeatureInterest /> */}
       </div>
     </section>
   );

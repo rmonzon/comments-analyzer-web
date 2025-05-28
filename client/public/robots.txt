@@ -2,7 +2,7 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://youtube-comments-analyzer.replit.app/sitemap.xml
+Sitemap: https://commentsanalyzer.info/sitemap.xml
 
 # Crawl-delay for respectful crawling
 Crawl-delay: 1
