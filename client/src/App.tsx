@@ -7,11 +7,13 @@ import { ThemeProvider } from "next-themes";
 import { ProtectedRoute } from "@/lib/protected-route";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
+import Analysis from "@/pages/Analysis";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import TermsOfService from "@/pages/TermsOfService";
 import About from "@/pages/About";
 import SharedAnalysis from "@/pages/SharedAnalysis";
 import FAQ from "@/pages/FAQ";
+import VideosList from "@/pages/VideosList";
 import "./index.css";
 
 function Router() {
