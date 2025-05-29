@@ -1,13 +1,28 @@
 <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- YouTube play button shape -->
-  <rect width="64" height="64" rx="14" fill="#FF0000"/>
+  <!-- Background circle -->
+  <circle cx="32" cy="32" r="30" fill="#2563eb"/>
   
-  <!-- Chat bubble / comment shape -->
-  <path d="M45 22H19C17.3431 22 16 23.3431 16 25V39C16 40.6569 17.3431 42 19 42H25L32 48L39 42H45C46.6569 42 48 40.6569 48 39V25C48 23.3431 46.6569 22 45 22Z" fill="white"/>
+  <!-- Main comment bubble -->
+  <path
+    d="M14 20C14 17.7909 15.7909 16 18 16H46C48.2091 16 50 17.7909 50 20V36C50 38.2091 48.2091 40 46 40H24L14 50V20Z"
+    fill="white"
+  />
   
-  <!-- Play triangle -->
-  <path d="M28 30V38L36 34L28 30Z" fill="#FF0000"/>
+  <!-- Inner analysis elements - dots representing data points -->
+  <circle cx="24" cy="28" r="2" fill="#2563eb" />
+  <circle cx="32" cy="28" r="2" fill="#2563eb" />
+  <circle cx="40" cy="28" r="2" fill="#2563eb" />
   
-  <!-- Summary lines -->
-  <rect x="24" y="26" width="16" height="2" rx="1" fill="#FF0000"/>
+  <!-- AI sparkle indicator -->
+  <path d="M44 8L46 12L50 10L48 14L52 16L48 18L50 22L46 20L44 24L42 20L38 22L40 18L36 16L40 14L38 10L42 12L44 8Z" fill="#60a5fa" />
+  
+  <!-- Subtle analysis chart line -->
+  <path
+    d="M18 32L22 30L26 34L30 28L34 32L38 26"
+    stroke="#2563eb"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+  />
 </svg>
