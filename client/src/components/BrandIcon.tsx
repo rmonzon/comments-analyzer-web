@@ -5,34 +5,37 @@ interface BrandIconProps {
 export function BrandIcon({ className = "w-6 h-6" }: BrandIconProps) {
   return (
     <svg
-      viewBox="0 0 32 32"
+      viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      {/* YouTube-inspired play button background */}
-      <rect x="2" y="8" width="28" height="16" rx="3" fill="currentColor" className="text-red-600" />
+      {/* Main comment bubble */}
+      <path
+        d="M4 6C4 4.89543 4.89543 4 6 4H18C19.1046 4 20 4.89543 20 6V14C20 15.1046 19.1046 16 18 16H8L4 20V6Z"
+        fill="currentColor"
+        className="text-blue-600"
+      />
       
-      {/* Comment bubbles overlay */}
-      <circle cx="8" cy="12" r="2" fill="white" />
-      <circle cx="16" cy="12" r="2" fill="white" />
-      <circle cx="24" cy="12" r="2" fill="white" />
+      {/* Inner analysis elements - dots representing data points */}
+      <circle cx="8" cy="10" r="1" fill="white" />
+      <circle cx="12" cy="10" r="1" fill="white" />
+      <circle cx="16" cy="10" r="1" fill="white" />
       
-      {/* AI/Analysis indicator - small sparkle */}
-      <g className="text-blue-500" fill="currentColor">
-        <path d="M26 4 L28 6 L26 8 L24 6 Z" />
-        <path d="M27 2 L27 10" strokeWidth="0.5" stroke="currentColor" />
-        <path d="M22 5 L30 5" strokeWidth="0.5" stroke="currentColor" />
+      {/* AI sparkle indicator */}
+      <g className="text-blue-400" fill="currentColor">
+        <path d="M18 2L19 4L21 3L20 5L22 6L20 7L21 9L19 8L18 10L17 8L15 9L16 7L14 6L16 5L15 3L17 4L18 2Z" />
       </g>
       
-      {/* Sentiment analysis bars */}
-      <g className="text-green-500" fill="currentColor">
-        <rect x="6" y="20" width="2" height="4" rx="1" />
-        <rect x="10" y="18" width="2" height="6" rx="1" />
-        <rect x="14" y="19" width="2" height="5" rx="1" />
-        <rect x="18" y="17" width="2" height="7" rx="1" />
-        <rect x="22" y="20" width="2" height="4" rx="1" />
-      </g>
+      {/* Subtle analysis chart line */}
+      <path
+        d="M6 12L8 11L10 13L12 10L14 12L16 9"
+        stroke="white"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
     </svg>
   );
 }
