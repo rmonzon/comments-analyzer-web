@@ -20,12 +20,13 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/analyze" component={Analysis} />
+      <Route path="/history" component={VideosList} />
       <Route path="/shared" component={SharedAnalysis} />
       <Route path="/privacy" component={PrivacyPolicy} />
       <Route path="/terms" component={TermsOfService} />
       <Route path="/about" component={About} />
       <Route path="/faq" component={FAQ} />
-      <Route path="/history" component={Home} />
       <Route component={NotFound} />
     </Switch>
   );

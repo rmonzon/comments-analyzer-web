@@ -10,6 +10,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 import PremiumFeatureInterest from "./PremiumFeatureInterest";
 
 export default function IntroSection() {
@@ -43,13 +44,15 @@ export default function IntroSection() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-8 text-lg font-semibold rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
-              >
-                Start Analyzing Comments
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
+              <Link href="/analyze">
+                <Button
+                  size="lg"
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-8 text-lg font-semibold rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
+                >
+                  Start Analyzing Comments
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+              </Link>
 
               <a
                 href="https://chromewebstore.google.com/detail/youtube-comments-analyzer/jojpopolngligeffhficnhlhliebahep"
