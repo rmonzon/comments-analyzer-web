@@ -20,7 +20,6 @@ export default function Analysis() {
   const [videoId, setVideoId] = useState<string | null>(null);
   const [manualRetryMode, setManualRetryMode] = useState<boolean>(false);
   const [isSharedLink, setIsSharedLink] = useState<boolean>(false);
-  const [analysisStartTime, setAnalysisStartTime] = useState<number | null>(null);
   const { toast } = useToast();
 
   // Handle shared links with videoId parameter
@@ -92,10 +91,6 @@ export default function Analysis() {
   } = useQuery<VideoAnalysis>({
     queryKey: ["/api/youtube/summarize", videoId],
     queryFn: async () => {
-      // Record when we start the analysis request
-      const requestStartTime = Date.now();
-      setAnalysisStartTime(requestStartTime);
-      
       const response = await fetch("/api/youtube/summarize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -107,12 +102,7 @@ export default function Analysis() {
         throw new Error(error.message || "Failed to get analysis");
       }
       
-      const data = await response.json();
-      
-      // Calculate response time - if it was quick (under 1 second), it was likely cached
-      const responseTime = Date.now() - requestStartTime;
-      
-      return data;
+      return response.json();
     },
     enabled: !!videoId && !!videoData,
     retry: false,
@@ -133,7 +123,6 @@ export default function Analysis() {
     setVideoId(extractedVideoId);
     setManualRetryMode(false);
     setIsSharedLink(false); // Reset shared link flag for new analysis
-    setAnalysisStartTime(null); // Reset analysis start time for new videos
   };
 
   const handleRefreshAnalysis = () => {
@@ -146,9 +135,8 @@ export default function Analysis() {
   const hasVideoData = !!videoData;
   const hasAnalysisData = !!analysisData;
   
-  // Determine if analysis is cached based on response time
-  // If we have analysis start time and the data exists, check if it was fast (likely cached)
-  const isCachedAnalysis = hasAnalysisData && analysisStartTime && !summarizeMutation.isPending && !isLoadingAnalysis;
+  // Use the fromCache flag from the backend response
+  const isCachedAnalysis = hasAnalysisData && analysisData.fromCache === true;
 
 
 
