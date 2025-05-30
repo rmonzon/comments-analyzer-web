@@ -11,7 +11,7 @@ export default function Footer() {
           {/* Brand Section */}
           <div>
             <div className="flex items-center mb-3">
-              <BrandIcon className="h-5 w-5 mr-2" />
+              <BrandIcon className="h-6 w-6 mr-2" />
               <h3 className="font-semibold text-gray-900 dark:text-white">
                 YouTube Comments Analyzer
               </h3>

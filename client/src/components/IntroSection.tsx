@@ -69,7 +69,7 @@ export default function IntroSection() {
             {/* Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto">
               <div className="text-center">
-                <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
                   100K+
                 </div>
                 <div className="text-gray-600 dark:text-gray-300 font-medium">
@@ -77,16 +77,16 @@ export default function IntroSection() {
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
-                  30s
+                <div className="text-4xl font-bold text-purple-600 dark:text-purple-400 mb-2">
+                  6s
                 </div>
                 <div className="text-gray-600 dark:text-gray-300 font-medium">
                   Average Analysis Time
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400 mb-2">
-                  95%
+                <div className="text-4xl font-bold text-indigo-600 dark:text-indigo-400 mb-2">
+                  99%
                 </div>
                 <div className="text-gray-600 dark:text-gray-300 font-medium">
                   Accuracy Rate
@@ -105,8 +105,10 @@ export default function IntroSection() {
               Why Choose Our Platform?
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              Powerful features designed to help content creators, marketers,
-              and researchers understand their audience better.
+              Powerful features designed to give comprehensive sentiment analysis, key insights, 
+              and detailed summaries from any YouTube video (shorts included). Perfect for 
+              content creators, marketers, researchers, and anyone who wants to understand 
+              audience feedback quickly and efficiently.
             </p>
           </div>
 
@@ -118,12 +120,12 @@ export default function IntroSection() {
                 <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                   <Zap className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
                   Lightning Fast Analysis
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-lg">
                   Get comprehensive insights from hundreds of comments in under
-                  30 seconds. No more manual scrolling through endless comment
+                  10 seconds. No more manual scrolling through endless comment
                   sections.
                 </p>
               </div>
@@ -136,7 +138,7 @@ export default function IntroSection() {
                 <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                   <BarChart3 className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
                   Advanced Sentiment Analysis
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-lg">
@@ -153,11 +155,11 @@ export default function IntroSection() {
                 <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                   <Shield className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
                   Privacy Focused
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-lg">
-                  We only analyze public comments and don't store personal data.
+                  We only analyze public comments on public Youtube channels and don't store personal data.
                   Your privacy and security are our top priorities.
                 </p>
               </div>
