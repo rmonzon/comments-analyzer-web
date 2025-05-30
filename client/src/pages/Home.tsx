@@ -11,14 +11,16 @@ export default function Home() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const analysisId = params.get("analyze");
+    const videoId = params.get("videoId");
     
-    if (analysisId) {
+    if (analysisId || videoId) {
       // Clear the URL parameter
       const newUrl = window.location.pathname;
       window.history.replaceState({}, document.title, newUrl);
       
       // Redirect to analysis page with the video ID
-      setLocation(`/analyze?videoId=${analysisId}`);
+      const targetVideoId = analysisId || videoId;
+      setLocation(`/analyze?videoId=${targetVideoId}`);
     }
   }, [setLocation]);
 
