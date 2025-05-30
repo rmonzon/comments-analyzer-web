@@ -96,10 +96,41 @@
 
 @keyframes shimmer {
   0% {
-    background-position: -468px 0;
+    transform: translateX(-100%);
   }
   100% {
-    background-position: 468px 0;
+    transform: translateX(100%);
+  }
+}
+
+@keyframes youtube-glow {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes youtube-logo-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.9;
+  }
+}
+
+@keyframes youtube-bg-slide {
+  0% {
+    transform: translateX(-100%) skewX(-15deg);
+  }
+  100% {
+    transform: translateX(100%) skewX(-15deg);
   }
 }
 
@@ -155,6 +186,18 @@
 
 .animate-grow-width {
   animation: grow-width 1s ease-out forwards;
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+.animate-youtube-glow {
+  animation: youtube-glow 2s ease-in-out infinite;
+}
+
+.animate-youtube-logo {
+  animation: youtube-logo-pulse 1.5s ease-in-out infinite;
 }
 
 /* Animation delay utilities */
@@ -217,6 +260,22 @@
 
 .dark .youtube-progress-bar::after {
   background: linear-gradient(90deg, transparent, #ff4d4d, transparent);
+}
+
+/* YouTube-themed loading animations */
+.youtube-bg-animation {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent, rgba(255, 0, 0, 0.1), transparent);
+  animation: youtube-bg-slide 3s infinite;
+}
+
+.youtube-logo-animation {
+  display: inline-block;
+  animation: youtube-logo-pulse 2s ease-in-out infinite;
 }
 
 /* Sentiment bar colors */
