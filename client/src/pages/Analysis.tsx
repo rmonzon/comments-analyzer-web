@@ -131,7 +131,7 @@ export default function Analysis() {
     }
   };
 
-  const isLoading = isLoadingVideo || summarizeMutation.isPending;
+  const isLoading = isLoadingVideo || isLoadingAnalysis || summarizeMutation.isPending;
   const hasVideoData = !!videoData;
   const hasAnalysisData = !!analysisData;
   
