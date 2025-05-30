@@ -91,6 +91,11 @@ export default function Analysis() {
   } = useQuery<VideoAnalysis>({
     queryKey: ["/api/youtube/analysis", videoId],
     enabled: !!videoId && !!videoData,
+    retry: false, // Don't retry on 404 - it's expected for new videos
+    meta: {
+      // Handle 404 as a normal case, not an error
+      errorBoundary: false,
+    },
   });
 
   const handleAnalyze = async (inputUrl: string) => {
@@ -123,8 +128,14 @@ export default function Analysis() {
 
   // Auto-trigger analysis when we have video data but no analysis (only for new analysis, not shared links)
   React.useEffect(() => {
-    if (hasVideoData && !hasAnalysisData && !isLoadingAnalysis && !analysisError && !manualRetryMode && !isSharedLink) {
-      summarizeMutation.mutate({ videoId: videoId! });
+    if (hasVideoData && !hasAnalysisData && !isLoadingAnalysis && !manualRetryMode && !isSharedLink) {
+      // Check if the error is a 404 (no analysis found) - this is normal for new videos
+      const is404Error = analysisError && (analysisError as any)?.status === 404;
+      const shouldTriggerAnalysis = !analysisError || is404Error;
+      
+      if (shouldTriggerAnalysis) {
+        summarizeMutation.mutate({ videoId: videoId! });
+      }
     }
   }, [hasVideoData, hasAnalysisData, isLoadingAnalysis, analysisError, manualRetryMode, videoId, isSharedLink]);
 
@@ -163,8 +174,8 @@ export default function Analysis() {
             />
           )}
 
-          {/* Error State for analysis */}
-          {analysisError && hasVideoData && !isLoading && (
+          {/* Error State for analysis - Don't show 404 errors as they're expected for new videos */}
+          {analysisError && hasVideoData && !isLoading && (analysisError as any)?.status !== 404 && (
             <ErrorState
               errorMessage="Failed to generate analysis"
               onTryAgain={handleRefreshAnalysis}
