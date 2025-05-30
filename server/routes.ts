@@ -119,7 +119,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { videoId, forceRefresh } = result.data;
-      console.log(`Generating summary for videoId: ${videoId} (forceRefresh: ${forceRefresh})`); 
+      console.log(`Getting analysis for videoId: ${videoId} (forceRefresh: ${forceRefresh})`); 
+
+      // First, check if analysis already exists (unless force refresh)
+      if (!forceRefresh) {
+        const existingAnalysis = await storage.getAnalysis(videoId);
+        if (existingAnalysis) {
+          console.log(`Returning existing analysis for videoId: ${videoId}`);
+          return res.json(existingAnalysis);
+        }
+      }
+
+      console.log(`No existing analysis found, generating new analysis for videoId: ${videoId}`);
 
       // Get video data with comments
       const videoData = await storage.getVideo(videoId);
@@ -172,35 +183,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(simplifiedAnalysis);
       }
 
-      // Check if analysis already exists and if we need to refresh
-      let analysis = await storage.getAnalysis(videoId);
+      // Generate analysis using OpenAI (we already checked for existing analysis above)
+      console.log("Starting OpenAI comment analysis for video:", videoId);
+      const analysis = await openaiService.generateCommentAnalysis(videoData);
 
-      if (analysis && !forceRefresh) {
-        console.log("Using existing analysis for video:", videoId);
+      // Prepare the analysis data
+      const analysisData = {
+        videoId: analysis.videoId,
+        sentimentStats: analysis.sentimentStats,
+        keyPoints: analysis.keyPoints,
+        comprehensive: analysis.comprehensive,
+        commentsAnalyzed: analysis.commentsAnalyzed,
+        createdAt: new Date(),
+      };
+
+      // Check if we're updating or creating
+      if (forceRefresh && await storage.getAnalysis(videoId)) {
+        console.log("Updating existing analysis in database");
+        await storage.updateAnalysis(videoId, analysisData);
       } else {
-        // Generate analysis using OpenAI
-        analysis = await openaiService.generateCommentAnalysis(videoData);
-
-        console.log("Analysis generated, storing in database");
-        // Prepare the analysis data
-        const analysisData = {
-          videoId: analysis.videoId,
-          sentimentStats: analysis.sentimentStats,
-          keyPoints: analysis.keyPoints,
-          comprehensive: analysis.comprehensive,
-          commentsAnalyzed: analysis.commentsAnalyzed,
-          createdAt: new Date(),
-        };
-
-        // Check if we're updating or creating
-        if (forceRefresh && await storage.getAnalysis(videoId)) {
-          console.log("Updating existing analysis in database");
-          await storage.updateAnalysis(videoId, analysisData);
-        } else {
-          console.log("Creating new analysis in database");
-          await storage.createAnalysis(analysisData);
-        }
+        console.log("Creating new analysis in database");
+        await storage.createAnalysis(analysisData);
       }
+
       // Return the actual analysis data instead of just a success message
       return res.json(analysis);
     } catch (error: any) {
@@ -227,7 +232,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const analysis = await storage.getAnalysis(videoId);
       if (!analysis) {
         return res
-          .status(404)
+          .status(200)
           .json({ message: "Analysis not found for this video" });
       }
 

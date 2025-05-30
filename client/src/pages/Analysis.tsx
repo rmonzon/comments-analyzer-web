@@ -83,19 +83,29 @@ export default function Analysis() {
     },
   });
 
-  // Query for analysis data
+  // Single endpoint for getting or creating analysis
   const {
     data: analysisData,
     isLoading: isLoadingAnalysis,
     error: analysisError,
   } = useQuery<VideoAnalysis>({
-    queryKey: ["/api/youtube/analysis", videoId],
-    enabled: !!videoId && !!videoData,
-    retry: false, // Don't retry on 404 - it's expected for new videos
-    meta: {
-      // Handle 404 as a normal case, not an error
-      errorBoundary: false,
+    queryKey: ["/api/youtube/summarize", videoId],
+    queryFn: async () => {
+      const response = await fetch("/api/youtube/summarize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ videoId, forceRefresh: false }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to get analysis");
+      }
+      
+      return response.json();
     },
+    enabled: !!videoId && !!videoData,
+    retry: false,
   });
 
   const handleAnalyze = async (inputUrl: string) => {
