@@ -19,6 +19,7 @@ export default function Analysis() {
   const [url, setUrl] = useState<string>("");
   const [videoId, setVideoId] = useState<string | null>(null);
   const [manualRetryMode, setManualRetryMode] = useState<boolean>(false);
+  const [isSharedLink, setIsSharedLink] = useState<boolean>(false);
   const { toast } = useToast();
 
   // Handle shared links with videoId parameter
@@ -31,9 +32,10 @@ export default function Analysis() {
       const newUrl = window.location.pathname;
       window.history.replaceState({}, document.title, newUrl);
       
-      // Set the video ID to trigger analysis
+      // Set the video ID and mark as shared link
       setVideoId(sharedVideoId);
       setUrl(`https://www.youtube.com/watch?v=${sharedVideoId}`);
+      setIsSharedLink(true);
     }
   }, [videoId]);
 
@@ -106,6 +108,7 @@ export default function Analysis() {
     setUrl(inputUrl);
     setVideoId(extractedVideoId);
     setManualRetryMode(false);
+    setIsSharedLink(false); // Reset shared link flag for new analysis
   };
 
   const handleRefreshAnalysis = () => {
@@ -117,13 +120,14 @@ export default function Analysis() {
   const isLoading = isLoadingVideo || summarizeMutation.isPending;
   const hasVideoData = !!videoData;
   const hasAnalysisData = !!analysisData;
+  const isCachedAnalysis = hasAnalysisData && !summarizeMutation.isPending;
 
-  // Auto-trigger analysis when we have video data but no analysis
+  // Auto-trigger analysis when we have video data but no analysis (only for new analysis, not shared links)
   React.useEffect(() => {
-    if (hasVideoData && !hasAnalysisData && !isLoadingAnalysis && !analysisError && !manualRetryMode) {
+    if (hasVideoData && !hasAnalysisData && !isLoadingAnalysis && !analysisError && !manualRetryMode && !isSharedLink) {
       summarizeMutation.mutate({ videoId: videoId! });
     }
-  }, [hasVideoData, hasAnalysisData, isLoadingAnalysis, analysisError, manualRetryMode, videoId]);
+  }, [hasVideoData, hasAnalysisData, isLoadingAnalysis, analysisError, manualRetryMode, videoId, isSharedLink]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -142,10 +146,12 @@ export default function Analysis() {
             </p>
           </div>
 
-          {/* URL Input Form */}
-          <div className="mb-8">
-            <URLInputForm onSubmit={handleAnalyze} />
-          </div>
+          {/* URL Input Form - Hide for shared links */}
+          {!isSharedLink && (
+            <div className="mb-8">
+              <URLInputForm onSubmit={handleAnalyze} />
+            </div>
+          )}
 
           {/* Loading State */}
           {isLoading && <LoadingState />}
@@ -171,6 +177,7 @@ export default function Analysis() {
             <ResultsSection
               videoData={videoData}
               analysisData={analysisData}
+              isCachedAnalysis={isCachedAnalysis}
               isRefreshing={summarizeMutation.isPending}
               onRefreshAnalysis={handleRefreshAnalysis}
             />
