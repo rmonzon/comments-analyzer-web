@@ -9,7 +9,7 @@ import ErrorState from "@/components/ErrorState";
 import { useToast } from "@/hooks/use-toast";
 import { extractVideoId } from "@/lib/utils";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 import {
   VideoData,
   VideoAnalysis,
@@ -40,11 +40,15 @@ export default function Analysis() {
   // Mutation for creating/updating analysis
   const summarizeMutation = useMutation({
     mutationFn: async ({ videoId, forceRefresh = false }: SummaryParams) => {
-      return await apiRequest("/api/youtube/summarize", {
+      const response = await fetch("/api/youtube/summarize", {
         method: "POST",
         body: JSON.stringify({ videoId, forceRefresh }),
         headers: { "Content-Type": "application/json" },
       });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
     },
     onSuccess: () => {
       // Invalidate and refetch video analysis
@@ -98,8 +102,17 @@ export default function Analysis() {
   const hasVideoData = !!videoData;
   const hasAnalysisData = !!analysisData;
 
+  // Auto-trigger analysis when we have video data but no analysis
+  React.useEffect(() => {
+    if (hasVideoData && !hasAnalysisData && !isLoadingAnalysis && !analysisError && !manualRetryMode) {
+      summarizeMutation.mutate({ videoId: videoId! });
+    }
+  }, [hasVideoData, hasAnalysisData, isLoadingAnalysis, analysisError, manualRetryMode, videoId]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <Header />
+      
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
@@ -119,37 +132,41 @@ export default function Analysis() {
           </div>
 
           {/* Loading State */}
-          {isLoading && (
-            <LoadingState progress={analysisProgress} />
-          )}
+          {isLoading && <LoadingState />}
 
-          {/* Error State */}
-          {hasError && !isLoading && (
+          {/* Error State for video loading */}
+          {videoError && !isLoading && (
             <ErrorState
-              errorMessage={
-                analysisError ||
-                (videoError as Error)?.message ||
-                (analysisQueryError as Error)?.message ||
-                "An unexpected error occurred"
-              }
-              onTryAgain={() => {
-                setAnalysisError("");
-                if (videoId) {
-                  refetchVideo();
-                  refetchAnalysis();
-                }
-              }}
+              errorMessage={(videoError as Error)?.message || "Failed to load video data"}
+              onTryAgain={() => refetchVideo()}
             />
           )}
 
-          {/* Results */}
-          {videoData && analysisData && !isLoading && !hasError && (
+          {/* Error State for analysis */}
+          {analysisError && hasVideoData && !isLoading && (
+            <ErrorState
+              errorMessage="Failed to generate analysis"
+              onTryAgain={handleRefreshAnalysis}
+            />
+          )}
+
+          {/* Results Section */}
+          {hasVideoData && hasAnalysisData && !isLoading && (
             <ResultsSection
               videoData={videoData}
               analysisData={analysisData}
-              isRefreshing={isAnalyzing}
+              isRefreshing={summarizeMutation.isPending}
               onRefreshAnalysis={handleRefreshAnalysis}
             />
+          )}
+
+          {/* Video data loaded but no analysis yet */}
+          {hasVideoData && !hasAnalysisData && !isLoading && !analysisError && (
+            <div className="text-center py-8">
+              <p className="text-gray-600 dark:text-gray-400">
+                Generating analysis...
+              </p>
+            </div>
           )}
 
           {/* Empty State */}
@@ -157,7 +174,7 @@ export default function Analysis() {
             <div className="text-center py-12">
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
                 <svg className="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m0 0V1a1 1 0 011-1h2a1 1 0 011 1v18a1 1 0 01-1 1H4a1 1 0 01-1-1V1a1 1 0 011-1h2a1 1 0 011 1v3m0 0h8m-8 0V1" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m0 0V1a1 1 0 011-1h2a1 1 0 011 1v18a1 1 0 01-1-1H4a1 1 0 01-1-1V1a1 1 0 011-1h2a1 1 0 011 1v3m0 0h8m-8 0V1" />
                 </svg>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
@@ -170,6 +187,8 @@ export default function Analysis() {
           )}
         </div>
       </div>
+      
+      <Footer />
     </div>
   );
 }
