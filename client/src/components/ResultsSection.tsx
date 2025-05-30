@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import VideoInfoCard from "./VideoInfoCard";
 import AnalysisTabs from "./AnalysisTabs";
 import { Button } from "@/components/ui/button";
-import { Share2 } from "lucide-react";
+import { Share2, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { VideoData, VideoAnalysis } from "@shared/types";
 
@@ -22,9 +22,12 @@ export default function ResultsSection({
   onRefreshAnalysis,
 }: ResultsSectionProps) {
   const { toast } = useToast();
+  const [isSharing, setIsSharing] = useState(false);
 
   const handleShare = async () => {
     const shareUrl = `${window.location.origin}?analyze=${videoData.id}`;
+    
+    setIsSharing(true);
     
     try {
       await navigator.clipboard.writeText(shareUrl);
@@ -40,6 +43,11 @@ export default function ResultsSection({
         variant: "default",
       });
     }
+    
+    // Reset the sharing state after 2 seconds
+    setTimeout(() => {
+      setIsSharing(false);
+    }, 2000);
   };
 
   return (
@@ -51,10 +59,21 @@ export default function ResultsSection({
             onClick={handleShare}
             variant="outline"
             size="sm"
-            className="flex items-center gap-2"
+            className={`flex items-center gap-2 transition-all duration-300 ${
+              isSharing ? "bg-green-50 border-green-200 text-green-700" : ""
+            }`}
           >
-            <Share2 className="h-4 w-4" />
-            Share
+            {isSharing ? (
+              <>
+                <Check className="h-4 w-4 animate-pulse" />
+                Link copied!
+              </>
+            ) : (
+              <>
+                <Share2 className="h-4 w-4" />
+                Share
+              </>
+            )}
           </Button>
           {isCachedAnalysis && (
             <span className="text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded">

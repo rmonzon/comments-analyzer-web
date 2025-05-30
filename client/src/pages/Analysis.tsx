@@ -28,9 +28,8 @@ export default function Analysis() {
     const sharedVideoId = params.get("videoId");
     
     if (sharedVideoId && !videoId) {
-      // Clear the URL parameter
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, document.title, newUrl);
+      // Keep the URL parameter visible for sharing purposes
+      // Don't clear it so users can copy the URL to share again
       
       // Set the video ID and mark as shared link
       setVideoId(sharedVideoId);

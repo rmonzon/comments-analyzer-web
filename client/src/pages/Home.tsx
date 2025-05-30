@@ -14,11 +14,7 @@ export default function Home() {
     const videoId = params.get("videoId");
     
     if (analysisId || videoId) {
-      // Clear the URL parameter
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, document.title, newUrl);
-      
-      // Redirect to analysis page with the video ID
+      // Redirect to analysis page with the video ID, keeping the parameter
       const targetVideoId = analysisId || videoId;
       setLocation(`/analyze?videoId=${targetVideoId}`);
     }
