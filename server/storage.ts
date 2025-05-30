@@ -1,23 +1,28 @@
-import { 
-  videos, 
-  comments, 
+import {
+  videos,
+  comments,
   analyses,
   premiumInterest,
   users,
   sessions,
-  type Comment, 
-  type Video, 
-  type Analysis, 
-  type InsertComment, 
-  type InsertVideo, 
+  type Comment,
+  type Video,
+  type Analysis,
+  type InsertComment,
+  type InsertVideo,
   type InsertAnalysis,
   type PremiumInterest,
   type InsertPremiumInterest,
   type User,
   type InsertUser,
-  type UpsertUser
+  type UpsertUser,
 } from "@shared/schema";
-import { VideoData, VideoAnalysis, KeyPoint, SentimentStats } from "@shared/types";
+import {
+  VideoData,
+  VideoAnalysis,
+  KeyPoint,
+  SentimentStats,
+} from "@shared/types";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 
@@ -26,20 +31,36 @@ export interface IStorage {
   // Video operations
   getVideo(id: string): Promise<VideoData | undefined>;
   createVideo(video: InsertVideo): Promise<Video>;
-  
+
   // Comment operations
   getComments(videoId: string): Promise<Comment[]>;
   createComment(comment: InsertComment): Promise<Comment>;
   createComments(comments: InsertComment[]): Promise<Comment[]>;
-  
+
   // Analysis operations
   getAnalysis(videoId: string): Promise<VideoAnalysis | undefined>;
   createAnalysis(analysis: InsertAnalysis): Promise<Analysis>;
-  updateAnalysis(videoId: string, analysis: Partial<InsertAnalysis>): Promise<Analysis | undefined>;
-  getAllAnalyzedVideos(): Promise<{videoId: string; title: string; channelTitle: string; publishedAt: string; thumbnail: string | null; viewCount: number | null; commentsAnalyzed: number; analysisDate: string}[]>;
-  
+  updateAnalysis(
+    videoId: string,
+    analysis: Partial<InsertAnalysis>,
+  ): Promise<Analysis | undefined>;
+  getAllAnalyzedVideos(): Promise<
+    {
+      videoId: string;
+      title: string;
+      channelTitle: string;
+      publishedAt: string;
+      thumbnail: string | null;
+      viewCount: number | null;
+      commentsAnalyzed: number;
+      analysisDate: string;
+    }[]
+  >;
+
   // Premium interest operations
-  createPremiumInterest(interest: InsertPremiumInterest): Promise<PremiumInterest>;
+  createPremiumInterest(
+    interest: InsertPremiumInterest,
+  ): Promise<PremiumInterest>;
   getPremiumInterests(): Promise<PremiumInterest[]>;
 
   // User operations
@@ -48,7 +69,7 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
-  
+
   // Session store
   sessionStore: any;
 }
@@ -59,13 +80,13 @@ export class DatabaseStorage implements IStorage {
   async getVideo(id: string): Promise<VideoData | undefined> {
     try {
       if (!db) throw new Error("Database is not initialized");
-      
+
       const [video] = await db.select().from(videos).where(eq(videos.id, id));
-      
+
       if (!video) return undefined;
-      
+
       const videoComments = await this.getComments(id);
-      
+
       return {
         id: video.id,
         title: video.title,
@@ -77,14 +98,14 @@ export class DatabaseStorage implements IStorage {
         likeCount: video.likeCount || 0,
         commentCount: video.commentCount || 0,
         publishedAt: video.publishedAt.toISOString(),
-        comments: videoComments
+        comments: videoComments,
       };
     } catch (error) {
       console.error("Database error in getVideo:", error);
       throw error;
     }
   }
-  
+
   async createVideo(video: InsertVideo): Promise<Video> {
     try {
       const [result] = await db.insert(videos).values(video).returning();
@@ -94,14 +115,17 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
-  
+
   // Comment operations
   async getComments(videoId: string): Promise<Comment[]> {
     try {
-      const results = await db.select().from(comments).where(eq(comments.videoId, videoId));
-      
+      const results = await db
+        .select()
+        .from(comments)
+        .where(eq(comments.videoId, videoId));
+
       // Map DB comment objects to Comment interface
-      return results.map(comment => ({
+      return results.map((comment) => ({
         id: comment.id,
         videoId: comment.videoId,
         authorDisplayName: comment.authorDisplayName,
@@ -111,14 +135,14 @@ export class DatabaseStorage implements IStorage {
         textOriginal: comment.textOriginal,
         likeCount: comment.likeCount || 0,
         publishedAt: comment.publishedAt.toISOString(),
-        updatedAt: comment.updatedAt.toISOString()
+        updatedAt: comment.updatedAt.toISOString(),
       }));
     } catch (error) {
       console.error("Database error in getComments:", error);
       throw error;
     }
   }
-  
+
   async createComment(comment: InsertComment): Promise<Comment> {
     try {
       const [result] = await db.insert(comments).values(comment).returning();
@@ -128,27 +152,27 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
-  
+
   async createComments(commentsToInsert: InsertComment[]): Promise<Comment[]> {
     if (commentsToInsert.length === 0) return [];
-    
+
     try {
       // Process comments in batches to avoid issues
       const batchSize = 10;
       const results: Comment[] = [];
-      
+
       for (let i = 0; i < commentsToInsert.length; i += batchSize) {
         const batch = commentsToInsert.slice(i, i + batchSize);
         try {
           console.log(`Inserting batch of ${batch.length} comments`);
-          
+
           // Use on conflict do nothing to handle duplicate IDs
           const batchResults = await db
             .insert(comments)
             .values(batch)
             .onConflictDoNothing({ target: comments.id })
             .returning();
-            
+
           results.push(...batchResults);
           console.log(`Successfully inserted ${batchResults.length} comments`);
         } catch (err) {
@@ -161,7 +185,7 @@ export class DatabaseStorage implements IStorage {
                 .values(comment)
                 .onConflictDoNothing({ target: comments.id })
                 .returning();
-                
+
               if (result) results.push(result);
             } catch (innerErr) {
               console.error(`Error inserting comment ${comment.id}:`, innerErr);
@@ -169,7 +193,7 @@ export class DatabaseStorage implements IStorage {
           }
         }
       }
-      
+
       console.log(`Total comments inserted: ${results.length}`);
       return results;
     } catch (error) {
@@ -177,28 +201,31 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
-  
+
   // Analysis operations
   async getAnalysis(videoId: string): Promise<VideoAnalysis | undefined> {
     try {
-      const [analysis] = await db.select().from(analyses).where(eq(analyses.videoId, videoId));
-      
+      const [analysis] = await db
+        .select()
+        .from(analyses)
+        .where(eq(analyses.videoId, videoId));
+
       if (!analysis) return undefined;
-      
+
       return {
         videoId: analysis.videoId,
         sentimentStats: analysis.sentimentStats as SentimentStats,
         keyPoints: analysis.keyPoints as KeyPoint[],
         comprehensive: analysis.comprehensive,
         commentsAnalyzed: analysis.commentsAnalyzed,
-        createdAt: analysis.createdAt.toISOString()
+        createdAt: analysis.createdAt.toISOString(),
       };
     } catch (error) {
       console.error("Database error in getAnalysis:", error);
       throw error;
     }
   }
-  
+
   async createAnalysis(analysis: InsertAnalysis): Promise<Analysis> {
     try {
       const [result] = await db.insert(analyses).values(analysis).returning();
@@ -208,22 +235,28 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
-  
-  async updateAnalysis(videoId: string, updatedAnalysis: Partial<InsertAnalysis>): Promise<Analysis | undefined> {
+
+  async updateAnalysis(
+    videoId: string,
+    updatedAnalysis: Partial<InsertAnalysis>,
+  ): Promise<Analysis | undefined> {
     try {
-      const [existingAnalysis] = await db.select().from(analyses).where(eq(analyses.videoId, videoId));
-      
+      const [existingAnalysis] = await db
+        .select()
+        .from(analyses)
+        .where(eq(analyses.videoId, videoId));
+
       if (!existingAnalysis) return undefined;
-      
+
       const [updated] = await db
         .update(analyses)
         .set({
           ...updatedAnalysis,
-          createdAt: new Date() // Update the timestamp
+          createdAt: new Date(), // Update the timestamp
         })
         .where(eq(analyses.videoId, videoId))
         .returning();
-      
+
       return updated;
     } catch (error) {
       console.error("Database error in updateAnalysis:", error);
@@ -232,10 +265,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Premium interest operations
-  async createPremiumInterest(interest: InsertPremiumInterest): Promise<PremiumInterest> {
+  async createPremiumInterest(
+    interest: InsertPremiumInterest,
+  ): Promise<PremiumInterest> {
     try {
       console.log("Recording premium interest:", interest);
-      const [result] = await db.insert(premiumInterest).values(interest).returning();
+      const [result] = await db
+        .insert(premiumInterest)
+        .values(interest)
+        .returning();
       console.log("Premium interest recorded successfully");
       return result;
     } catch (error) {
@@ -246,42 +284,57 @@ export class DatabaseStorage implements IStorage {
 
   async getPremiumInterests(): Promise<PremiumInterest[]> {
     try {
-      const results = await db.select().from(premiumInterest).orderBy(premiumInterest.createdAt);
+      const results = await db
+        .select()
+        .from(premiumInterest)
+        .orderBy(premiumInterest.createdAt);
       return results;
     } catch (error) {
       console.error("Database error in getPremiumInterests:", error);
       throw error;
     }
   }
-  
+
   // Get all analyzed videos with their analysis information
-  async getAllAnalyzedVideos(): Promise<{videoId: string; title: string; channelTitle: string; publishedAt: string; thumbnail: string | null; viewCount: number | null; commentsAnalyzed: number; analysisDate: string}[]> {
+  async getAllAnalyzedVideos(): Promise<
+    {
+      videoId: string;
+      title: string;
+      channelTitle: string;
+      publishedAt: string;
+      thumbnail: string | null;
+      viewCount: number | null;
+      commentsAnalyzed: number;
+      totalComments: number | null;
+      analysisDate: string;
+    }[]
+  > {
     try {
       console.log("Getting all analyzed videos from database");
-      
+
       if (!db) {
         console.error("Database connection is not initialized");
         return [];
       }
-      
+
       // First, get all analyses to find which videos have been analyzed
       const allAnalyses = await db
         .select({
           videoId: analyses.videoId,
           commentsAnalyzed: analyses.commentsAnalyzed,
-          analysisDate: analyses.createdAt
+          analysisDate: analyses.createdAt,
         })
         .from(analyses);
-      
+
       console.log(`Found ${allAnalyses.length} analyses in database`);
-      
+
       if (allAnalyses.length === 0) {
         return [];
       }
-      
+
       // Now get all videos that have been analyzed
       const result = [];
-      
+
       for (const analysis of allAnalyses) {
         // Get the video data for each analyzed video
         const videoData = await db
@@ -291,15 +344,16 @@ export class DatabaseStorage implements IStorage {
             channelTitle: videos.channelTitle,
             publishedAt: videos.publishedAt,
             thumbnail: videos.thumbnail,
-            viewCount: videos.viewCount
+            viewCount: videos.viewCount,
+            totalComments: videos.commentCount,
           })
           .from(videos)
           .where(eq(videos.id, analysis.videoId))
           .limit(1);
-          
+
         if (videoData.length > 0) {
           const video = videoData[0];
-          
+
           result.push({
             videoId: video.id,
             title: video.title,
@@ -308,37 +362,17 @@ export class DatabaseStorage implements IStorage {
             thumbnail: video.thumbnail,
             viewCount: video.viewCount,
             commentsAnalyzed: analysis.commentsAnalyzed,
-            analysisDate: analysis.analysisDate.toISOString()
+            totalComments: video.totalComments,
+            analysisDate: analysis.analysisDate.toISOString(),
           });
         }
       }
-      
+
       console.log(`Returning ${result.length} actual videos from database`);
       return result;
     } catch (error) {
       console.error("Error in getAllAnalyzedVideos:", error);
       return []; // Return empty array on error instead of throwing
-    }
-  }
-  
-  // Helper method to get all analyses
-  private async getAllAnalyses(): Promise<VideoAnalysis[]> {
-    try {
-      if (!db) return [];
-      
-      const allAnalyses = await db.select().from(analyses);
-      
-      return allAnalyses.map(analysis => ({
-        videoId: analysis.videoId,
-        sentimentStats: analysis.sentimentStats as SentimentStats,
-        keyPoints: analysis.keyPoints as KeyPoint[],
-        comprehensive: analysis.comprehensive,
-        commentsAnalyzed: analysis.commentsAnalyzed,
-        createdAt: analysis.createdAt.toISOString()
-      }));
-    } catch (error) {
-      console.error("Error in getAllAnalyses:", error);
-      return [];
     }
   }
 
@@ -363,7 +397,10 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     try {
-      const [user] = await db.select().from(users).where(eq(users.username, username));
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.username, username));
       return user || undefined;
     } catch (error) {
       console.error("Database error in getUserByUsername:", error);
@@ -374,7 +411,10 @@ export class DatabaseStorage implements IStorage {
   async getUserByEmail(email: string): Promise<User | undefined> {
     try {
       if (!email) return undefined;
-      const [user] = await db.select().from(users).where(eq(users.email, email));
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, email));
       return user || undefined;
     } catch (error) {
       console.error("Database error in getUserByEmail:", error);
@@ -385,11 +425,14 @@ export class DatabaseStorage implements IStorage {
   async createUser(user: InsertUser): Promise<User> {
     try {
       console.log("Creating new user:", user.username);
-      const [result] = await db.insert(users).values({
-        ...user,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }).returning();
+      const [result] = await db
+        .insert(users)
+        .values({
+          ...user,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .returning();
       console.log("User created successfully");
       return result;
     } catch (error) {
@@ -397,11 +440,11 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
-  
+
   async upsertUser(userData: UpsertUser): Promise<User> {
     try {
       console.log("Upserting user:", userData.username);
-      
+
       const [user] = await db
         .insert(users)
         .values({
@@ -416,7 +459,7 @@ export class DatabaseStorage implements IStorage {
           },
         })
         .returning();
-      
+
       console.log("User upserted successfully");
       return user;
     } catch (error) {

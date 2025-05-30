@@ -18,11 +18,12 @@ interface AnalyzedVideo {
   thumbnail: string;
   viewCount: number;
   commentsAnalyzed: number;
+  totalComments: number;
   analysisDate: string;
 }
 
 // Sorting options
-type SortField = 'analysisDate' | 'publishedAt' | 'viewCount' | 'commentsAnalyzed';
+type SortField = 'analysisDate' | 'publishedAt' | 'viewCount' | 'commentsAnalyzed' | 'totalComments';
 type SortDirection = 'asc' | 'desc';
 
 export default function VideosList() {
@@ -164,6 +165,15 @@ export default function VideosList() {
                           <ArrowUpDown className="h-4 w-4" />
                         </button>
                       </TableHead>
+                      <TableHead className="w-[200px]">
+                        <button 
+                          className="flex items-center space-x-1 focus:outline-none"
+                          onClick={() => handleSort('totalComments')}
+                        >
+                          <span>Total Comments</span>
+                          <ArrowUpDown className="h-4 w-4" />
+                        </button>
+                      </TableHead>
                       <TableHead className="w-[150px]">
                         <button 
                           className="flex items-center space-x-1 focus:outline-none"
@@ -197,6 +207,7 @@ export default function VideosList() {
                         <TableCell>{formatPublishDate(video.publishedAt)}</TableCell>
                         <TableCell>{formatViewCount(video.viewCount)}</TableCell>
                         <TableCell>{video.commentsAnalyzed}</TableCell>
+                        <TableCell>{video.totalComments}</TableCell>
                         <TableCell>{formatPublishDate(video.analysisDate)}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end space-x-2">
