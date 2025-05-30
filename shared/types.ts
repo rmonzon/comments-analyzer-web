@@ -43,6 +43,7 @@ export interface VideoAnalysis {
   comprehensive: string;
   commentsAnalyzed: number;
   createdAt: string;
+  fromCache?: boolean;
 }
 
 export interface YouTubeVideoResponse {

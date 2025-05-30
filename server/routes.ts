@@ -126,7 +126,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const existingAnalysis = await storage.getAnalysis(videoId);
         if (existingAnalysis) {
           console.log(`Returning existing analysis for videoId: ${videoId}`);
-          return res.json(existingAnalysis);
+          return res.json({ ...existingAnalysis, fromCache: true });
         }
       }
 
@@ -150,7 +150,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const existingAnalysis = await storage.getAnalysis(videoId);
         if (existingAnalysis) {
           console.log("Using existing simplified analysis");
-          return res.json(existingAnalysis);
+          return res.json({ ...existingAnalysis, fromCache: true });
         }
 
         // Create a simplified analysis when there are no comments
@@ -180,7 +180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           createdAt: new Date(),
         });
 
-        return res.json(simplifiedAnalysis);
+        return res.json({ ...simplifiedAnalysis, fromCache: false });
       }
 
       // Generate analysis using OpenAI (we already checked for existing analysis above)
@@ -207,7 +207,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Return the actual analysis data instead of just a success message
-      return res.json(analysis);
+      return res.json({ ...analysis, fromCache: false });
     } catch (error: any) {
       console.error("Error generating summary:", error);
       return res

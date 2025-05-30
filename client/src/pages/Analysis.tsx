@@ -20,7 +20,7 @@ export default function Analysis() {
   const [videoId, setVideoId] = useState<string | null>(null);
   const [manualRetryMode, setManualRetryMode] = useState<boolean>(false);
   const [isSharedLink, setIsSharedLink] = useState<boolean>(false);
-  const [wasAnalysisCreated, setWasAnalysisCreated] = useState<boolean>(false);
+  const [analysisStartTime, setAnalysisStartTime] = useState<number | null>(null);
   const { toast } = useToast();
 
   // Handle shared links with videoId parameter
@@ -92,6 +92,10 @@ export default function Analysis() {
   } = useQuery<VideoAnalysis>({
     queryKey: ["/api/youtube/summarize", videoId],
     queryFn: async () => {
+      // Record when we start the analysis request
+      const requestStartTime = Date.now();
+      setAnalysisStartTime(requestStartTime);
+      
       const response = await fetch("/api/youtube/summarize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -105,14 +109,8 @@ export default function Analysis() {
       
       const data = await response.json();
       
-      // Check if this analysis was just created by comparing timestamps
-      // If the analysis was created within the last 30 seconds, it's likely new
-      const now = new Date();
-      const analysisCreated = new Date(data.createdAt);
-      const timeDiff = now.getTime() - analysisCreated.getTime();
-      const isNewAnalysis = timeDiff < 30000; // 30 seconds
-      
-      setWasAnalysisCreated(isNewAnalysis);
+      // Calculate response time - if it was quick (under 1 second), it was likely cached
+      const responseTime = Date.now() - requestStartTime;
       
       return data;
     },
@@ -135,7 +133,7 @@ export default function Analysis() {
     setVideoId(extractedVideoId);
     setManualRetryMode(false);
     setIsSharedLink(false); // Reset shared link flag for new analysis
-    setWasAnalysisCreated(false); // Reset analysis creation flag for new videos
+    setAnalysisStartTime(null); // Reset analysis start time for new videos
   };
 
   const handleRefreshAnalysis = () => {
@@ -147,7 +145,10 @@ export default function Analysis() {
   const isLoading = isLoadingVideo || summarizeMutation.isPending;
   const hasVideoData = !!videoData;
   const hasAnalysisData = !!analysisData;
-  const isCachedAnalysis = hasAnalysisData && !wasAnalysisCreated && !summarizeMutation.isPending;
+  
+  // Determine if analysis is cached based on response time
+  // If we have analysis start time and the data exists, check if it was fast (likely cached)
+  const isCachedAnalysis = hasAnalysisData && analysisStartTime && !summarizeMutation.isPending && !isLoadingAnalysis;
 
 
 
