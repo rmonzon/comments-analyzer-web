@@ -20,6 +20,7 @@ export default function Analysis() {
   const [videoId, setVideoId] = useState<string | null>(null);
   const [manualRetryMode, setManualRetryMode] = useState<boolean>(false);
   const [isSharedLink, setIsSharedLink] = useState<boolean>(false);
+  const [wasAnalysisCreated, setWasAnalysisCreated] = useState<boolean>(false);
   const { toast } = useToast();
 
   // Handle shared links with videoId parameter
@@ -102,7 +103,18 @@ export default function Analysis() {
         throw new Error(error.message || "Failed to get analysis");
       }
       
-      return response.json();
+      const data = await response.json();
+      
+      // Check if this analysis was just created by comparing timestamps
+      // If the analysis was created within the last 30 seconds, it's likely new
+      const now = new Date();
+      const analysisCreated = new Date(data.createdAt);
+      const timeDiff = now.getTime() - analysisCreated.getTime();
+      const isNewAnalysis = timeDiff < 30000; // 30 seconds
+      
+      setWasAnalysisCreated(isNewAnalysis);
+      
+      return data;
     },
     enabled: !!videoId && !!videoData,
     retry: false,
@@ -123,6 +135,7 @@ export default function Analysis() {
     setVideoId(extractedVideoId);
     setManualRetryMode(false);
     setIsSharedLink(false); // Reset shared link flag for new analysis
+    setWasAnalysisCreated(false); // Reset analysis creation flag for new videos
   };
 
   const handleRefreshAnalysis = () => {
@@ -134,7 +147,7 @@ export default function Analysis() {
   const isLoading = isLoadingVideo || summarizeMutation.isPending;
   const hasVideoData = !!videoData;
   const hasAnalysisData = !!analysisData;
-  const isCachedAnalysis = hasAnalysisData && !summarizeMutation.isPending;
+  const isCachedAnalysis = hasAnalysisData && !wasAnalysisCreated && !summarizeMutation.isPending;
 
 
 
