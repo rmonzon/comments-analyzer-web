@@ -68,8 +68,8 @@ export default function Analysis() {
       return await response.json();
     },
     onSuccess: () => {
-      // Invalidate and refetch video analysis
-      queryClient.invalidateQueries({ queryKey: ["/api/youtube/analysis"] });
+      // Invalidate and refetch analysis data
+      queryClient.invalidateQueries({ queryKey: ["/api/youtube/summarize"] });
       setManualRetryMode(false);
     },
     onError: (error: Error) => {
@@ -136,14 +136,7 @@ export default function Analysis() {
   const hasAnalysisData = !!analysisData;
   const isCachedAnalysis = hasAnalysisData && !summarizeMutation.isPending;
 
-  // Auto-trigger analysis when we have video data but no analysis (only for new analysis, not shared links)
-  React.useEffect(() => {
-    if (hasVideoData && !hasAnalysisData && !isLoadingAnalysis && !manualRetryMode && !isSharedLink && !analysisError) {
-      // Only auto-trigger if there's no error - let user manually retry if there are issues
-      console.log("Auto-triggering analysis for new video:", videoId);
-      summarizeMutation.mutate({ videoId: videoId! });
-    }
-  }, [hasVideoData, hasAnalysisData, isLoadingAnalysis, analysisError, manualRetryMode, videoId, isSharedLink]);
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">

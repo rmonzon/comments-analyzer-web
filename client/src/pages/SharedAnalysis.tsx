@@ -45,14 +45,28 @@ export default function SharedAnalysis() {
     enabled: !!videoId,
   });
 
-  // Fetch analysis data
+  // Fetch analysis data using single endpoint
   const {
     data: analysisData,
     isLoading: isAnalysisLoading,
     isError: isAnalysisError,
     error: analysisError,
   } = useQuery<VideoAnalysis>({
-    queryKey: ["/api/youtube/analysis", videoId],
+    queryKey: ["/api/youtube/summarize", videoId],
+    queryFn: async () => {
+      const response = await fetch("/api/youtube/summarize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ videoId, forceRefresh: false }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to get analysis");
+      }
+      
+      return response.json();
+    },
     enabled: !!videoId,
   });
 
