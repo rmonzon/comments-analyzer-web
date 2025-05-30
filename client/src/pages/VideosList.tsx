@@ -109,7 +109,7 @@ export default function VideosList() {
           <CardHeader>
             <CardTitle className="text-2xl font-bold">Analyzed Videos</CardTitle>
             <CardDescription>
-              A list of all YouTube videos that have been analyzed by our AI.
+              A list of all YouTube videos that have been analyzed by our platform.
             </CardDescription>
           </CardHeader>
           
@@ -132,12 +132,12 @@ export default function VideosList() {
             ) : (
               <div className="overflow-x-auto">
                 <Table>
-                  <TableCaption>List of all analyzed YouTube videos.</TableCaption>
+                  <TableCaption>List of all previously analyzed YouTube videos.</TableCaption>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[250px]">Video</TableHead>
-                      <TableHead>Channel</TableHead>
-                      <TableHead className="w-[100px]">
+                      <TableHead className="w-[550px]">Video Title</TableHead>
+                      <TableHead className="w-[200px]">Channel Name</TableHead>
+                      <TableHead className="w-[150px]">
                         <button 
                           className="flex items-center space-x-1 focus:outline-none"
                           onClick={() => handleSort('publishedAt')}
@@ -146,16 +146,16 @@ export default function VideosList() {
                           <ArrowUpDown className="h-4 w-4" />
                         </button>
                       </TableHead>
-                      <TableHead>
+                      <TableHead className="w-[150px]">
                         <button 
                           className="flex items-center space-x-1 focus:outline-none"
                           onClick={() => handleSort('viewCount')}
                         >
-                          <span>Views</span>
+                          <span>Video Views</span>
                           <ArrowUpDown className="h-4 w-4" />
                         </button>
                       </TableHead>
-                      <TableHead>
+                      <TableHead className="w-[200px]">
                         <button 
                           className="flex items-center space-x-1 focus:outline-none"
                           onClick={() => handleSort('commentsAnalyzed')}
@@ -164,7 +164,7 @@ export default function VideosList() {
                           <ArrowUpDown className="h-4 w-4" />
                         </button>
                       </TableHead>
-                      <TableHead>
+                      <TableHead className="w-[150px]">
                         <button 
                           className="flex items-center space-x-1 focus:outline-none"
                           onClick={() => handleSort('analysisDate')}
@@ -188,7 +188,7 @@ export default function VideosList() {
                                 className="w-full h-full object-cover"
                               />
                             </div>
-                            <span className="truncate max-w-[180px]" title={video.title}>
+                            <span className="truncate max-w-[450px]" title={video.title}>
                               {video.title}
                             </span>
                           </div>
