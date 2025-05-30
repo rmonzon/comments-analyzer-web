@@ -130,10 +130,13 @@ export default function Analysis() {
   React.useEffect(() => {
     if (hasVideoData && !hasAnalysisData && !isLoadingAnalysis && !manualRetryMode && !isSharedLink) {
       // Check if the error is a 404 (no analysis found) - this is normal for new videos
-      const is404Error = analysisError && (analysisError as any)?.status === 404;
+      // The error message indicates a 404 when analysis is not found
+      const is404Error = analysisError && 
+        (analysisError as any)?.message?.includes("Analysis not found");
       const shouldTriggerAnalysis = !analysisError || is404Error;
       
       if (shouldTriggerAnalysis) {
+        console.log("Auto-triggering analysis for new video:", videoId);
         summarizeMutation.mutate({ videoId: videoId! });
       }
     }
@@ -175,7 +178,8 @@ export default function Analysis() {
           )}
 
           {/* Error State for analysis - Don't show 404 errors as they're expected for new videos */}
-          {analysisError && hasVideoData && !isLoading && (analysisError as any)?.status !== 404 && (
+          {analysisError && hasVideoData && !isLoading && 
+           !(analysisError as any)?.message?.includes("Analysis not found") && (
             <ErrorState
               errorMessage="Failed to generate analysis"
               onTryAgain={handleRefreshAnalysis}
