@@ -21,6 +21,22 @@ export default function Analysis() {
   const [manualRetryMode, setManualRetryMode] = useState<boolean>(false);
   const { toast } = useToast();
 
+  // Handle shared links with videoId parameter
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const sharedVideoId = params.get("videoId");
+    
+    if (sharedVideoId && !videoId) {
+      // Clear the URL parameter
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+      
+      // Set the video ID to trigger analysis
+      setVideoId(sharedVideoId);
+      setUrl(`https://www.youtube.com/watch?v=${sharedVideoId}`);
+    }
+  }, [videoId]);
+
   interface SummaryParams {
     videoId: string;
     forceRefresh?: boolean;
