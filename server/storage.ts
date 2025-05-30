@@ -181,10 +181,15 @@ export class DatabaseStorage implements IStorage {
   // Analysis operations
   async getAnalysis(videoId: string): Promise<VideoAnalysis | undefined> {
     try {
+      console.log(`Querying analysis for videoId: ${videoId}`);
       const [analysis] = await db.select().from(analyses).where(eq(analyses.videoId, videoId));
       
-      if (!analysis) return undefined;
+      if (!analysis) {
+        console.log(`No analysis found for videoId: ${videoId}`);
+        return undefined;
+      }
       
+      console.log(`Analysis found for videoId: ${videoId}`);
       return {
         videoId: analysis.videoId,
         sentimentStats: analysis.sentimentStats as SentimentStats,

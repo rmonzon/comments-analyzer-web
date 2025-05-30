@@ -128,17 +128,10 @@ export default function Analysis() {
 
   // Auto-trigger analysis when we have video data but no analysis (only for new analysis, not shared links)
   React.useEffect(() => {
-    if (hasVideoData && !hasAnalysisData && !isLoadingAnalysis && !manualRetryMode && !isSharedLink) {
-      // Check if the error is a 404 (no analysis found) - this is normal for new videos
-      // The error message indicates a 404 when analysis is not found
-      const is404Error = analysisError && 
-        (analysisError as any)?.message?.includes("Analysis not found");
-      const shouldTriggerAnalysis = !analysisError || is404Error;
-      
-      if (shouldTriggerAnalysis) {
-        console.log("Auto-triggering analysis for new video:", videoId);
-        summarizeMutation.mutate({ videoId: videoId! });
-      }
+    if (hasVideoData && !hasAnalysisData && !isLoadingAnalysis && !manualRetryMode && !isSharedLink && !analysisError) {
+      // Only auto-trigger if there's no error - let user manually retry if there are issues
+      console.log("Auto-triggering analysis for new video:", videoId);
+      summarizeMutation.mutate({ videoId: videoId! });
     }
   }, [hasVideoData, hasAnalysisData, isLoadingAnalysis, analysisError, manualRetryMode, videoId, isSharedLink]);
 
@@ -177,12 +170,19 @@ export default function Analysis() {
             />
           )}
 
-          {/* Error State for analysis - Don't show 404 errors as they're expected for new videos */}
-          {analysisError && hasVideoData && !isLoading && 
-           !(analysisError as any)?.message?.includes("Analysis not found") && (
+          {/* Error State for analysis */}
+          {analysisError && hasVideoData && !isLoading && (
             <ErrorState
-              errorMessage="Failed to generate analysis"
-              onTryAgain={handleRefreshAnalysis}
+              errorMessage={(analysisError as any)?.message || "Failed to fetch analysis"}
+              onTryAgain={() => {
+                // For "Analysis not found" errors, trigger new analysis
+                if ((analysisError as any)?.message?.includes("Analysis not found")) {
+                  handleRefreshAnalysis();
+                } else {
+                  // For other errors, refetch the analysis query
+                  window.location.reload();
+                }
+              }}
             />
           )}
 
