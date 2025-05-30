@@ -40,8 +40,8 @@ export default function VideosList() {
       try {
         setIsLoading(true);
         setIsError(false);
-        const response = await fetch('/api/youtube/analysis-history', {
-          method: 'POST',
+        const response = await fetch('/api/youtube/videos', {
+          method: 'GET',
           headers: {
             'Content-Type': 'application/json'
           }
