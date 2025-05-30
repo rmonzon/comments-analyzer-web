@@ -95,6 +95,9 @@ export default function VideosList() {
           case 'commentsAnalyzed':
             comparison = a.commentsAnalyzed - b.commentsAnalyzed;
             break;
+          case 'totalComments':
+            comparison = (a.totalComments || 0) - (b.totalComments || 0);
+            break;
         }
         
         return sortDirection === 'asc' ? comparison : -comparison;
@@ -207,7 +210,7 @@ export default function VideosList() {
                         <TableCell>{formatPublishDate(video.publishedAt)}</TableCell>
                         <TableCell>{formatViewCount(video.viewCount)}</TableCell>
                         <TableCell>{video.commentsAnalyzed}</TableCell>
-                        <TableCell>{video.totalComments}</TableCell>
+                        <TableCell>{video.totalComments.toLocaleString()}</TableCell>
                         <TableCell>{formatPublishDate(video.analysisDate)}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end space-x-2">
