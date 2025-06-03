@@ -9,6 +9,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
+import { SignInButton, SignUpButton, UserButton, useUser } from "@clerk/clerk-react";
 
 export default function Header() {
   // Sign in button click handler (placeholder for future implementation)
