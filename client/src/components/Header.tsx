@@ -12,12 +12,7 @@ import { Button } from "@/components/ui/button";
 import { SignInButton, SignUpButton, UserButton, useUser } from "@clerk/clerk-react";
 
 export default function Header() {
-  // Sign in button click handler (placeholder for future implementation)
-  const handleSignIn = () => {
-    // Will be implemented with a different auth flow later
-    console.log("Sign in clicked - to be implemented");
-    alert("Authentication will be implemented in a future update");
-  };
+  const { isSignedIn, user, isLoaded } = useUser();
 
   return (
     <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm">
@@ -68,16 +63,33 @@ export default function Header() {
           <div className="flex items-center gap-3">
             <ThemeToggle />
             
-            {/* Simplified login button for future auth implementation */}
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="ml-2"
-              onClick={handleSignIn}
-            >
-              <User className="h-4 w-4 mr-2" />
-              <span>Sign In</span>
-            </Button>
+            {/* Authentication UI */}
+            {!isLoaded ? (
+              <div className="w-8 h-8 animate-pulse bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+            ) : isSignedIn ? (
+              <UserButton 
+                afterSignOutUrl="/"
+                appearance={{
+                  elements: {
+                    avatarBox: "w-8 h-8",
+                  },
+                }}
+              />
+            ) : (
+              <div className="flex items-center gap-2">
+                <SignInButton mode="modal">
+                  <Button variant="outline" size="sm">
+                    <User className="h-4 w-4 mr-2" />
+                    Sign In
+                  </Button>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <Button size="sm">
+                    Sign Up
+                  </Button>
+                </SignUpButton>
+              </div>
+            )}
           </div>
         </div>
       </div>
