@@ -474,6 +474,33 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
+
+  async updateUserSubscription(userId: string, subscription: {
+    subscriptionStatus?: string;
+    subscriptionId?: string;
+    customerId?: string;
+    currentPeriodEnd?: Date;
+    subscriptionTier?: string;
+  }): Promise<User | undefined> {
+    try {
+      console.log("Updating user subscription:", userId, subscription);
+
+      const [user] = await db
+        .update(users)
+        .set({
+          ...subscription,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, userId))
+        .returning();
+
+      console.log("User subscription updated successfully");
+      return user || undefined;
+    } catch (error) {
+      console.error("Database error in updateUserSubscription:", error);
+      throw error;
+    }
+  }
 }
 
 // Create and export the storage instance

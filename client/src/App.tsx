@@ -14,6 +14,7 @@ import About from "@/pages/About";
 import SharedAnalysis from "@/pages/SharedAnalysis";
 import FAQ from "@/pages/FAQ";
 import VideosList from "@/pages/VideosList";
+import Pricing from "@/pages/Pricing";
 import "./index.css";
 
 function Router() {
@@ -22,6 +23,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/analyze" component={Analysis} />
       <Route path="/history" component={VideosList} />
+      <Route path="/pricing" component={Pricing} />
       <Route path="/shared" component={SharedAnalysis} />
       <Route path="/privacy" component={PrivacyPolicy} />
       <Route path="/terms" component={TermsOfService} />

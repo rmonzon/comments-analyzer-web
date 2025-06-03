@@ -19,38 +19,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Create subscription (using Clerk's billing)
+  // Subscription management endpoints (placeholder for Clerk billing integration)
   app.post("/api/subscription/create", async (req, res) => {
     try {
-      const { auth } = req;
+      const userId = req.headers['clerk-user-id'] as string;
       
-      if (!auth?.userId) {
+      if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      const { priceId, tier } = req.body;
+      const { tier } = req.body;
 
-      // Create subscription using Clerk's billing
-      const subscription = await clerkClient.users.createSubscription(auth.userId, {
-        priceId,
-        metadata: {
-          tier,
-          features: tier === 'pro' ? 'unlimited_analysis,priority_support' : 'basic_analysis'
-        }
-      });
-
-      // Update user subscription status in our database
-      await storage.updateUserSubscription(auth.userId, {
+      // For now, we'll simulate subscription creation
+      // In production, this would integrate with Clerk's billing system
+      await storage.updateUserSubscription(userId, {
         subscriptionStatus: 'active',
-        subscriptionId: subscription.id,
         subscriptionTier: tier,
-        currentPeriodEnd: new Date(subscription.currentPeriodEnd * 1000)
+        currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
       });
 
       res.json({ 
         success: true, 
-        subscriptionId: subscription.id,
-        status: subscription.status 
+        message: `${tier} subscription activated`,
+        tier
       });
     } catch (error: any) {
       console.error("Error creating subscription:", error);
@@ -64,26 +55,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get user subscription status
   app.get("/api/subscription/status", async (req, res) => {
     try {
-      const { auth } = req;
+      const userId = req.headers['clerk-user-id'] as string;
       
-      if (!auth?.userId) {
+      if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      // Get user subscription from Clerk
-      const user = await clerkClient.users.getUser(auth.userId);
-      const subscriptions = await clerkClient.users.getUserSubscriptions(auth.userId);
+      // Get user from our database
+      const user = await storage.getUser(userId);
       
-      const activeSubscription = subscriptions.find(sub => sub.status === 'active');
+      if (!user) {
+        return res.json({
+          hasActiveSubscription: false,
+          subscription: null
+        });
+      }
+
+      const isActive = user.subscriptionStatus === 'active';
 
       res.json({
-        hasActiveSubscription: !!activeSubscription,
-        subscription: activeSubscription ? {
-          id: activeSubscription.id,
-          status: activeSubscription.status,
-          tier: activeSubscription.metadata?.tier || 'free',
-          currentPeriodEnd: activeSubscription.currentPeriodEnd,
-          cancelAtPeriodEnd: activeSubscription.cancelAtPeriodEnd
+        hasActiveSubscription: isActive,
+        subscription: isActive ? {
+          tier: user.subscriptionTier || 'free',
+          status: user.subscriptionStatus,
+          currentPeriodEnd: user.currentPeriodEnd?.toISOString()
         } : null
       });
     } catch (error: any) {
@@ -98,19 +93,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Cancel subscription
   app.post("/api/subscription/cancel", async (req, res) => {
     try {
-      const { auth } = req;
+      const userId = req.headers['clerk-user-id'] as string;
       
-      if (!auth?.userId) {
+      if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      const { subscriptionId } = req.body;
-
-      // Cancel subscription using Clerk
-      await clerkClient.users.cancelSubscription(auth.userId, subscriptionId);
-
-      // Update user subscription status in our database
-      await storage.updateUserSubscription(auth.userId, {
+      await storage.updateUserSubscription(userId, {
         subscriptionStatus: 'canceled'
       });
 
