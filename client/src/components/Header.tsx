@@ -47,6 +47,12 @@ export default function Header() {
               History
             </Link>
             <Link
+              href="/pricing"
+              className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors"
+            >
+              Pricing
+            </Link>
+            <Link
               href="/about"
               className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors"
             >
