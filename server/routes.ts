@@ -10,6 +10,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   const youtubeService = new YouTubeService();
   const openaiService = new OpenAIService();
+
+  // Serve Clerk configuration
+  app.get("/api/config/clerk", (req, res) => {
+    res.json({
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY
+    });
+  });
   
   // Import schema for premium interest
   const premiumInterestSchema = z.object({

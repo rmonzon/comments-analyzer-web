@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'wouter';
-import { useQuery } from '@tanstack/react-query';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { formatPublishDate, formatViewCount } from '@/lib/utils';
-import { ExternalLink, Eye, ListFilter, ArrowUpDown } from 'lucide-react';
+import { ExternalLink, Eye, ArrowUpDown } from 'lucide-react';
 
 // Type for analyzed videos from API
 interface AnalyzedVideo {
