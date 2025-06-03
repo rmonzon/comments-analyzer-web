@@ -61,7 +61,7 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// Users entity for authentication with Replit Auth
+// Users entity for authentication with Clerk
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().notNull(),
   username: varchar("username").unique().notNull(),
@@ -70,6 +70,12 @@ export const users = pgTable("users", {
   lastName: varchar("last_name"),
   bio: text("bio"),
   profileImageUrl: varchar("profile_image_url"),
+  // Subscription fields for Clerk billing
+  subscriptionStatus: varchar("subscription_status").default("free"), // free, active, canceled, past_due
+  subscriptionId: varchar("subscription_id"),
+  customerId: varchar("customer_id"),
+  currentPeriodEnd: timestamp("current_period_end"),
+  subscriptionTier: varchar("subscription_tier").default("free"), // free, pro, premium
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

@@ -69,6 +69,13 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
+  updateUserSubscription(userId: string, subscription: {
+    subscriptionStatus?: string;
+    subscriptionId?: string;
+    customerId?: string;
+    currentPeriodEnd?: Date;
+    subscriptionTier?: string;
+  }): Promise<User | undefined>;
 
   // Session store
   sessionStore: any;

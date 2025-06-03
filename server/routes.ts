@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { clerkClient } from "@clerk/express";
 import { storage } from "./storage";
 import { YouTubeService } from "./services/youtube";
 import { OpenAIService } from "./services/openai";
@@ -16,6 +17,111 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({
       publishableKey: process.env.CLERK_PUBLISHABLE_KEY
     });
+  });
+
+  // Create subscription (using Clerk's billing)
+  app.post("/api/subscription/create", async (req, res) => {
+    try {
+      const { auth } = req;
+      
+      if (!auth?.userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { priceId, tier } = req.body;
+
+      // Create subscription using Clerk's billing
+      const subscription = await clerkClient.users.createSubscription(auth.userId, {
+        priceId,
+        metadata: {
+          tier,
+          features: tier === 'pro' ? 'unlimited_analysis,priority_support' : 'basic_analysis'
+        }
+      });
+
+      // Update user subscription status in our database
+      await storage.updateUserSubscription(auth.userId, {
+        subscriptionStatus: 'active',
+        subscriptionId: subscription.id,
+        subscriptionTier: tier,
+        currentPeriodEnd: new Date(subscription.currentPeriodEnd * 1000)
+      });
+
+      res.json({ 
+        success: true, 
+        subscriptionId: subscription.id,
+        status: subscription.status 
+      });
+    } catch (error: any) {
+      console.error("Error creating subscription:", error);
+      res.status(500).json({ 
+        message: "Failed to create subscription",
+        error: error.message 
+      });
+    }
+  });
+
+  // Get user subscription status
+  app.get("/api/subscription/status", async (req, res) => {
+    try {
+      const { auth } = req;
+      
+      if (!auth?.userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      // Get user subscription from Clerk
+      const user = await clerkClient.users.getUser(auth.userId);
+      const subscriptions = await clerkClient.users.getUserSubscriptions(auth.userId);
+      
+      const activeSubscription = subscriptions.find(sub => sub.status === 'active');
+
+      res.json({
+        hasActiveSubscription: !!activeSubscription,
+        subscription: activeSubscription ? {
+          id: activeSubscription.id,
+          status: activeSubscription.status,
+          tier: activeSubscription.metadata?.tier || 'free',
+          currentPeriodEnd: activeSubscription.currentPeriodEnd,
+          cancelAtPeriodEnd: activeSubscription.cancelAtPeriodEnd
+        } : null
+      });
+    } catch (error: any) {
+      console.error("Error fetching subscription status:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch subscription status",
+        error: error.message 
+      });
+    }
+  });
+
+  // Cancel subscription
+  app.post("/api/subscription/cancel", async (req, res) => {
+    try {
+      const { auth } = req;
+      
+      if (!auth?.userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { subscriptionId } = req.body;
+
+      // Cancel subscription using Clerk
+      await clerkClient.users.cancelSubscription(auth.userId, subscriptionId);
+
+      // Update user subscription status in our database
+      await storage.updateUserSubscription(auth.userId, {
+        subscriptionStatus: 'canceled'
+      });
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Error canceling subscription:", error);
+      res.status(500).json({ 
+        message: "Failed to cancel subscription",
+        error: error.message 
+      });
+    }
   });
   
   // Import schema for premium interest
