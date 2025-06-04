@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Check, Star, Zap, Crown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 // Define pricing plans according to Clerk's billing structure
 const plans = [
@@ -20,14 +21,14 @@ const plans = [
     id: "free",
     name: "Free",
     price: "$0",
-    period: "forever",
+    period: "month",
     description: "Perfect for getting started with comment analysis",
     features: [
       "Analyze up to 100 comments per video",
       "Basic sentiment analysis",
       "Key discussion points",
-      "Standard processing speed",
-      "Community support",
+      "Share analysis reports",
+      "Less powerful AI model analysis",
     ],
     icon: Star,
     popular: false,
@@ -76,6 +77,23 @@ export default function Pricing() {
   const { isSignedIn, user } = useUser();
   const { toast } = useToast();
   const [loading, setLoading] = useState<string | null>(null);
+
+  // Fetch user subscription status
+  const { data: subscriptionData } = useQuery({
+    queryKey: ['/api/subscription/status'],
+    enabled: isSignedIn,
+    queryFn: async () => {
+      const response = await fetch('/api/subscription/status', {
+        headers: {
+          'clerk-user-id': user?.id || ''
+        }
+      });
+      return response.json();
+    }
+  });
+
+  const currentTier = subscriptionData?.subscription?.tier || 'free';
+  const hasActiveSubscription = subscriptionData?.hasActiveSubscription || false;
 
   const handleSubscribe = async (planId: string) => {
     if (!isSignedIn) {
@@ -146,16 +164,43 @@ export default function Pricing() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {plans.map((plan) => {
               const Icon = plan.icon;
+              const isCurrentPlan = currentTier === plan.id;
+              const isDowngrade = hasActiveSubscription && (
+                (currentTier === "premium" && plan.id !== "premium") ||
+                (currentTier === "pro" && plan.id === "free")
+              );
+
+              const getButtonText = () => {
+                if (loading === plan.id) return "Processing...";
+                if (isCurrentPlan) return "Current Plan";
+                if (isDowngrade) return "Downgrade";
+                if (!isSignedIn && plan.id !== "free") return "Sign In to Subscribe";
+                return plan.cta;
+              };
+
+              const isButtonDisabled = () => {
+                return loading === plan.id || isCurrentPlan || (plan.id === "free" && isSignedIn);
+              };
 
               return (
                 <Card
                   key={plan.id}
-                  className={`relative ${plan.popular ? 'ring-2 ring-blue-500 shadow-xl' : 'shadow-lg'}`}
+                  className={`relative flex flex-col h-full ${
+                    plan.popular ? 'ring-2 ring-blue-500 shadow-xl' : 'shadow-lg'
+                  } ${isCurrentPlan ? 'border-green-500 border-2' : ''}`}
                 >
                   {plan.popular && (
                     <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                       <Badge className="bg-blue-500 text-white px-4 py-1">
                         Most Popular
+                      </Badge>
+                    </div>
+                  )}
+
+                  {isCurrentPlan && (
+                    <div className="absolute -top-4 right-4">
+                      <Badge className="bg-green-500 text-white px-3 py-1">
+                        Active
                       </Badge>
                     </div>
                   )}
@@ -178,39 +223,47 @@ export default function Pricing() {
                     </div>
                   </CardHeader>
 
-                  <CardContent>
-                    <ul className="space-y-3 mb-8">
+                  <CardContent className="flex-1 flex flex-col">
+                    <ul className="space-y-3 mb-8 flex-1">
                       {plan.features.map((feature, index) => (
-                        <li key={index} className="flex items-start">
+                        <li key={`${plan.id}-feature-${index}`} className="flex items-start">
                           <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
                           <span className="text-gray-700 dark:text-gray-300">{feature}</span>
                         </li>
                       ))}
                     </ul>
 
-                    {!isSignedIn && plan.id !== "free" ? (
-                      <SignInButton mode="modal">
-                        <Button className="w-full" variant={plan.popular ? "default" : "outline"}>
-                          Sign In to Subscribe
+                    <div className="mt-auto">
+                      {!isSignedIn && plan.id !== "free" ? (
+                        <SignInButton mode="modal">
+                          <Button className="w-full" variant={plan.popular ? "default" : "outline"}>
+                            Sign In to Subscribe
+                          </Button>
+                        </SignInButton>
+                      ) : (
+                        <Button
+                          className="w-full"
+                          variant={
+                            isCurrentPlan 
+                              ? "secondary" 
+                              : plan.popular 
+                                ? "default" 
+                                : "outline"
+                          }
+                          onClick={() => handleSubscribe(plan.id)}
+                          disabled={isButtonDisabled()}
+                        >
+                          {loading === plan.id ? (
+                            <div className="flex items-center">
+                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                              Processing...
+                            </div>
+                          ) : (
+                            getButtonText()
+                          )}
                         </Button>
-                      </SignInButton>
-                    ) : (
-                      <Button
-                        className="w-full"
-                        variant={plan.popular ? "default" : "outline"}
-                        onClick={() => handleSubscribe(plan.id)}
-                        disabled={loading === plan.id || (plan.id === "free")}
-                      >
-                        {loading === plan.id ? (
-                          <div className="flex items-center">
-                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
-                            Processing...
-                          </div>
-                        ) : (
-                          plan.cta
-                        )}
-                      </Button>
-                    )}
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               );
@@ -220,9 +273,6 @@ export default function Pricing() {
           <div className="text-center mt-12">
             <p className="text-gray-600 dark:text-gray-300 mb-4">
               All plans include our core comment analysis features with no setup fees.
-            </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Need a custom solution? Contact us for enterprise pricing.
             </p>
           </div>
         </div>
