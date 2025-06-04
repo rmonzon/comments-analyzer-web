@@ -1,134 +1,75 @@
-import { useState } from "react";
-import { useUser } from "@clerk/clerk-react";
+import { useUser, SignInButton } from "@clerk/clerk-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Check, Star, Zap, Crown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 
-interface PricingTier {
-  id: string;
-  name: string;
-  price: number;
-  period: string;
-  description: string;
-  features: string[];
-  popular?: boolean;
-  icon: React.ComponentType<any>;
-  buttonText: string;
-  color: string;
-}
-
-const pricingTiers: PricingTier[] = [
+// Define pricing plans according to Clerk's billing structure
+const plans = [
   {
     id: "free",
     name: "Free",
-    price: 0,
+    price: "$0",
     period: "forever",
     description: "Perfect for getting started with comment analysis",
     features: [
       "Analyze up to 100 comments per video",
-      "Basic sentiment analysis",
+      "Basic sentiment analysis", 
       "Key discussion points",
       "Standard processing speed",
       "Community support"
     ],
     icon: Star,
-    buttonText: "Get Started",
-    color: "gray"
+    popular: false,
+    cta: "Get Started"
   },
   {
     id: "pro",
     name: "Pro",
-    price: 19,
+    price: "$19",
     period: "month",
     description: "Enhanced analysis for content creators and researchers",
     features: [
       "Analyze up to 1,000 comments per video",
       "Advanced sentiment analysis",
-      "Detailed topic clustering",
+      "Detailed topic clustering", 
       "Priority processing",
       "Export analysis reports",
       "Email support"
     ],
-    popular: true,
     icon: Zap,
-    buttonText: "Upgrade to Pro",
-    color: "blue"
+    popular: true,
+    cta: "Upgrade to Pro"
   },
   {
-    id: "premium",
+    id: "premium", 
     name: "Premium",
-    price: 49,
+    price: "$49",
     period: "month",
     description: "Complete analysis suite for professionals",
     features: [
       "Unlimited comment analysis",
       "Real-time analysis monitoring",
       "Custom analysis parameters",
-      "Bulk video processing",
+      "Bulk video processing", 
       "API access",
       "Advanced analytics dashboard",
       "Priority support"
     ],
     icon: Crown,
-    buttonText: "Go Premium",
-    color: "purple"
+    popular: false,
+    cta: "Go Premium"
   }
 ];
 
 export default function Pricing() {
   const { isSignedIn, user } = useUser();
   const { toast } = useToast();
-  const [loadingTier, setLoadingTier] = useState<string | null>(null);
+  const [loading, setLoading] = useState<string | null>(null);
 
-  // Get subscription status
-  const { data: subscriptionData } = useQuery({
-    queryKey: ['/api/subscription/status'],
-    enabled: isSignedIn,
-    queryFn: async () => {
-      const response = await fetch('/api/subscription/status', {
-        headers: {
-          'clerk-user-id': user?.id || ''
-        }
-      });
-      return response.json();
-    }
-  });
-
-  // Create subscription mutation
-  const createSubscription = useMutation({
-    mutationFn: async ({ tier }: { tier: string }) => {
-      const response = await fetch('/api/subscription/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'clerk-user-id': user?.id || ''
-        },
-        body: JSON.stringify({ tier })
-      });
-      return response.json();
-    },
-    onSuccess: (data) => {
-      toast({
-        title: "Subscription Created",
-        description: `Successfully upgraded to ${data.tier} plan!`,
-      });
-      setLoadingTier(null);
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Subscription Failed",
-        description: error.message || "Failed to create subscription",
-        variant: "destructive",
-      });
-      setLoadingTier(null);
-    }
-  });
-
-  const handleSubscribe = async (tier: PricingTier) => {
+  const handleSubscribe = async (planId: string) => {
     if (!isSignedIn) {
       toast({
         title: "Sign In Required",
@@ -138,14 +79,47 @@ export default function Pricing() {
       return;
     }
 
-    if (tier.id === "free") return;
+    if (planId === "free") {
+      return; // Free plan doesn't require subscription
+    }
 
-    setLoadingTier(tier.id);
-    createSubscription.mutate({ tier: tier.id });
+    setLoading(planId);
+
+    try {
+      const response = await fetch('/api/subscription/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'clerk-user-id': user?.id || ''
+        },
+        body: JSON.stringify({ planId })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create subscription');
+      }
+
+      const result = await response.json();
+      
+      toast({
+        title: "Subscription Created",
+        description: result.message,
+      });
+
+      // In a real Clerk implementation, redirect to checkout
+      if (result.checkoutUrl) {
+        window.location.href = result.checkoutUrl;
+      }
+    } catch (error: any) {
+      toast({
+        title: "Subscription Failed",
+        description: error.message || "Failed to create subscription",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(null);
+    }
   };
-
-  const currentTier = (subscriptionData as any)?.subscription?.tier || "free";
-  const hasActiveSubscription = (subscriptionData as any)?.hasActiveSubscription || false;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
@@ -157,30 +131,18 @@ export default function Pricing() {
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
             Unlock deeper insights with advanced comment analysis features
           </p>
-          {hasActiveSubscription && (
-            <Badge variant="outline" className="text-green-600 border-green-600">
-              Current Plan: {currentTier.charAt(0).toUpperCase() + currentTier.slice(1)}
-            </Badge>
-          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {pricingTiers.map((tier) => {
-            const Icon = tier.icon;
-            const isCurrentTier = currentTier === tier.id;
-            const isDisabled = hasActiveSubscription && (
-              (currentTier === "premium") || 
-              (currentTier === "pro" && tier.id === "free")
-            );
+          {plans.map((plan) => {
+            const Icon = plan.icon;
 
             return (
               <Card 
-                key={tier.id} 
-                className={`relative ${tier.popular ? 'ring-2 ring-blue-500 shadow-xl' : 'shadow-lg'} ${
-                  isCurrentTier ? 'border-green-500' : ''
-                }`}
+                key={plan.id} 
+                className={`relative ${plan.popular ? 'ring-2 ring-blue-500 shadow-xl' : 'shadow-lg'}`}
               >
-                {tier.popular && (
+                {plan.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                     <Badge className="bg-blue-500 text-white px-4 py-1">
                       Most Popular
@@ -190,25 +152,25 @@ export default function Pricing() {
                 
                 <CardHeader className="text-center pb-8">
                   <div className="flex justify-center mb-4">
-                    <Icon className={`h-12 w-12 text-${tier.color}-500`} />
+                    <Icon className="h-12 w-12 text-blue-500" />
                   </div>
-                  <CardTitle className="text-2xl font-bold">{tier.name}</CardTitle>
+                  <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
                   <CardDescription className="text-gray-600 dark:text-gray-300">
-                    {tier.description}
+                    {plan.description}
                   </CardDescription>
                   <div className="mt-4">
                     <span className="text-4xl font-bold text-gray-900 dark:text-white">
-                      ${tier.price}
+                      {plan.price}
                     </span>
                     <span className="text-gray-600 dark:text-gray-300">
-                      /{tier.period}
+                      /{plan.period}
                     </span>
                   </div>
                 </CardHeader>
 
                 <CardContent>
                   <ul className="space-y-3 mb-8">
-                    {tier.features.map((feature, index) => (
+                    {plan.features.map((feature, index) => (
                       <li key={index} className="flex items-start">
                         <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
                         <span className="text-gray-700 dark:text-gray-300">{feature}</span>
@@ -216,25 +178,29 @@ export default function Pricing() {
                     ))}
                   </ul>
 
-                  <Button
-                    className="w-full"
-                    variant={tier.popular ? "default" : "outline"}
-                    onClick={() => handleSubscribe(tier)}
-                    disabled={isCurrentTier || isDisabled || loadingTier === tier.id}
-                  >
-                    {loadingTier === tier.id ? (
-                      <div className="flex items-center">
-                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
-                        Processing...
-                      </div>
-                    ) : isCurrentTier ? (
-                      "Current Plan"
-                    ) : isDisabled ? (
-                      "Downgrade Not Available"
-                    ) : (
-                      tier.buttonText
-                    )}
-                  </Button>
+                  {!isSignedIn && plan.id !== "free" ? (
+                    <SignInButton mode="modal">
+                      <Button className="w-full" variant={plan.popular ? "default" : "outline"}>
+                        Sign In to Subscribe
+                      </Button>
+                    </SignInButton>
+                  ) : (
+                    <Button
+                      className="w-full"
+                      variant={plan.popular ? "default" : "outline"}
+                      onClick={() => handleSubscribe(plan.id)}
+                      disabled={loading === plan.id || (plan.id === "free")}
+                    >
+                      {loading === plan.id ? (
+                        <div className="flex items-center">
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                          Processing...
+                        </div>
+                      ) : (
+                        plan.cta
+                      )}
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             );
