@@ -8,7 +8,7 @@ import { SignInButton, SignUpButton, UserButton, useUser, useAuth } from "@clerk
 import { useQuery } from "@tanstack/react-query";
 
 export default function Header() {
-  const { isSignedIn, isLoaded, user } = useUser();
+  const { isSignedIn, isLoaded } = useUser();
   const { userId } = useAuth();
 
   // Fetch user subscription status

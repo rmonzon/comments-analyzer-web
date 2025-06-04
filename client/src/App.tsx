@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "next-themes";
 import { ProtectedRoute } from "@/lib/protected-route";
+import Layout from "@/components/Layout";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Analysis from "@/pages/Analysis";
@@ -19,18 +20,20 @@ import "./index.css";
 
 function Router() {
   return (
-    <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/analyze" component={Analysis} />
-      <Route path="/history" component={VideosList} />
-      <Route path="/pricing" component={Pricing} />
-      <Route path="/shared" component={SharedAnalysis} />
-      <Route path="/privacy" component={PrivacyPolicy} />
-      <Route path="/terms" component={TermsOfService} />
-      <Route path="/about" component={About} />
-      <Route path="/faq" component={FAQ} />
-      <Route component={NotFound} />
-    </Switch>
+    <Layout>
+      <Switch>
+        <Route path="/" component={Home} />
+        <Route path="/analyze" component={Analysis} />
+        <Route path="/history" component={VideosList} />
+        <Route path="/pricing" component={Pricing} />
+        <Route path="/shared" component={SharedAnalysis} />
+        <Route path="/privacy" component={PrivacyPolicy} />
+        <Route path="/terms" component={TermsOfService} />
+        <Route path="/about" component={About} />
+        <Route path="/faq" component={FAQ} />
+        <Route component={NotFound} />
+      </Switch>
+    </Layout>
   );
 }
 

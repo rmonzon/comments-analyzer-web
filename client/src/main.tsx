@@ -81,7 +81,16 @@ function AppWrapper() {
   }
 
   return (
-    <ClerkProvider publishableKey={clerkKey}>
+    <ClerkProvider 
+      appearance={{
+        variables: {
+          colorPrimary: '#2094f3',
+          colorText: 'black',
+          fontSize: '1rem',
+        },
+      }}
+      publishableKey={clerkKey}
+    >
       <App />
     </ClerkProvider>
   );
