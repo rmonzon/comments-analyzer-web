@@ -1,4 +1,6 @@
 import { useUser, SignInButton } from "@clerk/clerk-react";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -146,135 +148,136 @@ export default function Pricing() {
   };
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 py-12">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            Choose Your Plan
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-            Unlock deeper insights with advanced comment analysis features
-          </p>
-        </div>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Header />
+      <div className="py-12">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              Choose Your Plan
+            </h1>
+            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
+              Unlock deeper insights with advanced comment analysis features
+            </p>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {plans.map((plan) => {
-            const Icon = plan.icon;
-            const isCurrentPlan = currentTier === plan.id;
-            const isDowngrade = hasActiveSubscription && (
-              (currentTier === "premium" && plan.id !== "premium") ||
-              (currentTier === "pro" && plan.id === "free")
-            );
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {plans.map((plan) => {
+              const Icon = plan.icon;
+              const isCurrentPlan = currentTier === plan.id;
+              const isDowngrade = hasActiveSubscription && (
+                (currentTier === "premium" && plan.id !== "premium") ||
+                (currentTier === "pro" && plan.id === "free")
+              );
 
-            const getButtonText = () => {
-              if (loading === plan.id) return "Processing...";
-              if (isCurrentPlan) return "Current Plan";
-              if (isDowngrade) return "Downgrade";
-              if (!isSignedIn && plan.id !== "free") return "Sign In to Subscribe";
-              return plan.cta;
-            };
+              const getButtonText = () => {
+                if (loading === plan.id) return "Processing...";
+                if (isCurrentPlan) return "Current Plan";
+                if (isDowngrade) return "Downgrade";
+                if (!isSignedIn && plan.id !== "free") return "Sign In to Subscribe";
+                return plan.cta;
+              };
 
-            const isButtonDisabled = () => {
-              return loading === plan.id || isCurrentPlan || (plan.id === "free" && isSignedIn);
-            };
+              const isButtonDisabled = () => {
+                return loading === plan.id || isCurrentPlan || (plan.id === "free" && isSignedIn);
+              };
 
-            return (
-              <Card
-                key={plan.id}
-                className={`relative flex flex-col h-full ${
-                  plan.popular ? 'ring-2 ring-blue-500 shadow-xl' : 'shadow-lg'
-                } ${isCurrentPlan ? 'border-green-500 border-2' : ''}`}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <Badge className="bg-blue-500 text-white px-4 py-1">
-                      Most Popular
-                    </Badge>
-                  </div>
-                )}
+              return (
+                <Card
+                  key={plan.id}
+                  className={`relative flex flex-col h-full ${
+                    plan.popular ? 'ring-2 ring-blue-500 shadow-xl' : 'shadow-lg'
+                  } ${isCurrentPlan ? 'border-green-500 border-2' : ''}`}
+                >
+                  {plan.popular && (
+                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                      <Badge className="bg-blue-500 text-white px-4 py-1">
+                        Most Popular
+                      </Badge>
+                    </div>
+                  )}
 
-                {isCurrentPlan && (
-                  <div className="absolute -top-4 right-4">
-                    <Badge className="bg-green-500 text-white px-3 py-1">
-                      Active
-                    </Badge>
-                  </div>
-                )}
+                  {isCurrentPlan && (
+                    <div className="absolute -top-4 right-4">
+                      <Badge className="bg-green-500 text-white px-3 py-1">
+                        Active
+                      </Badge>
+                    </div>
+                  )}
 
-                <CardHeader className="text-center pb-8">
-                  <div className="flex justify-center mb-4">
-                    <Icon className="h-12 w-12 text-blue-500" />
-                  </div>
-                  <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
-                  <CardDescription className="text-gray-600 dark:text-gray-300">
-                    {plan.description}
-                  </CardDescription>
-                  <div className="mt-4">
-                    <span className="text-4xl font-bold text-gray-900 dark:text-white">
-                      {plan.price}
-                    </span>
-                    <span className="text-gray-600 dark:text-gray-300">
-                      /{plan.period}
-                    </span>
-                  </div>
-                </CardHeader>
+                  <CardHeader className="text-center pb-8">
+                    <div className="flex justify-center mb-4">
+                      <Icon className="h-12 w-12 text-blue-500" />
+                    </div>
+                    <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
+                    <CardDescription className="text-gray-600 dark:text-gray-300">
+                      {plan.description}
+                    </CardDescription>
+                    <div className="mt-4">
+                      <span className="text-4xl font-bold text-gray-900 dark:text-white">
+                        {plan.price}
+                      </span>
+                      <span className="text-gray-600 dark:text-gray-300">
+                        /{plan.period}
+                      </span>
+                    </div>
+                  </CardHeader>
 
-                <CardContent className="flex-1 flex flex-col">
-                  <ul className="space-y-3 mb-8 flex-1">
-                    {plan.features.map((feature, index) => (
-                      <li key={`${plan.id}-feature-${index}`} className="flex items-start">
-                        <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700 dark:text-gray-300">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <CardContent className="flex-1 flex flex-col">
+                    <ul className="space-y-3 mb-8 flex-1">
+                      {plan.features.map((feature, index) => (
+                        <li key={`${plan.id}-feature-${index}`} className="flex items-start">
+                          <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700 dark:text-gray-300">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
 
-                  <div className="mt-auto">
-                    {!isSignedIn && plan.id !== "free" ? (
-                      <SignInButton mode="modal">
-                        <Button className="w-full" variant={plan.popular ? "default" : "outline"}>
-                          Sign In to Subscribe
+                    <div className="mt-auto">
+                      {!isSignedIn && plan.id !== "free" ? (
+                        <SignInButton mode="modal">
+                          <Button className="w-full" variant={plan.popular ? "default" : "outline"}>
+                            Sign In to Subscribe
+                          </Button>
+                        </SignInButton>
+                      ) : (
+                        <Button
+                          className="w-full"
+                          variant={
+                            isCurrentPlan 
+                              ? "secondary" 
+                              : plan.popular 
+                                ? "default" 
+                                : "outline"
+                          }
+                          onClick={() => handleSubscribe(plan.id)}
+                          disabled={isButtonDisabled()}
+                        >
+                          {loading === plan.id ? (
+                            <div className="flex items-center">
+                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                              Processing...
+                            </div>
+                          ) : (
+                            getButtonText()
+                          )}
                         </Button>
-                      </SignInButton>
-                    ) : (
-                      <Button
-                        className="w-full"
-                        variant={
-                          isCurrentPlan 
-                            ? "secondary" 
-                            : plan.popular 
-                              ? "default" 
-                              : "outline"
-                        }
-                        onClick={() => handleSubscribe(plan.id)}
-                        disabled={isButtonDisabled()}
-                      >
-                        {loading === plan.id ? (
-                          <div className="flex items-center">
-                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
-                            Processing...
-                          </div>
-                        ) : (
-                          getButtonText()
-                        )}
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
 
-        <div className="text-center mt-12">
-          <p className="text-gray-600 dark:text-gray-300 mb-4">
-            All plans include our core comment analysis features with no setup fees.
-          </p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Need a custom solution? Contact us for enterprise pricing.
-          </p>
+          <div className="text-center mt-12">
+            <p className="text-gray-600 dark:text-gray-300 mb-4">
+              All plans include our core comment analysis features with no setup fees.
+            </p>
+          </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
