@@ -1,18 +1,12 @@
 import { ThemeToggle } from "./ThemeToggle";
-import { AlertCircle, User } from "lucide-react";
+import { User } from "lucide-react";
 import { BrandIcon } from "./BrandIcon";
 import { Link } from "wouter";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { SignInButton, SignUpButton, UserButton, useUser } from "@clerk/clerk-react";
 
 export default function Header() {
-  const { isSignedIn, user, isLoaded } = useUser();
+  const { isSignedIn, isLoaded } = useUser();
 
   return (
     <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm">
