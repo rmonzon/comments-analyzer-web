@@ -11,22 +11,39 @@ import {
   useUser,
   useAuth,
 } from "@clerk/clerk-react";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Header() {
-  const { isSignedIn, isLoaded } = useUser();
+  const { isSignedIn, isLoaded, user } = useUser();
+  const { userId } = useAuth();
 
-  // const currentTier = 'free';
+  // Fetch user subscription status
+  const { data: subscriptionData } = useQuery({
+    queryKey: ['/api/subscription/status'],
+    enabled: isSignedIn && !!userId,
+    queryFn: async () => {
+      const response = await fetch('/api/subscription/status', {
+        headers: {
+          'clerk-user-id': userId || ''
+        }
+      });
+      if (!response.ok) return null;
+      return response.json();
+    }
+  });
 
-  // const getSubscriptionBadge = () => {
-  //   switch (currentTier) {
-  //     case 'pro':
-  //       return <Badge variant="default" className="bg-blue-500 text-white text-xs">Pro</Badge>;
-  //     case 'premium':
-  //       return <Badge variant="default" className="bg-purple-500 text-white text-xs">Premium</Badge>;
-  //     default:
-  //       return <Badge variant="secondary" className="text-xs">Free</Badge>;
-  //   }
-  // };
+  const currentTier = subscriptionData?.subscription?.tier || 'free';
+  
+  const getSubscriptionBadge = () => {
+    switch (currentTier) {
+      case 'pro':
+        return <Badge variant="default" className="bg-blue-500 text-white text-xs">Pro</Badge>;
+      case 'premium':
+        return <Badge variant="default" className="bg-purple-500 text-white text-xs">Premium</Badge>;
+      default:
+        return <Badge variant="secondary" className="text-xs">Free</Badge>;
+    }
+  };
 
   return (
     <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm">
@@ -88,7 +105,7 @@ export default function Header() {
               <div className="w-8 h-8 animate-pulse bg-gray-200 dark:bg-gray-700 rounded-full"></div>
             ) : isSignedIn ? (
               <div className="flex items-center gap-2">
-                {/* {getSubscriptionBadge()} */}
+                {getSubscriptionBadge()}
                 <UserButton
                   afterSignOutUrl="/"
                   appearance={{

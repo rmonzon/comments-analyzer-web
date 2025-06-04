@@ -6,13 +6,26 @@ import {
   Comment,
 } from "@shared/types";
 
-// Using GPT-3.5 Turbo to reduce API costs
-const MODEL = "gpt-3.5-turbo";
-
-// Constants for token optimization
-const MAX_COMMENTS = 100; // 100 comments for more comprehensive analysis
-const MAX_COMMENT_LENGTH = 400; // 400 characters per comment
-const MAX_COMMENT_BATCH_SIZE = 20; // Process comments in batches of 20 for efficiency
+const membershipSettings = {
+  free: {
+    model: "gpt-4.1-nano",
+    maxComments: 100,
+    maxCommentLength: 400,
+    maxCommentBatchSize: 20,
+  },
+  starter: {
+    model: "gpt-4o-mini",
+    maxComments: 1000,
+    maxCommentLength: 800,
+    maxCommentBatchSize: 40,
+  },
+  pro: {
+    model: "gpt-4.1-mini",
+    maxComments: 300000,
+    maxCommentLength: 1500,
+    maxCommentBatchSize: 50,
+  },
+};
 
 export class OpenAIService {
   private openai: OpenAI;
@@ -79,7 +92,7 @@ export class OpenAIService {
       // Prioritize comments with likes and longer content for more meaningful analysis
       const prioritizedComments = this.prioritizeComments(
         filteredComments,
-        MAX_COMMENTS,
+        membershipSettings["free"].maxComments,
       );
 
       console.log(
@@ -90,7 +103,10 @@ export class OpenAIService {
       const processedComments = this.preprocessComments(prioritizedComments);
 
       // For very small comment sets, use single API call
-      if (prioritizedComments.length <= MAX_COMMENT_BATCH_SIZE) {
+      if (
+        prioritizedComments.length <=
+        membershipSettings["free"].maxCommentBatchSize
+      ) {
         return await this.analyzeCommentsBatch(
           videoData,
           prioritizedComments,
@@ -158,8 +174,12 @@ export class OpenAIService {
     return comments.map((comment) => {
       // Truncate long comments
       const truncatedText =
-        comment.textOriginal.length > MAX_COMMENT_LENGTH
-          ? comment.textOriginal.substring(0, MAX_COMMENT_LENGTH) + "..."
+        comment.textOriginal.length >
+        membershipSettings["free"].maxCommentLength
+          ? comment.textOriginal.substring(
+              0,
+              membershipSettings["free"].maxCommentLength,
+            ) + "..."
           : comment.textOriginal;
 
       // Add like count for more context (only if it has likes)
@@ -196,7 +216,7 @@ export class OpenAIService {
 
     console.log("Sending request to OpenAI API");
     const response = await this.openai.chat.completions.create({
-      model: MODEL,
+      model: membershipSettings["free"].model,
       messages: [
         {
           role: "system",
@@ -254,8 +274,17 @@ export class OpenAIService {
 
     // Step 1: Split comments into batches and analyze each batch
     const batches: string[][] = [];
-    for (let i = 0; i < processedComments.length; i += MAX_COMMENT_BATCH_SIZE) {
-      batches.push(processedComments.slice(i, i + MAX_COMMENT_BATCH_SIZE));
+    for (
+      let i = 0;
+      i < processedComments.length;
+      i += membershipSettings["free"].maxCommentBatchSize
+    ) {
+      batches.push(
+        processedComments.slice(
+          i,
+          i + membershipSettings["free"].maxCommentBatchSize,
+        ),
+      );
     }
 
     // Generate initial analyses for each batch
@@ -275,7 +304,7 @@ export class OpenAIService {
       `;
 
       const response = await this.openai.chat.completions.create({
-        model: MODEL,
+        model: membershipSettings["free"].model,
         messages: [
           {
             role: "system",
@@ -361,7 +390,7 @@ export class OpenAIService {
     `;
 
     const finalResponse = await this.openai.chat.completions.create({
-      model: MODEL,
+      model: membershipSettings["free"].model,
       messages: [
         {
           role: "system",
