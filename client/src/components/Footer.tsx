@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Chrome, BarChart3 } from "lucide-react";
+import { Chrome, BarChart3, CircleDollarSign, CircleHelp } from "lucide-react";
 import { BrandIcon } from "./BrandIcon";
 
 export default function Footer() {
@@ -17,9 +17,10 @@ export default function Footer() {
               </h3>
             </div>
             <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">
-              AI-powered comment analysis for YouTube videos. Get instant sentiment analysis, key insights, and comprehensive summaries.
+              AI-powered comment analysis for YouTube videos. Get instant
+              sentiment analysis, key insights, and comprehensive summaries.
             </p>
-            <a 
+            <a
               href="https://chromewebstore.google.com/detail/youtube-comments-analyzer/jojpopolngligeffhficnhlhliebahep"
               target="_blank"
               rel="noopener noreferrer"
@@ -29,17 +30,20 @@ export default function Footer() {
               Chrome Extension Available
             </a>
           </div>
-          
+
           {/* Quick Links */}
           <div>
-            <h4 className="font-medium text-gray-900 dark:text-white mb-3">Quick Links</h4>
+            <h4 className="font-medium text-gray-900 dark:text-white mb-3">
+              Quick Links
+            </h4>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
-                  href="/"
-                  className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
+                  href="/pricing"
+                  className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors flex items-center"
                 >
-                  Comment Analyzer Tool
+                  <CircleDollarSign className="h-3 w-3 mr-1" />
+                  Pricing
                 </Link>
               </li>
               <li>
@@ -62,17 +66,20 @@ export default function Footer() {
               <li>
                 <Link
                   href="/faq"
-                  className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
+                  className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors flex items-center"
                 >
+                  <CircleHelp className="h-3 w-3 mr-1" />
                   FAQ
                 </Link>
               </li>
             </ul>
           </div>
-          
+
           {/* Resources */}
           <div>
-            <h4 className="font-medium text-gray-900 dark:text-white mb-3">Resources</h4>
+            <h4 className="font-medium text-gray-900 dark:text-white mb-3">
+              Resources
+            </h4>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
@@ -103,7 +110,7 @@ export default function Footer() {
             </ul>
           </div>
         </div>
-        
+
         {/* Bottom Bar */}
         <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
           <div className="flex flex-col md:flex-row justify-between items-center">
@@ -120,10 +127,6 @@ export default function Footer() {
                 </a>
                 . All rights reserved.
               </p>
-            </div>
-            
-            <div className="text-xs text-gray-500 dark:text-gray-500">
-              <span>Free YouTube Comment Analysis Tool | AI-Powered Sentiment Analysis</span>
             </div>
           </div>
         </div>

@@ -105,10 +105,11 @@ export default function IntroSection() {
               Why Choose Our Platform?
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              Powerful features designed to give comprehensive sentiment analysis, key insights, 
-              and detailed summaries from any YouTube video (shorts included). Perfect for 
-              content creators, marketers, researchers, and anyone who wants to understand 
-              audience feedback quickly and efficiently.
+              Powerful features designed to give comprehensive sentiment
+              analysis, key insights, and detailed summaries from any YouTube
+              video (shorts included). Perfect for content creators, marketers,
+              researchers, and anyone who wants to understand audience feedback
+              quickly and efficiently.
             </p>
           </div>
 
@@ -159,8 +160,9 @@ export default function IntroSection() {
                   Privacy Focused
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-lg">
-                  We only analyze public comments on public Youtube channels and don't store personal data.
-                  Your privacy and security are our top priorities.
+                  We only analyze public comments on public Youtube channels and
+                  don't store personal data. Your privacy and security are our
+                  top priorities.
                 </p>
               </div>
             </div>
@@ -221,13 +223,6 @@ export default function IntroSection() {
               </p>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Premium Feature Interest Banner */}
-      <div className="py-12">
-        <div className="max-w-4xl mx-auto px-4">
-          <PremiumFeatureInterest />
         </div>
       </div>
     </section>

@@ -14,30 +14,35 @@ function AppWrapper() {
     const fetchClerkKey = async () => {
       try {
         // Use a direct fetch to bypass Vite middleware
-        const response = await fetch(window.location.origin + '/api/config/clerk', {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json'
-          }
-        });
-        
+        const response = await fetch(
+          window.location.origin + "/api/config/clerk",
+          {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+            },
+          },
+        );
+
         if (response.ok) {
-          const contentType = response.headers.get('content-type');
-          if (contentType && contentType.includes('application/json')) {
+          const contentType = response.headers.get("content-type");
+          if (contentType && contentType.includes("application/json")) {
             const data = await response.json();
             if (data.publishableKey) {
               setClerkKey(data.publishableKey);
             } else {
-              setError('No publishable key in response');
+              setError("No publishable key in response");
             }
           } else {
-            setError('Invalid response format');
+            setError("Invalid response format");
           }
         } else {
           setError(`HTTP ${response.status}: ${response.statusText}`);
         }
       } catch (err) {
-        setError(`Network error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        setError(
+          `Network error: ${err instanceof Error ? err.message : "Unknown error"}`,
+        );
       } finally {
         setLoading(false);
       }
@@ -51,7 +56,9 @@ function AppWrapper() {
       <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-300">Loading authentication...</p>
+          <p className="text-gray-600 dark:text-gray-300">
+            Loading authentication...
+          </p>
         </div>
       </div>
     );
@@ -66,10 +73,10 @@ function AppWrapper() {
               Authentication Setup Required
             </h2>
             <p className="text-red-700 dark:text-red-300 mb-4">
-              {error || 'Unable to load authentication configuration'}
+              {error || "Unable to load authentication configuration"}
             </p>
-            <button 
-              onClick={() => window.location.reload()} 
+            <button
+              onClick={() => window.location.reload()}
               className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition-colors"
             >
               Retry
@@ -81,7 +88,16 @@ function AppWrapper() {
   }
 
   return (
-    <ClerkProvider publishableKey={clerkKey}>
+    <ClerkProvider
+      appearance={{
+        variables: {
+          colorPrimary: "#2094f3",
+          colorText: "black",
+          fontSize: "1rem",
+        },
+      }}
+      publishableKey={clerkKey}
+    >
       <App />
     </ClerkProvider>
   );

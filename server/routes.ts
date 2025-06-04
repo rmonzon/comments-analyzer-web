@@ -8,22 +8,22 @@ import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication has been removed for future implementation
-  
+
   const youtubeService = new YouTubeService();
   const openaiService = new OpenAIService();
 
   // Serve Clerk configuration
   app.get("/api/config/clerk", (req, res) => {
     res.json({
-      publishableKey: process.env.CLERK_PUBLISHABLE_KEY
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
     });
   });
 
   // Create subscription using Clerk's billing system
   app.post("/api/subscription/create", async (req, res) => {
     try {
-      const userId = req.headers['clerk-user-id'] as string;
-      
+      const userId = req.headers["clerk-user-id"] as string;
+
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
       }
@@ -33,13 +33,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         // Get user from Clerk to ensure they exist
         const clerkUser = await clerkClient.users.getUser(userId);
-        
+
         // Ensure user exists in our database
         let user = await storage.getUser(userId);
         if (!user) {
           user = await storage.upsertUser({
             id: userId,
-            username: clerkUser.username || clerkUser.emailAddresses[0]?.emailAddress || 'unknown',
+            username:
+              clerkUser.username ||
+              clerkUser.emailAddresses[0]?.emailAddress ||
+              "unknown",
             email: clerkUser.emailAddresses[0]?.emailAddress || null,
             firstName: clerkUser.firstName,
             lastName: clerkUser.lastName,
@@ -48,118 +51,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Create billing session with Clerk
-        const session = await clerkClient.allowlistIdentifiers.createAllowlistIdentifier({
-          identifier: clerkUser.emailAddresses[0]?.emailAddress || '',
-          notify: false
-        });
+        const session =
+          await clerkClient.allowlistIdentifiers.createAllowlistIdentifier({
+            identifier: clerkUser.emailAddresses[0]?.emailAddress || "",
+            notify: false,
+          });
 
         // Update user subscription in our database
         await storage.updateUserSubscription(userId, {
-          subscriptionStatus: 'active',
+          subscriptionStatus: "active",
           subscriptionTier: planId,
-          currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+          currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         });
 
         // In production, you would redirect to Clerk's billing portal
         // For now, we'll simulate successful subscription activation
-        res.json({ 
-          success: true, 
+        res.json({
+          success: true,
           message: `${planId} subscription activated`,
           planId,
           // checkoutUrl: would be provided by Clerk's billing API
         });
-
       } catch (clerkError: any) {
         console.error("Clerk API error:", clerkError);
-        
+
         // Fallback: still update our database for testing
         await storage.updateUserSubscription(userId, {
-          subscriptionStatus: 'active',
+          subscriptionStatus: "active",
           subscriptionTier: planId,
-          currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+          currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         });
 
-        res.json({ 
-          success: true, 
+        res.json({
+          success: true,
           message: `${planId} subscription activated (simulated)`,
           planId,
         });
       }
-
     } catch (error: any) {
       console.error("Error creating subscription:", error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: "Failed to create subscription",
-        error: error.message 
+        error: error.message,
       });
     }
-  });
-
-  // Get user subscription status
-  app.get("/api/subscription/status", async (req, res) => {
-    try {
-      const userId = req.headers['clerk-user-id'] as string;
-      
-      if (!userId) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-
-      // Get user from our database
-      const user = await storage.getUser(userId);
-      
-      if (!user) {
-        return res.json({
-          hasActiveSubscription: false,
-          subscription: null
-        });
-      }
-
-      const isActive = user.subscriptionStatus === 'active';
-
-      res.json({
-        hasActiveSubscription: isActive,
-        subscription: isActive ? {
-          tier: user.subscriptionTier || 'free',
-          status: user.subscriptionStatus,
-          currentPeriodEnd: user.currentPeriodEnd?.toISOString()
-        } : null
-      });
-    } catch (error: any) {
-      console.error("Error fetching subscription status:", error);
-      res.status(500).json({ 
-        message: "Failed to fetch subscription status",
-        error: error.message 
-      });
-    }
-  });
-
-  // Cancel subscription
-  app.post("/api/subscription/cancel", async (req, res) => {
-    try {
-      const userId = req.headers['clerk-user-id'] as string;
-      
-      if (!userId) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-
-      await storage.updateUserSubscription(userId, {
-        subscriptionStatus: 'canceled'
-      });
-
-      res.json({ success: true });
-    } catch (error: any) {
-      console.error("Error canceling subscription:", error);
-      res.status(500).json({ 
-        message: "Failed to cancel subscription",
-        error: error.message 
-      });
-    }
-  });
-  
-  // Import schema for premium interest
-  const premiumInterestSchema = z.object({
-    email: z.string().email(),
-    commentCount: z.number().int().positive()
   });
 
   // Get video data and comments by video ID
@@ -232,11 +167,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.json(videoData);
     } catch (error: any) {
       console.error("Error fetching video:", error);
-      return res
-        .status(500)
-        .json({
-          message: `Failed to fetch video: ${error.message || "Unknown error"}`,
-        });
+      return res.status(500).json({
+        message: `Failed to fetch video: ${error.message || "Unknown error"}`,
+      });
     }
   });
 
@@ -253,16 +186,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = schema.safeParse(req.body);
       if (!result.success) {
         console.log("Invalid request body:", result.error.format());
-        return res
-          .status(400)
-          .json({
-            message: "Invalid request body",
-            errors: result.error.format(),
-          });
+        return res.status(400).json({
+          message: "Invalid request body",
+          errors: result.error.format(),
+        });
       }
 
       const { videoId, forceRefresh } = result.data;
-      console.log(`Getting analysis for videoId: ${videoId} (forceRefresh: ${forceRefresh})`); 
+      console.log(
+        `Getting analysis for videoId: ${videoId} (forceRefresh: ${forceRefresh})`,
+      );
 
       // First, check if analysis already exists (unless force refresh)
       if (!forceRefresh) {
@@ -273,7 +206,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      console.log(`No existing analysis found, generating new analysis for videoId: ${videoId}`);
+      console.log(
+        `No existing analysis found, generating new analysis for videoId: ${videoId}`,
+      );
 
       // Get video data with comments
       const videoData = await storage.getVideo(videoId);
@@ -341,7 +276,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       // Check if we're updating or creating
-      if (forceRefresh && await storage.getAnalysis(videoId)) {
+      if (forceRefresh && (await storage.getAnalysis(videoId))) {
         console.log("Updating existing analysis in database");
         await storage.updateAnalysis(videoId, analysisData);
       } else {
@@ -353,67 +288,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.json({ ...analysis, fromCache: false });
     } catch (error: any) {
       console.error("Error generating summary:", error);
-      return res
-        .status(500)
-        .json({
-          message: `Failed to generate summary: ${error.message || "Unknown error"}`,
-        });
+      return res.status(500).json({
+        message: `Failed to generate summary: ${error.message || "Unknown error"}`,
+      });
     }
   });
 
-  // Register premium interest (for users interested in analyzing more comments)
-  app.post("/api/premium/register-interest", async (req, res) => {
-    try {
-      console.log("Received premium interest with body:", req.body);
-      
-      const result = premiumInterestSchema.safeParse(req.body);
-      
-      if (!result.success) {
-        console.log("Invalid premium interest data:", result.error.format());
-        return res.status(400).json({
-          message: "Invalid data provided",
-          errors: result.error.format()
-        });
-      }
-      
-      const { email, commentCount } = result.data;
-      
-      // Record the premium interest in the database
-      const savedInterest = await storage.createPremiumInterest({
-        email,
-        commentCount,
-      });
-      
-      console.log(`Premium interest recorded for ${email} (${commentCount} comments)`);
-      
-      return res.status(201).json({
-        message: "Interest registered successfully",
-        data: {
-          email: savedInterest.email,
-          commentCount: savedInterest.commentCount,
-          recordedAt: savedInterest.createdAt
-        }
-      });
-    } catch (error: any) {
-      console.error("Error registering premium interest:", error);
-      return res.status(500).json({
-        message: `Failed to register interest: ${error.message || "Unknown error"}`
-      });
-    }
-  });
-  
   // Get all videos that have been analyzed
   app.get("/api/youtube/videos", async (req, res) => {
     try {
       console.log("Fetching all analyzed videos");
-      
+
       // Explicitly set headers to ensure proper JSON response
-      res.setHeader('Content-Type', 'application/json');
-      
+      res.setHeader("Content-Type", "application/json");
+
       // Use the storage interface instead of direct DB access
       const analyzedVideos = await storage.getAllAnalyzedVideos();
       console.log(`Found ${analyzedVideos.length} analyzed videos`);
-      
+
       // Put some sample data in case we're having database issues
       if (analyzedVideos.length === 0) {
         const sampleData = [
@@ -425,18 +317,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
             thumbnail: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
             viewCount: 1234567,
             commentsAnalyzed: 100,
-            analysisDate: new Date().toISOString()
-          }
+            analysisDate: new Date().toISOString(),
+          },
         ];
         console.log("No videos found, returning sample data");
         return res.json(sampleData);
       }
-      
+
       return res.json(analyzedVideos);
     } catch (error: any) {
       console.error("Error fetching analyzed videos:", error);
       return res.status(500).json({
-        message: `Failed to fetch analyzed videos: ${error.message || "Unknown error"}`
+        message: `Failed to fetch analyzed videos: ${error.message || "Unknown error"}`,
       });
     }
   });
