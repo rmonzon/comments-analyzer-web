@@ -6,7 +6,15 @@ import {
   Comment,
 } from "@shared/types";
 
-const membershipSettings = {
+const membershipSettings: Record<
+  string,
+  {
+    model: string;
+    maxComments: number;
+    maxCommentLength: number;
+    maxCommentBatchSize: number;
+  }
+> = {
   free: {
     model: "gpt-4.1-nano",
     maxComments: 100,
@@ -17,13 +25,13 @@ const membershipSettings = {
     model: "gpt-4o-mini",
     maxComments: 1000,
     maxCommentLength: 800,
-    maxCommentBatchSize: 40,
+    maxCommentBatchSize: 50,
   },
   pro: {
     model: "gpt-4.1-mini",
     maxComments: 300000,
     maxCommentLength: 1500,
-    maxCommentBatchSize: 50,
+    maxCommentBatchSize: 100,
   },
 };
 
@@ -39,7 +47,10 @@ export class OpenAIService {
   /**
    * Generate a comprehensive analysis of video comments
    */
-  async generateCommentAnalysis(videoData: VideoData): Promise<VideoAnalysis> {
+  async generateCommentAnalysis(
+    videoData: VideoData,
+    userPlan: string,
+  ): Promise<VideoAnalysis> {
     console.log("Starting OpenAI comment analysis for video:", videoData.id);
     try {
       // Check if API key is available
@@ -88,11 +99,10 @@ export class OpenAIService {
           createdAt: new Date().toISOString(),
         };
       }
-
       // Prioritize comments with likes and longer content for more meaningful analysis
       const prioritizedComments = this.prioritizeComments(
         filteredComments,
-        membershipSettings["free"].maxComments,
+        membershipSettings[userPlan].maxComments,
       );
 
       console.log(
@@ -100,17 +110,21 @@ export class OpenAIService {
       );
 
       // Process comments to reduce token usage
-      const processedComments = this.preprocessComments(prioritizedComments);
+      const processedComments = this.preprocessComments(
+        prioritizedComments,
+        userPlan,
+      );
 
       // For very small comment sets, use single API call
       if (
         prioritizedComments.length <=
-        membershipSettings["free"].maxCommentBatchSize
+        membershipSettings[userPlan].maxCommentBatchSize
       ) {
         return await this.analyzeCommentsBatch(
           videoData,
           prioritizedComments,
           processedComments,
+          userPlan,
         );
       }
 
@@ -119,6 +133,7 @@ export class OpenAIService {
         videoData,
         prioritizedComments,
         processedComments,
+        userPlan,
       );
     } catch (error: any) {
       console.error("Error generating comment analysis:", error);
@@ -170,15 +185,15 @@ export class OpenAIService {
   /**
    * Preprocess comments to reduce token usage. This includes truncating long comments and adding like counts (when available) for more context.
    */
-  private preprocessComments(comments: Comment[]): string[] {
+  private preprocessComments(comments: Comment[], userPlan: string): string[] {
     return comments.map((comment) => {
       // Truncate long comments
       const truncatedText =
         comment.textOriginal.length >
-        membershipSettings["free"].maxCommentLength
+        membershipSettings[userPlan].maxCommentLength
           ? comment.textOriginal.substring(
               0,
-              membershipSettings["free"].maxCommentLength,
+              membershipSettings[userPlan].maxCommentLength,
             ) + "..."
           : comment.textOriginal;
 
@@ -197,6 +212,7 @@ export class OpenAIService {
     videoData: VideoData,
     commentsToAnalyze: Comment[],
     processedComments: string[],
+    userPlan: string,
   ): Promise<VideoAnalysis> {
     // Compact format for small batches
     const commentsText = processedComments.join("\n");
@@ -216,7 +232,7 @@ export class OpenAIService {
 
     console.log("Sending request to OpenAI API");
     const response = await this.openai.chat.completions.create({
-      model: membershipSettings["free"].model,
+      model: membershipSettings[userPlan].model,
       messages: [
         {
           role: "system",
@@ -269,6 +285,7 @@ export class OpenAIService {
     videoData: VideoData,
     allComments: Comment[],
     processedComments: string[],
+    userPlan: string,
   ): Promise<VideoAnalysis> {
     console.log("Using two-step analysis for large comment set");
 
@@ -277,12 +294,12 @@ export class OpenAIService {
     for (
       let i = 0;
       i < processedComments.length;
-      i += membershipSettings["free"].maxCommentBatchSize
+      i += membershipSettings[userPlan].maxCommentBatchSize
     ) {
       batches.push(
         processedComments.slice(
           i,
-          i + membershipSettings["free"].maxCommentBatchSize,
+          i + membershipSettings[userPlan].maxCommentBatchSize,
         ),
       );
     }
@@ -304,7 +321,7 @@ export class OpenAIService {
       `;
 
       const response = await this.openai.chat.completions.create({
-        model: membershipSettings["free"].model,
+        model: membershipSettings[userPlan].model,
         messages: [
           {
             role: "system",
@@ -315,7 +332,7 @@ export class OpenAIService {
         ],
         response_format: { type: "json_object" },
         temperature: 0.2,
-        max_tokens: 350, // Very limited tokens for batch analysis
+        max_tokens: 800, // Very limited tokens for batch analysis
       });
 
       return JSON.parse(response.choices[0].message.content || "{}");
@@ -390,7 +407,7 @@ export class OpenAIService {
     `;
 
     const finalResponse = await this.openai.chat.completions.create({
-      model: membershipSettings["free"].model,
+      model: membershipSettings[userPlan].model,
       messages: [
         {
           role: "system",

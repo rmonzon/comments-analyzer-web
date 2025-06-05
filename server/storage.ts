@@ -69,13 +69,16 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
-  updateUserSubscription(userId: string, subscription: {
-    subscriptionStatus?: string;
-    subscriptionId?: string;
-    customerId?: string;
-    currentPeriodEnd?: Date;
-    subscriptionTier?: string;
-  }): Promise<User | undefined>;
+  updateUserSubscription(
+    userId: string,
+    subscription: {
+      subscriptionStatus?: string;
+      subscriptionId?: string;
+      customerId?: string;
+      currentPeriodEnd?: Date;
+      subscriptionTier?: string;
+    },
+  ): Promise<User | undefined>;
 
   // Session store
   sessionStore: any;
@@ -165,7 +168,7 @@ export class DatabaseStorage implements IStorage {
 
     try {
       // Process comments in batches to avoid issues
-      const batchSize = 10;
+      const batchSize = 20;
       const results: Comment[] = [];
 
       for (let i = 0; i < commentsToInsert.length; i += batchSize) {
@@ -475,13 +478,16 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateUserSubscription(userId: string, subscription: {
-    subscriptionStatus?: string;
-    subscriptionId?: string;
-    customerId?: string;
-    currentPeriodEnd?: Date;
-    subscriptionTier?: string;
-  }): Promise<User | undefined> {
+  async updateUserSubscription(
+    userId: string,
+    subscription: {
+      subscriptionStatus?: string;
+      subscriptionId?: string;
+      customerId?: string;
+      currentPeriodEnd?: Date;
+      subscriptionTier?: string;
+    },
+  ): Promise<User | undefined> {
     try {
       console.log("Updating user subscription:", userId, subscription);
 

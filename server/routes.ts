@@ -1,14 +1,38 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { clerkClient } from "@clerk/express";
+import { clerkClient, getAuth } from "@clerk/express";
 import { storage } from "./storage";
 import { YouTubeService } from "./services/youtube";
 import { OpenAIService } from "./services/openai";
 import { z } from "zod";
 
-export async function registerRoutes(app: Express): Promise<Server> {
-  // Authentication has been removed for future implementation
+const videoSettings: Record<
+  string,
+  {
+    maxComments: number;
+  }
+> = {
+  free: {
+    maxComments: 100,
+  },
+  starter: {
+    maxComments: 1000,
+  },
+  pro: {
+    maxComments: 300000,
+  },
+};
 
+const getCurrentUserPlan = (req: any) => {
+  const { has } = getAuth(req);
+  return has({ plan: "starter" })
+    ? "starter"
+    : has({ plan: "pro" })
+      ? "pro"
+      : "free";
+};
+
+export async function registerRoutes(app: Express): Promise<Server> {
   const youtubeService = new YouTubeService();
   const openaiService = new OpenAIService();
 
@@ -134,8 +158,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           fetchedAt: new Date(),
         });
 
+        // Determine the user's plan to fetch the appropriate number of comments
+        const userPlan = getCurrentUserPlan(req);
+
         // Fetch and store comments
-        const comments = await youtubeService.getVideoComments(videoId);
+        const comments = await youtubeService.getVideoComments(
+          videoId,
+          videoSettings[userPlan].maxComments,
+        );
         console.log(`Fetched ${comments.length} comments for video ${videoId}`);
         if (comments.length > 0) {
           await storage.createComments(
@@ -177,7 +207,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/youtube/summarize", async (req, res) => {
     try {
       console.log("Received summarize request with body:", req.body);
-
       const schema = z.object({
         videoId: z.string().min(1),
         forceRefresh: z.boolean().optional().default(false),
@@ -261,9 +290,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json({ ...simplifiedAnalysis, fromCache: false });
       }
 
+      // Determine the user's plan to fetch the appropriate number of comments
+      const userPlan = getCurrentUserPlan(req);
+      console.log("This user's membership plan is", userPlan);
+
       // Generate analysis using OpenAI (we already checked for existing analysis above)
       console.log("Starting OpenAI comment analysis for video:", videoId);
-      const analysis = await openaiService.generateCommentAnalysis(videoData);
+      const analysis = await openaiService.generateCommentAnalysis(
+        videoData,
+        userPlan,
+      );
 
       // Prepare the analysis data
       const analysisData = {

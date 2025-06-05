@@ -5,43 +5,44 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  SignInButton,
-  SignUpButton,
   UserButton,
-  useUser,
+  SignedIn,
+  SignInButton,
+  SignedOut,
   useAuth,
 } from "@clerk/clerk-react";
-import { useQuery } from "@tanstack/react-query";
 
 export default function Header() {
-  const { isSignedIn, isLoaded, user } = useUser();
-  const { userId } = useAuth();
+  const { isLoaded, has } = useAuth();
+  let currentTier = "free";
 
-  // Fetch user subscription status
-  const { data: subscriptionData } = useQuery({
-    queryKey: ['/api/subscription/status'],
-    enabled: isSignedIn && !!userId,
-    queryFn: async () => {
-      const response = await fetch('/api/subscription/status', {
-        headers: {
-          'clerk-user-id': userId || ''
-        }
-      });
-      if (!response.ok) return null;
-      return response.json();
-    }
-  });
-
-  const currentTier = subscriptionData?.subscription?.tier || 'free';
-  
   const getSubscriptionBadge = () => {
+    if (isLoaded) {
+      currentTier = has({ plan: "starter" })
+        ? "starter"
+        : has({ plan: "pro" })
+          ? "pro"
+          : "free";
+    }
     switch (currentTier) {
-      case 'pro':
-        return <Badge variant="default" className="bg-blue-500 text-white text-xs">Pro</Badge>;
-      case 'premium':
-        return <Badge variant="default" className="bg-purple-500 text-white text-xs">Premium</Badge>;
+      case "pro":
+        return (
+          <Badge variant="default" className="bg-blue-500 text-white text-xs">
+            Pro
+          </Badge>
+        );
+      case "starter":
+        return (
+          <Badge variant="default" className="bg-purple-500 text-white text-xs">
+            Starter
+          </Badge>
+        );
       default:
-        return <Badge variant="secondary" className="text-xs">Free</Badge>;
+        return (
+          <Badge variant="secondary" className="text-xs">
+            Free
+          </Badge>
+        );
     }
   };
 
@@ -99,15 +100,10 @@ export default function Header() {
 
           <div className="flex items-center gap-3">
             <ThemeToggle />
-
-            {/* Authentication UI */}
-            {!isLoaded ? (
-              <div className="w-8 h-8 animate-pulse bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-            ) : isSignedIn ? (
+            <SignedIn>
               <div className="flex items-center gap-2">
                 {getSubscriptionBadge()}
                 <UserButton
-                  afterSignOutUrl="/"
                   appearance={{
                     elements: {
                       avatarBox: "w-8 h-8",
@@ -115,19 +111,15 @@ export default function Header() {
                   }}
                 />
               </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <SignInButton mode="modal">
-                  <Button variant="outline" size="sm">
-                    <User className="h-4 w-4 mr-2" />
-                    Sign In
-                  </Button>
-                </SignInButton>
-                <SignUpButton mode="modal">
-                  <Button size="sm">Sign Up</Button>
-                </SignUpButton>
-              </div>
-            )}
+            </SignedIn>
+            <SignedOut>
+              <SignInButton mode="modal">
+                <Button variant="outline" size="sm">
+                  <User className="h-4 w-4 mr-2" />
+                  Sign In
+                </Button>
+              </SignInButton>
+            </SignedOut>
           </div>
         </div>
       </div>

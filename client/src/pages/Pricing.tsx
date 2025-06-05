@@ -1,8 +1,8 @@
-import { PricingTable, useAuth } from "@clerk/clerk-react";
+import { PricingTable, ClerkLoaded } from "@clerk/clerk-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
-export default function Pricing() {  
+export default function Pricing() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
@@ -16,8 +16,15 @@ export default function Pricing() {
               Unlock deeper insights with advanced comment analysis features
             </p>
           </div>
-
-          <PricingTable />
+          <ClerkLoaded>
+            <PricingTable
+              fallback={
+                <div className="flex justify-center items-center h-64">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+                </div>
+              }
+            />
+          </ClerkLoaded>
         </div>
       </div>
       <Footer />
