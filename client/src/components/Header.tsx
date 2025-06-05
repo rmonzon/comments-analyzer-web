@@ -1,9 +1,11 @@
 import { ThemeToggle } from "./ThemeToggle";
-import { User } from "lucide-react";
+import { User, Menu, X } from "lucide-react";
 import { BrandIcon } from "./BrandIcon";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useState } from "react";
 import {
   UserButton,
   SignedIn,
@@ -14,6 +16,7 @@ import {
 
 export default function Header() {
   const { isLoaded, has } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   let currentTier = "free";
 
   const getSubscriptionBadge = () => {
@@ -57,8 +60,8 @@ export default function Header() {
             </Link>
           </h1>
         </div>
-        <div className="flex items-center gap-6">
-          {/* Navigation */}
+        <div className="flex items-center gap-3">
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-6">
             <Link
               href="/"
@@ -98,6 +101,7 @@ export default function Header() {
             </Link>
           </nav>
 
+          {/* Theme Toggle and User Actions */}
           <div className="flex items-center gap-3">
             <ThemeToggle />
             <SignedIn>
@@ -121,6 +125,62 @@ export default function Header() {
               </SignInButton>
             </SignedOut>
           </div>
+
+          {/* Mobile Menu */}
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <SheetTrigger asChild className="md:hidden">
+              <Button variant="ghost" size="sm" className="p-2">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Open menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+              <nav className="flex flex-col space-y-4 mt-6">
+                <Link
+                  href="/"
+                  className="text-lg font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Home
+                </Link>
+                <Link
+                  href="/analyze"
+                  className="text-lg font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Analyze
+                </Link>
+                <Link
+                  href="/history"
+                  className="text-lg font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  History
+                </Link>
+                <Link
+                  href="/pricing"
+                  className="text-lg font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Pricing
+                </Link>
+                <Link
+                  href="/about"
+                  className="text-lg font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  About
+                </Link>
+                <Link
+                  href="/faq"
+                  className="text-lg font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  FAQ
+                </Link>
+              </nav>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </header>
