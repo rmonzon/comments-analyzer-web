@@ -36,14 +36,32 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <div className="min-h-screen bg-background flex flex-col">
+      <ClerkProvider
+        publishableKey={clerkPublishableKey}
+        navigate={(to) => setLocation(to)}
+      >
+        <QueryClientProvider client={queryClient}>
+          <Router>
+            <Header />
+            <main className="flex-1">
+              <Route path="/" component={Home} />
+              <Route path="/about" component={About} />
+              <Route path="/pricing" component={Pricing} />
+              <Route path="/faq" component={FAQ} />
+              <Route path="/privacy" component={PrivacyPolicy} />
+              <Route path="/terms" component={TermsOfService} />
+              <Route path="/analysis/:videoId" component={Analysis} />
+              <Route path="/shared/:shareId" component={SharedAnalysis} />
+              <Route path="/history" component={VideosList} />
+              <Route component={NotFound} />
+            </main>
+            <Footer />
+            <Toaster />
+          </Router>
+        </QueryClientProvider>
+      </ClerkProvider>
+    </div>
   );
 }
 
