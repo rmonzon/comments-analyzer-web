@@ -6,6 +6,8 @@ import {
   Shield,
   Chrome,
   ExternalLink,
+  Play,
+  Volume2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
@@ -89,6 +91,107 @@ export default function IntroSection() {
                   Accuracy Rate
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Video Demo Section */}
+      <div className="py-20 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center px-4 py-2 bg-purple-100 dark:bg-purple-900/30 rounded-full text-purple-800 dark:text-purple-200 text-sm font-medium mb-6 border border-purple-200 dark:border-purple-800">
+              <Play className="w-4 h-4 mr-2" />
+              See It In Action
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
+              Watch How It Works
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+              See our AI-powered comment analysis in action. From URL input to comprehensive insights in seconds.
+            </p>
+          </div>
+
+          <div className="relative group">
+            {/* Video Container with Enhanced Styling */}
+            <div className="relative bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-3xl overflow-hidden shadow-2xl group-hover:shadow-3xl transition-all duration-500">
+              {/* Gradient Border Effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-3xl opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-xl"></div>
+              
+              {/* Video Player */}
+              <div className="relative aspect-video bg-gray-900 rounded-3xl overflow-hidden">
+                <video
+                  className="w-full h-full object-cover"
+                  controls
+                  preload="metadata"
+                  poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 675'%3E%3Crect width='1200' height='675' fill='%23111827'/%3E%3Cg transform='translate(600,337.5)'%3E%3Ccircle r='60' fill='%23374151' opacity='0.8'/%3E%3Cpolygon points='-20,-20 -20,20 25,0' fill='%23ffffff'/%3E%3C/g%3E%3Ctext x='600' y='450' text-anchor='middle' fill='%23ffffff' font-family='system-ui' font-size='24' font-weight='600'%3EProduct Demo Video%3C/text%3E%3C/svg%3E"
+                >
+                  <source src="/demo-video.mp4" type="video/mp4" />
+                  <source src="/demo-video.webm" type="video/webm" />
+                  Your browser does not support the video tag.
+                </video>
+                
+                {/* Video Overlay for Better UX */}
+                <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all duration-300 flex items-center justify-center opacity-0 hover:opacity-100">
+                  <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-full p-4 transform scale-90 hover:scale-100 transition-transform duration-300">
+                    <Play className="w-8 h-8 text-white" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Video Controls Enhancement */}
+              <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div className="flex items-center space-x-2 text-white">
+                  <Volume2 className="w-4 h-4" />
+                  <span className="text-sm font-medium">HD Quality</span>
+                </div>
+                <div className="text-white text-sm font-medium">
+                  2:34
+                </div>
+              </div>
+            </div>
+
+            {/* Floating Elements */}
+            <div className="absolute -top-6 -right-6 w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl opacity-20 group-hover:opacity-40 transition-opacity duration-500 animate-pulse"></div>
+            <div className="absolute -bottom-4 -left-4 w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl opacity-20 group-hover:opacity-40 transition-opacity duration-500 animate-pulse delay-1000"></div>
+          </div>
+
+          {/* Video Features */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Zap className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                Real-time Processing
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300">
+                Watch comments get analyzed instantly as our AI processes them
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <BarChart3 className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                Visual Insights
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300">
+                See how sentiment data transforms into beautiful visualizations
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Shield className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                Actionable Results
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300">
+                Discover how insights translate into actionable recommendations
+              </p>
             </div>
           </div>
         </div>
