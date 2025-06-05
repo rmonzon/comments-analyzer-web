@@ -15,6 +15,8 @@ import SharedAnalysis from "@/pages/SharedAnalysis";
 import FAQ from "@/pages/FAQ";
 import VideosList from "@/pages/VideosList";
 import Pricing from "@/pages/Pricing";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import "./index.css";
 
 function Router() {
@@ -37,30 +39,23 @@ function Router() {
 function App() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <ClerkProvider
-        publishableKey={clerkPublishableKey}
-        navigate={(to) => setLocation(to)}
-      >
-        <QueryClientProvider client={queryClient}>
-          <Router>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <TooltipProvider>
             <Header />
             <main className="flex-1">
-              <Route path="/" component={Home} />
-              <Route path="/about" component={About} />
-              <Route path="/pricing" component={Pricing} />
-              <Route path="/faq" component={FAQ} />
-              <Route path="/privacy" component={PrivacyPolicy} />
-              <Route path="/terms" component={TermsOfService} />
-              <Route path="/analysis/:videoId" component={Analysis} />
-              <Route path="/shared/:shareId" component={SharedAnalysis} />
-              <Route path="/history" component={VideosList} />
-              <Route component={NotFound} />
+              <Router />
             </main>
             <Footer />
             <Toaster />
-          </Router>
-        </QueryClientProvider>
-      </ClerkProvider>
+          </TooltipProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
     </div>
   );
 }
