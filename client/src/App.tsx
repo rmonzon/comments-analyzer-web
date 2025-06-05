@@ -37,23 +37,12 @@ function App() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <QueryClientProvider client={queryClient}>
-        <Router>
-          <Header />
-          <main className="flex-1">
-            <Route path="/" component={Home} />
-            <Route path="/about" component={About} />
-            <Route path="/pricing" component={Pricing} />
-            <Route path="/faq" component={FAQ} />
-            <Route path="/privacy" component={PrivacyPolicy} />
-            <Route path="/terms" component={TermsOfService} />
-            <Route path="/analysis/:videoId" component={Analysis} />
-            <Route path="/shared/:shareId" component={SharedAnalysis} />
-            <Route path="/history" component={VideosList} />
-            <Route component={NotFound} />
-          </main>
-          <Footer />
-          <Toaster />
-        </Router>
+        <Header />
+        <main className="flex-1">
+          <Router />
+        </main>
+        <Footer />
+        <Toaster />
       </QueryClientProvider>
     </div>
   );
