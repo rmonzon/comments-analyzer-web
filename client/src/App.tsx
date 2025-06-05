@@ -2,9 +2,6 @@ import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { ThemeProvider } from "next-themes";
-import { ProtectedRoute } from "@/lib/protected-route";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Analysis from "@/pages/Analysis";
@@ -40,21 +37,23 @@ function App() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <TooltipProvider>
-            <Header />
-            <main className="flex-1">
-              <Router />
-            </main>
-            <Footer />
-            <Toaster />
-          </TooltipProvider>
-        </ThemeProvider>
+        <Router>
+          <Header />
+          <main className="flex-1">
+            <Route path="/" component={Home} />
+            <Route path="/about" component={About} />
+            <Route path="/pricing" component={Pricing} />
+            <Route path="/faq" component={FAQ} />
+            <Route path="/privacy" component={PrivacyPolicy} />
+            <Route path="/terms" component={TermsOfService} />
+            <Route path="/analysis/:videoId" component={Analysis} />
+            <Route path="/shared/:shareId" component={SharedAnalysis} />
+            <Route path="/history" component={VideosList} />
+            <Route component={NotFound} />
+          </main>
+          <Footer />
+          <Toaster />
+        </Router>
       </QueryClientProvider>
     </div>
   );
