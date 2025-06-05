@@ -1,10 +1,8 @@
 import { PricingTable, ClerkLoaded } from "@clerk/clerk-react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 
 export default function Pricing() {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="bg-gray-50 dark:bg-gray-900">
       <div className="py-12">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
