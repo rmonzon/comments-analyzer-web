@@ -90,7 +90,6 @@ export default function SharedAnalysis() {
 
   return (
     <div className="min-h-screen flex flex-col font-roboto bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-200">
-      <Header />
       <main className="flex-grow container mx-auto px-4 py-6">
         <div className="mb-6">
           <div className="flex items-center justify-between gap-4">
@@ -166,7 +165,6 @@ export default function SharedAnalysis() {
           </div>
         )}
       </main>
-      <Footer />
     </div>
   );
 }

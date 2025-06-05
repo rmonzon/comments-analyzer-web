@@ -104,9 +104,7 @@ export default function VideosList() {
     : [];
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-      
+    <div className="min-h-screen flex flex-col">      
       <main className="container mx-auto px-4 py-8 flex-grow">
         <Card className="w-full shadow-card">
           <CardHeader>
@@ -240,8 +238,6 @@ export default function VideosList() {
           </CardContent>
         </Card>
       </main>
-      
-      <Footer />
     </div>
   );
 }
