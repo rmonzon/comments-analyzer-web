@@ -35,7 +35,7 @@ function Router() {
 
 function App() {
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="bg-background flex flex-col min-h-screen">
       <QueryClientProvider client={queryClient}>
         <Header />
         <main className="flex-1">
