@@ -54,7 +54,7 @@ export default function Header() {
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <div className="flex items-center">
           <BrandIcon className="h-8 w-8 mr-2" />
-          <h1 className="text-xl md:text-2xl font-medium font-roboto text-gray-900 dark:text-white">
+          <h1 className="md:text-2xl font-medium font-roboto text-gray-900 dark:text-white">
             <Link href="/" className="hover:opacity-90 transition-opacity">
               YouTube Comments Analyzer
             </Link>
