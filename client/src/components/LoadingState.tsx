@@ -167,7 +167,7 @@ export default function LoadingState({ progress = 0 }: LoadingStateProps) {
             <div className="mt-8 flex justify-center items-center gap-4">
               <div className="youtube-progress-bar flex-1 max-w-24"></div>
               <p className="text-sm text-gray-500 dark:text-gray-400 px-4 text-center">
-                Powered by YouTube API & AI Analysis
+                Powered by YouTube & OpenAI APIs
               </p>
               <div className="youtube-progress-bar flex-1 max-w-24"></div>
             </div>
