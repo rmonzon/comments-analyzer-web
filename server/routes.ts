@@ -6,6 +6,10 @@ import { YouTubeService } from "./services/youtube";
 import { OpenAIService } from "./services/openai";
 import { z } from "zod";
 
+// Contains user IDs that should be treated as premium users for testing purposes
+const freePremiumUserIds = ["user_2y4a0ogK6PQG3NQoxYjbWSepXm0"];
+
+// Map of video settings to membership plans used to fetch the appropriate number of comments based on the user's plan
 const videoSettings: Record<
   string,
   {
@@ -24,7 +28,11 @@ const videoSettings: Record<
 };
 
 const getCurrentUserPlan = (req: any) => {
-  const { has } = getAuth(req);
+  const { has, userId } = getAuth(req);
+  // Check if the user is in the free premium list, if so return "pro"
+  if (freePremiumUserIds.includes(userId ?? "")) {
+    return "pro";
+  }
   return has({ plan: "starter" })
     ? "starter"
     : has({ plan: "pro" })

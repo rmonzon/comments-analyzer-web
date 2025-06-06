@@ -102,7 +102,7 @@ export default function IntroSection() {
           <div className="text-center mb-12">
             <div className="inline-flex items-center px-4 py-2 bg-purple-100 dark:bg-purple-900/30 rounded-full text-purple-800 dark:text-purple-200 text-sm font-medium mb-6 border border-purple-200 dark:border-purple-800">
               <Play className="w-4 h-4 mr-2" />
-              See It In Action
+              Product Demo
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
               Watch How It Works
@@ -149,49 +149,6 @@ export default function IntroSection() {
                   2:34
                 </div>
               </div>
-            </div>
-
-            {/* Floating Elements */}
-            <div className="absolute -top-6 -right-6 w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl opacity-20 group-hover:opacity-40 transition-opacity duration-500 animate-pulse"></div>
-            <div className="absolute -bottom-4 -left-4 w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl opacity-20 group-hover:opacity-40 transition-opacity duration-500 animate-pulse delay-1000"></div>
-          </div>
-
-          {/* Video Features */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
-            <div className="text-center">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Zap className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                Real-time Processing
-              </h3>
-              <p className="text-gray-600 dark:text-gray-300">
-                Watch comments get analyzed instantly as our AI processes them
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <BarChart3 className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                Visual Insights
-              </h3>
-              <p className="text-gray-600 dark:text-gray-300">
-                See how sentiment data transforms into beautiful visualizations
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Shield className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                Actionable Results
-              </h3>
-              <p className="text-gray-600 dark:text-gray-300">
-                Discover how insights translate into actionable recommendations
-              </p>
             </div>
           </div>
         </div>

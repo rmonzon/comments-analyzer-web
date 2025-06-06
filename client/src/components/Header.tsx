@@ -14,18 +14,26 @@ import {
   useAuth,
 } from "@clerk/clerk-react";
 
+// Contains user IDs that should be treated as premium users for testing purposes
+const freePremiumUserIds = ["user_2y4a0ogK6PQG3NQoxYjbWSepXm0"];
+
 export default function Header() {
-  const { isLoaded, has } = useAuth();
+  const { isLoaded, has, userId } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   let currentTier = "free";
 
   const getSubscriptionBadge = () => {
     if (isLoaded) {
-      currentTier = has({ plan: "starter" })
-        ? "starter"
-        : has({ plan: "pro" })
-          ? "pro"
-          : "free";
+      // Check if the user is in the free premium list, if so return "pro"
+      if (freePremiumUserIds.includes(userId ?? "")) {
+        currentTier = "pro";
+      } else {
+        currentTier = has({ plan: "starter" })
+          ? "starter"
+          : has({ plan: "pro" })
+            ? "pro"
+            : "free";
+      }
     }
     switch (currentTier) {
       case "pro":
