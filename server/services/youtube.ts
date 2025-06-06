@@ -84,12 +84,12 @@ export class YouTubeService {
         // We'll fetch in pages until we have enough comments or there are no more
         while (comments.length < maxComments) {
           console.log(
-            `Fetching comments batch, current count: ${comments.length}`,
+            `Fetching comments batch, current count: ${comments.length}, target: ${maxComments}`,
           );
           const response = await this.youtube.commentThreads.list({
             part: ["snippet"],
             videoId,
-            maxResults: Math.min(50, maxComments - comments.length), // YouTube API limit is 100 per request
+            maxResults: Math.min(100, maxComments - comments.length), // YouTube API limit is 100 per request
             pageToken: nextPageToken || undefined,
             order: "relevance", // Get most relevant comments first
           });
@@ -133,7 +133,9 @@ export class YouTubeService {
 
           // Check if there are more comments to fetch
           nextPageToken = response.data.nextPageToken || undefined;
+          console.log(`Next page token: ${nextPageToken ? 'exists' : 'none'}, comments so far: ${comments.length}`);
           if (!nextPageToken) {
+            console.log('No more pages available, stopping pagination');
             break;
           }
         }
