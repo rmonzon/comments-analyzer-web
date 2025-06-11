@@ -126,8 +126,7 @@ export default function IntroSection() {
                   preload="metadata"
                   poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 675'%3E%3Crect width='1200' height='675' fill='%23111827'/%3E%3Cg transform='translate(600,337.5)'%3E%3Ccircle r='60' fill='%23374151' opacity='0.8'/%3E%3Cpolygon points='-20,-20 -20,20 25,0' fill='%23ffffff'/%3E%3C/g%3E%3Ctext x='600' y='450' text-anchor='middle' fill='%23ffffff' font-family='system-ui' font-size='24' font-weight='600'%3EProduct Demo Video%3C/text%3E%3C/svg%3E"
                 >
-                  <source src="/demo-video.mp4" type="video/mp4" />
-                  <source src="/demo-video.webm" type="video/webm" />
+                  <source src="/demo.mp4" type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
                 
