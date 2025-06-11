@@ -129,24 +129,6 @@ export default function IntroSection() {
                   <source src="/public/demo.mp4" type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
-                
-                {/* Video Overlay for Better UX */}
-                {/* <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all duration-300 flex items-center justify-center opacity-0 hover:opacity-100">
-                  <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-full p-4 transform scale-90 hover:scale-100 transition-transform duration-300">
-                    <Play className="w-8 h-8 text-white" />
-                  </div>
-                </div> */}
-              </div>
-
-              {/* Video Controls Enhancement */}
-              <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div className="flex items-center space-x-2 text-white">
-                  <Volume2 className="w-4 h-4" />
-                  <span className="text-sm font-medium">HD Quality</span>
-                </div>
-                <div className="text-white text-sm font-medium">
-                  2:34
-                </div>
               </div>
             </div>
           </div>
