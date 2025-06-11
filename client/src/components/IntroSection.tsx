@@ -126,16 +126,16 @@ export default function IntroSection() {
                   preload="metadata"
                   poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 675'%3E%3Crect width='1200' height='675' fill='%23111827'/%3E%3Cg transform='translate(600,337.5)'%3E%3Ccircle r='60' fill='%23374151' opacity='0.8'/%3E%3Cpolygon points='-20,-20 -20,20 25,0' fill='%23ffffff'/%3E%3C/g%3E%3Ctext x='600' y='450' text-anchor='middle' fill='%23ffffff' font-family='system-ui' font-size='24' font-weight='600'%3EProduct Demo Video%3C/text%3E%3C/svg%3E"
                 >
-                  <source src="/demo.mp4" type="video/mp4" />
+                  <source src="/public/demo.mp4" type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
                 
                 {/* Video Overlay for Better UX */}
-                <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all duration-300 flex items-center justify-center opacity-0 hover:opacity-100">
+                {/* <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all duration-300 flex items-center justify-center opacity-0 hover:opacity-100">
                   <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-full p-4 transform scale-90 hover:scale-100 transition-transform duration-300">
                     <Play className="w-8 h-8 text-white" />
                   </div>
-                </div>
+                </div> */}
               </div>
 
               {/* Video Controls Enhancement */}
