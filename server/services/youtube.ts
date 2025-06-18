@@ -64,6 +64,138 @@ export class YouTubeService {
   }
 
   /**
+   * Get all comments for a video including reply threads
+   */
+  async getAllVideoComments(
+    videoId: string,
+    maxComments: number = 100,
+  ): Promise<Comment[]> {
+    try {
+      console.log(
+        `Fetching all comments (including replies) for video ${videoId}, max comments: ${maxComments}`,
+      );
+
+      // For videos with no comments or disabled comments, YouTube API throws an error
+      // Let's try to handle it gracefully by catching the error and returning an empty array
+      try {
+        const comments: Comment[] = [];
+        let nextPageToken: string | undefined = undefined;
+
+        // We'll fetch in pages until we have enough comments or there are no more
+        while (comments.length < maxComments) {
+          console.log(
+            `Fetching comment threads batch, current count: ${comments.length}, target: ${maxComments}`,
+          );
+          const response = await this.youtube.commentThreads.list({
+            part: ["snippet", "replies"],
+            videoId,
+            maxResults: Math.min(100, maxComments - comments.length), // YouTube API limit is 100 per request
+            pageToken: nextPageToken || undefined,
+            order: "relevance", // Get most relevant comments first
+          });
+
+          console.log(
+            `API response received, items: ${response.data.items?.length || 0}`,
+          );
+
+          if (!response.data.items || response.data.items.length === 0) {
+            console.log("No comment threads returned from API");
+            break;
+          }
+
+          for (const item of response.data.items) {
+            if (
+              !item.snippet ||
+              !item.snippet.topLevelComment ||
+              !item.snippet.topLevelComment.snippet
+            ) {
+              console.log("Skipping comment thread with missing data");
+              continue;
+            }
+
+            // Add the top-level comment
+            const topLevelSnippet = item.snippet.topLevelComment.snippet;
+            comments.push({
+              id: item.snippet.topLevelComment.id || `comment-${comments.length}`,
+              videoId,
+              authorDisplayName:
+                topLevelSnippet.authorDisplayName || "Anonymous",
+              authorProfileImageUrl: topLevelSnippet.authorProfileImageUrl || "",
+              authorChannelId: topLevelSnippet.authorChannelId?.value,
+              textDisplay: topLevelSnippet.textDisplay || "",
+              textOriginal: topLevelSnippet.textOriginal || "",
+              likeCount: topLevelSnippet.likeCount || 0,
+              publishedAt:
+                topLevelSnippet.publishedAt || new Date().toISOString(),
+              updatedAt: topLevelSnippet.updatedAt || new Date().toISOString(),
+            });
+
+            // Add reply comments if they exist and we haven't reached the limit
+            if (item.replies && item.replies.comments && comments.length < maxComments) {
+              for (const reply of item.replies.comments) {
+                if (comments.length >= maxComments) break;
+                
+                if (!reply.snippet) {
+                  console.log("Skipping reply with missing data");
+                  continue;
+                }
+
+                comments.push({
+                  id: reply.id || `reply-${comments.length}`,
+                  videoId,
+                  authorDisplayName:
+                    reply.snippet.authorDisplayName || "Anonymous",
+                  authorProfileImageUrl: reply.snippet.authorProfileImageUrl || "",
+                  authorChannelId: reply.snippet.authorChannelId?.value,
+                  textDisplay: reply.snippet.textDisplay || "",
+                  textOriginal: reply.snippet.textOriginal || "",
+                  likeCount: reply.snippet.likeCount || 0,
+                  publishedAt:
+                    reply.snippet.publishedAt || new Date().toISOString(),
+                  updatedAt: reply.snippet.updatedAt || new Date().toISOString(),
+                });
+              }
+            }
+
+            // Break if we've reached the comment limit
+            if (comments.length >= maxComments) {
+              break;
+            }
+          }
+
+          // Check if there are more comments to fetch
+          nextPageToken = response.data.nextPageToken || undefined;
+          console.log(`Next page token: ${nextPageToken ? 'exists' : 'none'}, comments so far: ${comments.length}`);
+          if (!nextPageToken || comments.length >= maxComments) {
+            console.log('Stopping pagination - no more pages or reached comment limit');
+            break;
+          }
+        }
+
+        console.log(
+          `Successfully fetched ${comments.length} comments (including replies) for video ${videoId}`,
+        );
+        return comments.slice(0, maxComments); // Ensure we don't exceed the requested limit
+      } catch (commentError: any) {
+        // If we get a specific error about comments being disabled, we log it but don't throw
+        if (
+          commentError.message &&
+          (commentError.message.includes("commentsDisabled") ||
+            commentError.message.includes("disabled comments"))
+        ) {
+          console.log("Comments are disabled for this video.");
+          return [];
+        }
+        // Otherwise, we rethrow the error
+        throw commentError;
+      }
+    } catch (error: any) {
+      console.error("Error fetching all comments:", error.message);
+      return []; // Return empty array on error for graceful degradation
+    }
+  }
+
+  /**
    * Get comments for a video
    */
   async getVideoComments(
