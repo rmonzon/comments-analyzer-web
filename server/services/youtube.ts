@@ -170,6 +170,12 @@ export class YouTubeService {
             console.log('Stopping pagination - no more pages or reached comment limit');
             break;
           }
+
+          // Add delay before next request to prevent hitting YouTube API rate limits
+          if (nextPageToken) {
+            console.log('Waiting 500ms before next pagination request...');
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
         }
 
         console.log(
