@@ -170,7 +170,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const userPlan = getCurrentUserPlan(req);
 
         // Fetch and store comments
-        const comments = await youtubeService.getVideoComments(
+        // const comments = await youtubeService.getVideoComments(
+        //   videoId,
+        //   videoSettings[userPlan].maxComments,
+        // );
+        const comments = await youtubeService.getAllVideoComments(
           videoId,
           videoSettings[userPlan].maxComments,
         );
