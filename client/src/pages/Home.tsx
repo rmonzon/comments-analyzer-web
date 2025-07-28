@@ -20,6 +20,11 @@ export default function Home() {
 
   return (
     <div className="bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <script
+        async
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8572681182636372"
+        crossOrigin="anonymous"
+      ></script>
       <IntroSection />
     </div>
   );

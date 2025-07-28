@@ -10,10 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { extractVideoId } from "@/lib/utils";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
-import {
-  VideoData,
-  VideoAnalysis,
-} from "@shared/types";
+import { VideoData, VideoAnalysis } from "@shared/types";
 
 export default function Analysis() {
   const [url, setUrl] = useState<string>("");
@@ -26,11 +23,11 @@ export default function Analysis() {
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const sharedVideoId = params.get("videoId");
-    
+
     if (sharedVideoId && !videoId) {
       // Keep the URL parameter visible for sharing purposes
       // Don't clear it so users can copy the URL to share again
-      
+
       // Set the video ID and mark as shared link
       setVideoId(sharedVideoId);
       setUrl(`https://www.youtube.com/watch?v=${sharedVideoId}`);
@@ -77,7 +74,8 @@ export default function Analysis() {
       setManualRetryMode(true);
       toast({
         title: "Analysis Failed",
-        description: "Unable to generate analysis. You can try refreshing the analysis manually.",
+        description:
+          "Unable to generate analysis. You can try refreshing the analysis manually.",
         variant: "destructive",
       });
     },
@@ -96,12 +94,12 @@ export default function Analysis() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ videoId, forceRefresh: false }),
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || "Failed to get analysis");
       }
-      
+
       return response.json();
     },
     enabled: !!videoId && !!videoData,
@@ -131,17 +129,21 @@ export default function Analysis() {
     }
   };
 
-  const isLoading = isLoadingVideo || isLoadingAnalysis || summarizeMutation.isPending;
+  const isLoading =
+    isLoadingVideo || isLoadingAnalysis || summarizeMutation.isPending;
   const hasVideoData = !!videoData;
   const hasAnalysisData = !!analysisData;
-  
+
   // Use the fromCache flag from the backend response
   const isCachedAnalysis = hasAnalysisData && analysisData.fromCache === true;
 
-
-
   return (
-    <div className="bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">     
+    <div className="bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <script
+        async
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8572681182636372"
+        crossOrigin="anonymous"
+      ></script>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
@@ -150,8 +152,9 @@ export default function Analysis() {
               Analyze YouTube Comments
             </h1>
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Get AI-powered insights from YouTube video comments. Discover sentiment patterns, 
-              key discussion points, and comprehensive analysis.
+              Get AI-powered insights from YouTube video comments. Discover
+              sentiment patterns, key discussion points, and comprehensive
+              analysis.
             </p>
           </div>
 
@@ -168,7 +171,9 @@ export default function Analysis() {
           {/* Error State for video loading */}
           {videoError && !isLoading && (
             <ErrorState
-              errorMessage={(videoError as Error)?.message || "Failed to load video data"}
+              errorMessage={
+                (videoError as Error)?.message || "Failed to load video data"
+              }
               onTryAgain={() => refetchVideo()}
             />
           )}
@@ -176,10 +181,16 @@ export default function Analysis() {
           {/* Error State for analysis */}
           {analysisError && hasVideoData && !isLoading && (
             <ErrorState
-              errorMessage={(analysisError as any)?.message || "Failed to fetch analysis"}
+              errorMessage={
+                (analysisError as any)?.message || "Failed to fetch analysis"
+              }
               onTryAgain={() => {
                 // For "Analysis not found" errors, trigger new analysis
-                if ((analysisError as any)?.message?.includes("Analysis not found")) {
+                if (
+                  (analysisError as any)?.message?.includes(
+                    "Analysis not found",
+                  )
+                ) {
                   handleRefreshAnalysis();
                 } else {
                   // For other errors, refetch the analysis query
@@ -213,20 +224,31 @@ export default function Analysis() {
           {!videoId && !isLoading && (
             <div className="text-center py-12">
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                <svg className="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m0 0V1a1 1 0 011-1h2a1 1 0 011 1v18a1 1 0 01-1-1H4a1 1 0 01-1-1V1a1 1 0 011-1h2a1 1 0 011 1v3m0 0h8m-8 0V1" />
+                <svg
+                  className="w-8 h-8 text-blue-600 dark:text-blue-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m0 0V1a1 1 0 011-1h2a1 1 0 011 1v18a1 1 0 01-1-1H4a1 1 0 01-1-1V1a1 1 0 011-1h2a1 1 0 011 1v3m0 0h8m-8 0V1"
+                  />
                 </svg>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                 Ready to Analyze
               </h3>
               <p className="text-gray-600 dark:text-gray-400">
-                Enter a YouTube video URL above to get started with comment analysis.
+                Enter a YouTube video URL above to get started with comment
+                analysis.
               </p>
             </div>
           )}
         </div>
-      </div>  
+      </div>
     </div>
   );
 }
