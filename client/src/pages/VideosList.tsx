@@ -6,7 +6,7 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { formatPublishDate, formatViewCount } from '@/lib/utils';
-import { ExternalLink, Eye, ArrowUpDown } from 'lucide-react';
+import { ExternalLink, Eye, ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
 
 // Type for analyzed videos from API
 interface AnalyzedVideo {
@@ -25,9 +25,13 @@ interface AnalyzedVideo {
 type SortField = 'analysisDate' | 'publishedAt' | 'viewCount' | 'commentsAnalyzed' | 'totalComments';
 type SortDirection = 'asc' | 'desc';
 
+// Pagination constants
+const VIDEOS_PER_PAGE = 50;
+
 export default function VideosList() {
   const [sortField, setSortField] = useState<SortField>('analysisDate');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Fetch all analyzed videos using a mutation instead of a query to use POST method
   const [videos, setVideos] = useState<AnalyzedVideo[]>([]);
@@ -74,6 +78,8 @@ export default function VideosList() {
       setSortField(field);
       setSortDirection('desc');
     }
+    // Reset to first page when sorting changes
+    setCurrentPage(1);
   };
 
   // Sort the videos based on current sort settings
@@ -103,6 +109,26 @@ export default function VideosList() {
       })
     : [];
 
+  // Calculate pagination
+  const totalVideos = sortedVideos.length;
+  const totalPages = Math.ceil(totalVideos / VIDEOS_PER_PAGE);
+  const startIndex = (currentPage - 1) * VIDEOS_PER_PAGE;
+  const endIndex = startIndex + VIDEOS_PER_PAGE;
+  const currentVideos = sortedVideos.slice(startIndex, endIndex);
+
+  // Pagination handlers
+  const handlePreviousPage = () => {
+    setCurrentPage(prev => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage(prev => Math.min(prev + 1, totalPages));
+  };
+
+  const handlePageClick = (page: number) => {
+    setCurrentPage(page);
+  };
+
   return (
     <div className="min-h-screen flex flex-col">      
       <main className="container mx-auto px-4 py-8 flex-grow">
@@ -123,7 +149,7 @@ export default function VideosList() {
               <div className="text-center py-8 text-red-500">
                 <p>Error loading analyzed videos. Please try again later.</p>
               </div>
-            ) : sortedVideos.length === 0 ? (
+            ) : totalVideos === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <p>No videos have been analyzed yet.</p>
                 <Link href="/">
@@ -133,7 +159,12 @@ export default function VideosList() {
             ) : (
               <div className="overflow-x-auto">
                 <Table>
-                  <TableCaption>List of all previously analyzed YouTube videos.</TableCaption>
+                  <TableCaption>
+                    {totalPages > 1 
+                      ? `Page ${currentPage} of ${totalPages} - List of previously analyzed YouTube videos.`
+                      : "List of all previously analyzed YouTube videos."
+                    }
+                  </TableCaption>
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-[550px]">Video Title</TableHead>
@@ -187,7 +218,7 @@ export default function VideosList() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {sortedVideos.map((video) => (
+                    {currentVideos.map((video) => (
                       <TableRow key={video.videoId}>
                         <TableCell className="font-medium">
                           <div className="flex items-center space-x-3">
@@ -233,6 +264,81 @@ export default function VideosList() {
                     ))}
                   </TableBody>
                 </Table>
+              </div>
+            )}
+            
+            {/* Pagination Controls */}
+            {totalVideos > 0 && (
+              <div className="mt-6 flex items-center justify-between">
+                <div className="text-sm text-gray-500">
+                  Showing {startIndex + 1} to {Math.min(endIndex, totalVideos)} of {totalVideos} videos
+                </div>
+                
+                {totalPages > 1 && (
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handlePreviousPage}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Previous
+                    </Button>
+                    
+                    <div className="flex items-center space-x-1">
+                      {/* Show page numbers */}
+                      {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                        let pageNumber;
+                        if (totalPages <= 5) {
+                          pageNumber = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNumber = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNumber = totalPages - 4 + i;
+                        } else {
+                          pageNumber = currentPage - 2 + i;
+                        }
+                        
+                        return (
+                          <Button
+                            key={pageNumber}
+                            variant={currentPage === pageNumber ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => handlePageClick(pageNumber)}
+                            className="w-8 h-8 p-0"
+                          >
+                            {pageNumber}
+                          </Button>
+                        );
+                      })}
+                      
+                      {totalPages > 5 && currentPage < totalPages - 2 && (
+                        <>
+                          <span className="text-gray-400">...</span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handlePageClick(totalPages)}
+                            className="w-8 h-8 p-0"
+                          >
+                            {totalPages}
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleNextPage}
+                      disabled={currentPage === totalPages}
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
