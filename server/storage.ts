@@ -554,6 +554,29 @@ export class DatabaseStorage implements IStorage {
 
   async incrementAnalysisCount(userId: string): Promise<void> {
     try {
+      // First, ensure the user exists in the database
+      const existingUser = await this.getUser(userId);
+      
+      if (!existingUser) {
+        console.log("User not found in database, creating user record for:", userId);
+        // Create a basic user record with default values
+        // Note: In production, you'd want to get more details from Clerk
+        await db.insert(users).values({
+          id: userId,
+          username: userId, // Use userId as fallback
+          email: null,
+          monthlyAnalysisCount: 1,
+          analysisResetDate: new Date(
+            new Date().getFullYear(),
+            new Date().getMonth() + 1,
+            1
+          ),
+        });
+        console.log("Created user record with analysis count = 1");
+        return;
+      }
+      
+      // User exists, increment the count
       await db
         .update(users)
         .set({
@@ -561,6 +584,7 @@ export class DatabaseStorage implements IStorage {
           updatedAt: new Date(),
         })
         .where(eq(users.id, userId));
+      console.log("Incremented analysis count for existing user:", userId);
     } catch (error) {
       console.error("Database error in incrementAnalysisCount:", error);
       throw error;
@@ -570,7 +594,11 @@ export class DatabaseStorage implements IStorage {
   async checkAndResetAnalysisCount(userId: string): Promise<void> {
     try {
       const user = await this.getUser(userId);
-      if (!user) return;
+      if (!user) {
+        // User doesn't exist yet, they'll be created on first increment
+        console.log("User not found in checkAndResetAnalysisCount:", userId);
+        return;
+      }
 
       const now = new Date();
       const resetDate = user.analysisResetDate;
@@ -590,6 +618,7 @@ export class DatabaseStorage implements IStorage {
             updatedAt: new Date(),
           })
           .where(eq(users.id, userId));
+        console.log("Reset analysis count for user:", userId);
       }
     } catch (error) {
       console.error("Database error in checkAndResetAnalysisCount:", error);
