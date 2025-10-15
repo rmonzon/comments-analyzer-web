@@ -5,12 +5,18 @@ import URLInputForm from "@/components/URLInputForm";
 import ResultsSection from "@/components/ResultsSection";
 import LoadingState from "@/components/LoadingState";
 import ErrorState from "@/components/ErrorState";
+import UsageIndicator from "@/components/UsageIndicator";
+import SubscriptionUpgrade from "@/components/SubscriptionUpgrade";
 
 import { useToast } from "@/hooks/use-toast";
 import { extractVideoId } from "@/lib/utils";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { VideoData, VideoAnalysis } from "@shared/types";
+import { useAuth, SignInButton } from "@clerk/clerk-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Lock } from "lucide-react";
 
 export default function Analysis() {
   const [url, setUrl] = useState<string>("");
@@ -18,6 +24,7 @@ export default function Analysis() {
   const [manualRetryMode, setManualRetryMode] = useState<boolean>(false);
   const [isSharedLink, setIsSharedLink] = useState<boolean>(false);
   const { toast } = useToast();
+  const { isLoaded, isSignedIn } = useAuth();
 
   // Handle shared links with videoId parameter
   React.useEffect(() => {
@@ -60,24 +67,43 @@ export default function Analysis() {
         headers: { "Content-Type": "application/json" },
       });
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorData = await response.json();
+        const error: any = new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        error.status = response.status;
+        error.data = errorData;
+        throw error;
       }
       return await response.json();
     },
     onSuccess: () => {
       // Invalidate and refetch analysis data
       queryClient.invalidateQueries({ queryKey: ["/api/youtube/summarize"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/usage"] });
       setManualRetryMode(false);
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
       console.error("Error generating summary:", error);
-      setManualRetryMode(true);
-      toast({
-        title: "Analysis Failed",
-        description:
-          "Unable to generate analysis. You can try refreshing the analysis manually.",
-        variant: "destructive",
-      });
+      
+      if (error.status === 401 || error.data?.requiresAuth) {
+        toast({
+          title: "Sign In Required",
+          description: "Please sign in to analyze videos.",
+          variant: "destructive",
+        });
+      } else if (error.status === 403 || error.data?.limitReached) {
+        toast({
+          title: "Limit Reached",
+          description: error.message || "You've reached your monthly analysis limit.",
+          variant: "destructive",
+        });
+      } else {
+        setManualRetryMode(true);
+        toast({
+          title: "Analysis Failed",
+          description: error.message || "Unable to generate analysis.",
+          variant: "destructive",
+        });
+      }
     },
   });
 
@@ -96,13 +122,16 @@ export default function Analysis() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to get analysis");
+        const errorData = await response.json();
+        const error: any = new Error(errorData.message || "Failed to get analysis");
+        error.status = response.status;
+        error.data = errorData;
+        throw error;
       }
 
       return response.json();
     },
-    enabled: !!videoId && !!videoData,
+    enabled: !!videoId && !!videoData && isSignedIn,
     retry: false,
   });
 
@@ -158,8 +187,46 @@ export default function Analysis() {
             </p>
           </div>
 
-          {/* URL Input Form - Hide for shared links */}
-          {!isSharedLink && (
+          {/* Authentication Check */}
+          {isLoaded && !isSignedIn && (
+            <Card className="mb-6 border-blue-200 dark:border-blue-800" data-testid="sign-in-prompt">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <Lock className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                  <div>
+                    <CardTitle>Sign In Required</CardTitle>
+                    <CardDescription>
+                      Please sign in to analyze YouTube videos
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  Create a free account to analyze up to 5 videos per month. Upgrade for unlimited analyses.
+                </p>
+                <SignInButton mode="modal">
+                  <Button className="w-full sm:w-auto" data-testid="button-sign-in">
+                    Sign In to Get Started
+                  </Button>
+                </SignInButton>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Usage Indicator - Show for signed in users */}
+          {isLoaded && isSignedIn && <UsageIndicator />}
+
+          {/* Show upgrade prompt if limit reached */}
+          {isLoaded && isSignedIn && analysisError && (analysisError as any)?.status === 403 && (
+            <SubscriptionUpgrade
+              currentTier="free"
+              message="You've reached your monthly analysis limit of 5 videos. Upgrade to continue analyzing."
+            />
+          )}
+
+          {/* URL Input Form - Hide for shared links or if not signed in */}
+          {!isSharedLink && isLoaded && isSignedIn && (
             <div className="mb-8">
               <URLInputForm onSubmit={handleAnalyze} />
             </div>

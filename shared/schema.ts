@@ -76,6 +76,8 @@ export const users = pgTable("users", {
   customerId: varchar("customer_id"),
   currentPeriodEnd: timestamp("current_period_end"),
   subscriptionTier: varchar("subscription_tier").default("free"), // free, pro, premium
+  monthlyAnalysisCount: integer("monthly_analysis_count").default(0).notNull(),
+  analysisResetDate: timestamp("analysis_reset_date"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

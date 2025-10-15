@@ -215,10 +215,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get user's analysis usage stats
+  app.get("/api/user/usage", async (req, res) => {
+    try {
+      const { userId } = getAuth(req);
+      
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const userPlan = getCurrentUserPlan(req);
+      const usageCheck = await storage.canUserAnalyze(userId, userPlan);
+
+      const usage = await storage.getUserAnalysisUsage(userId);
+      
+      return res.json({
+        plan: userPlan,
+        monthlyAnalysisCount: usageCheck.currentCount,
+        limit: usageCheck.limit,
+        canAnalyze: usageCheck.canAnalyze,
+        resetDate: usage.analysisResetDate,
+      });
+    } catch (error: any) {
+      console.error("Error fetching user usage:", error);
+      return res.status(500).json({
+        message: `Failed to fetch usage: ${error.message || "Unknown error"}`,
+      });
+    }
+  });
+
   // Generate summary from comments
   app.post("/api/youtube/summarize", async (req, res) => {
     try {
       console.log("Received summarize request with body:", req.body);
+      
+      const { userId } = getAuth(req);
+      if (!userId) {
+        return res.status(401).json({ 
+          message: "Please sign in to analyze videos",
+          requiresAuth: true 
+        });
+      }
+
+      const userPlan = getCurrentUserPlan(req);
+      
+      const usageCheck = await storage.canUserAnalyze(userId, userPlan);
+      if (!usageCheck.canAnalyze) {
+        return res.status(403).json({
+          message: usageCheck.reason,
+          limitReached: true,
+          currentCount: usageCheck.currentCount,
+          limit: usageCheck.limit,
+        });
+      }
+
       const schema = z.object({
         videoId: z.string().min(1),
         forceRefresh: z.boolean().optional().default(false),
@@ -299,11 +349,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           createdAt: new Date(),
         });
 
+        await storage.incrementAnalysisCount(userId);
+        console.log("Incremented analysis count for user:", userId);
+
         return res.json({ ...simplifiedAnalysis, fromCache: false });
       }
 
-      // Determine the user's plan to fetch the appropriate number of comments
-      const userPlan = getCurrentUserPlan(req);
+      // Use the user's plan to fetch the appropriate number of comments
       console.log("This user's membership plan is", userPlan);
 
       // Generate analysis using OpenAI (we already checked for existing analysis above)
@@ -330,6 +382,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         console.log("Creating new analysis in database");
         await storage.createAnalysis(analysisData);
+        
+        await storage.incrementAnalysisCount(userId);
+        console.log("Incremented analysis count for user:", userId);
       }
 
       // Return the actual analysis data instead of just a success message

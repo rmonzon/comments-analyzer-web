@@ -24,7 +24,7 @@ import {
   SentimentStats,
 } from "@shared/types";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -79,6 +79,20 @@ export interface IStorage {
       subscriptionTier?: string;
     },
   ): Promise<User | undefined>;
+
+  // Usage tracking operations
+  getUserAnalysisUsage(userId: string): Promise<{
+    monthlyAnalysisCount: number;
+    analysisResetDate: Date | null;
+  }>;
+  incrementAnalysisCount(userId: string): Promise<void>;
+  checkAndResetAnalysisCount(userId: string): Promise<void>;
+  canUserAnalyze(userId: string, plan: string): Promise<{
+    canAnalyze: boolean;
+    reason?: string;
+    currentCount: number;
+    limit: number | null;
+  }>;
 
   // Session store
   sessionStore: any;
@@ -504,6 +518,116 @@ export class DatabaseStorage implements IStorage {
       return user || undefined;
     } catch (error) {
       console.error("Database error in updateUserSubscription:", error);
+      throw error;
+    }
+  }
+
+  async getUserAnalysisUsage(userId: string): Promise<{
+    monthlyAnalysisCount: number;
+    analysisResetDate: Date | null;
+  }> {
+    try {
+      const [user] = await db
+        .select({
+          monthlyAnalysisCount: users.monthlyAnalysisCount,
+          analysisResetDate: users.analysisResetDate,
+        })
+        .from(users)
+        .where(eq(users.id, userId));
+
+      if (!user) {
+        return {
+          monthlyAnalysisCount: 0,
+          analysisResetDate: null,
+        };
+      }
+
+      return {
+        monthlyAnalysisCount: user.monthlyAnalysisCount || 0,
+        analysisResetDate: user.analysisResetDate,
+      };
+    } catch (error) {
+      console.error("Database error in getUserAnalysisUsage:", error);
+      throw error;
+    }
+  }
+
+  async incrementAnalysisCount(userId: string): Promise<void> {
+    try {
+      await db
+        .update(users)
+        .set({
+          monthlyAnalysisCount: sql`${users.monthlyAnalysisCount} + 1`,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, userId));
+    } catch (error) {
+      console.error("Database error in incrementAnalysisCount:", error);
+      throw error;
+    }
+  }
+
+  async checkAndResetAnalysisCount(userId: string): Promise<void> {
+    try {
+      const user = await this.getUser(userId);
+      if (!user) return;
+
+      const now = new Date();
+      const resetDate = user.analysisResetDate;
+
+      if (!resetDate || now >= resetDate) {
+        const nextMonth = new Date(
+          now.getFullYear(),
+          now.getMonth() + 1,
+          1
+        );
+
+        await db
+          .update(users)
+          .set({
+            monthlyAnalysisCount: 0,
+            analysisResetDate: nextMonth,
+            updatedAt: new Date(),
+          })
+          .where(eq(users.id, userId));
+      }
+    } catch (error) {
+      console.error("Database error in checkAndResetAnalysisCount:", error);
+      throw error;
+    }
+  }
+
+  async canUserAnalyze(userId: string, plan: string): Promise<{
+    canAnalyze: boolean;
+    reason?: string;
+    currentCount: number;
+    limit: number | null;
+  }> {
+    try {
+      await this.checkAndResetAnalysisCount(userId);
+      const usage = await this.getUserAnalysisUsage(userId);
+
+      const FREE_PLAN_LIMIT = 5;
+
+      if (plan === "free") {
+        const canAnalyze = usage.monthlyAnalysisCount < FREE_PLAN_LIMIT;
+        return {
+          canAnalyze,
+          reason: canAnalyze
+            ? undefined
+            : "You've reached your monthly analysis limit. Upgrade to continue.",
+          currentCount: usage.monthlyAnalysisCount,
+          limit: FREE_PLAN_LIMIT,
+        };
+      }
+
+      return {
+        canAnalyze: true,
+        currentCount: usage.monthlyAnalysisCount,
+        limit: null,
+      };
+    } catch (error) {
+      console.error("Database error in canUserAnalyze:", error);
       throw error;
     }
   }
