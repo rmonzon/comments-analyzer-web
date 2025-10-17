@@ -134,7 +134,7 @@ export default function Footer() {
                 <img
                   src="https://api.producthunt.com/widgets/embed-image/v1/follow.svg?product_id=1062728&theme=light"
                   alt="YouTube&#0032;Comments&#0032;Analyzer - Get&#0032;the&#0032;gist&#0032;of&#0032;YouTube&#0032;comments&#0032;in&#0032;seconds | Product Hunt"
-                  style={"width: 250px; height: 54px;"}
+                  style={{width: "250px", height: "54px"}}
                   width="250"
                   height="54"
                 />
