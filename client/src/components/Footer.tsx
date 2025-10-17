@@ -5,7 +5,7 @@ import { BrandIcon } from "./BrandIcon";
 export default function Footer() {
   return (
     <footer className="bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-4">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
           {/* Brand Section */}
@@ -114,7 +114,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="mb-4 md:mb-0">
+            <div className="mb-4 md:mb-0 flex justify-between w-full items-center">
               <p className="text-gray-600 dark:text-gray-400 text-sm">
                 © {new Date().getFullYear()} YouTube Comments Analyzer by{" "}
                 <a
@@ -130,6 +130,8 @@ export default function Footer() {
               <a
                 href="https://www.producthunt.com/products/youtube-comments-summarizer?utm_source=badge-follow&utm_medium=badge&utm_source=badge-youtube&#0045;comments&#0045;summarizer"
                 target="_blank"
+                rel="noopener noreferrer"
+                className="ml-4"
               >
                 <img
                   src="https://api.producthunt.com/widgets/embed-image/v1/follow.svg?product_id=1062728&theme=light"
