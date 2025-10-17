@@ -30,16 +30,16 @@ export default function IntroSection() {
             </div>
 
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white mb-8 leading-tight">
-              Understand Your
+              Comment Analysis
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600">
-                YouTube Audience
+                For YouTube Videos
               </span>
             </h1>
 
             <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-12 max-w-4xl mx-auto leading-relaxed">
-              Transform thousands of YouTube comments into actionable insights
-              with advanced AI analysis. Get sentiment analysis, key topics, and
-              comprehensive summaries in seconds.
+              AI-powered analysis tool to analyze comments from YouTube videos and transform them into actionable insights.
+              Get overall sentiment analysis, identify key topics, and comprehensive summaries in seconds. 
+              Save time on time-consuming manual review of social media platforms.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
@@ -143,10 +143,11 @@ export default function IntroSection() {
               Why Choose Our Platform?
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              Powerful features designed to give comprehensive sentiment analysis, key insights, 
-              and detailed summaries from any YouTube video (shorts included). Perfect for 
-              content creators, marketers, researchers, and anyone who wants to understand 
-              audience feedback quickly and efficiently.
+              Powerful sentiment analysis tools designed to analyze comments and provide actionable insights 
+              with detailed summaries from any YouTube video (shorts included). Our AI-powered analysis tool 
+              helps you identify key themes and overall sentiment. Perfect for content creators, marketers, 
+              researchers, and anyone on social media platforms who wants to understand audience feedback 
+              quickly without time-consuming manual review.
             </p>
           </div>
 
