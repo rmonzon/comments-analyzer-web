@@ -127,20 +127,33 @@ export default function Footer() {
                 </a>
                 . All rights reserved.
               </p>
-              <a
-                href="https://www.producthunt.com/products/youtube-comments-summarizer?utm_source=badge-follow&utm_medium=badge&utm_source=badge-youtube&#0045;comments&#0045;summarizer"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="ml-4"
-              >
-                <img
-                  src="https://api.producthunt.com/widgets/embed-image/v1/follow.svg?product_id=1062728&theme=light"
-                  alt="YouTube&#0032;Comments&#0032;Analyzer - Get&#0032;the&#0032;gist&#0032;of&#0032;YouTube&#0032;comments&#0032;in&#0032;seconds | Product Hunt"
-                  style={{ width: "250px", height: "54px" }}
-                  width="250"
-                  height="54"
-                />
-              </a>
+              <div className="flex items-center space-x-4">
+                <a
+                  href="https://turbo0.com/item/youtube-comments-analyzer"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <img
+                    src="https://img.turbo0.com/badge-listed-light.svg"
+                    alt="Listed on Turbo0"
+                    style={{ height: "54px", width: "auto" }}
+                  />
+                </a>
+                <a
+                  href="https://www.producthunt.com/products/youtube-comments-summarizer?utm_source=badge-follow&utm_medium=badge&utm_source=badge-youtube&#0045;comments&#0045;summarizer"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ml-4"
+                >
+                  <img
+                    src="https://api.producthunt.com/widgets/embed-image/v1/follow.svg?product_id=1062728&theme=light"
+                    alt="YouTube&#0032;Comments&#0032;Analyzer - Get&#0032;the&#0032;gist&#0032;of&#0032;YouTube&#0032;comments&#0032;in&#0032;seconds | Product Hunt"
+                    style={{ width: "250px", height: "54px" }}
+                    width="250"
+                    height="54"
+                  />
+                </a>
+              </div>
             </div>
           </div>
         </div>
