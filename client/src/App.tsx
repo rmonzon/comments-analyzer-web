@@ -12,6 +12,7 @@ import SharedAnalysis from "@/pages/SharedAnalysis";
 import FAQ from "@/pages/FAQ";
 import VideosList from "@/pages/VideosList";
 import Pricing from "@/pages/Pricing";
+import ExtensionAuth from "@/pages/ExtensionAuth";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import "./index.css";
@@ -28,6 +29,7 @@ function Router() {
       <Route path="/terms" component={TermsOfService} />
       <Route path="/about" component={About} />
       <Route path="/faq" component={FAQ} />
+      <Route path="/extension-auth" component={ExtensionAuth} />
       <Route component={NotFound} />
     </Switch>
   );
