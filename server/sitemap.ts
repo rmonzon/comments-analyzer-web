@@ -48,7 +48,14 @@ export async function generateSitemap(): Promise<string> {
   }));
 
   try {
-    const videos = await storage.getAllAnalyzedVideos();
+    // Guard against a slow/unavailable database so the route never hangs past
+    // a crawler's fetch timeout — fall back to the static routes instead.
+    const videos = await Promise.race([
+      storage.getAnalyzedVideoIdsForSitemap(),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("sitemap db timeout")), 8000),
+      ),
+    ]);
     for (const v of videos) {
       if (!v.videoId) continue;
       entries.push({
