@@ -7,6 +7,13 @@ import viteConfig from "../vite.config";
 import { nanoid } from "nanoid";
 import { injectSeo } from "./seo";
 import { matchAnalysisPath, getAnalysisSeo } from "./analysisMeta";
+import { isKnownStaticRoute } from "../shared/seo";
+
+const NOT_FOUND_SEO = {
+  title: "Page Not Found - YouTube Comments Analyzer",
+  description: "The page you are looking for could not be found.",
+  noindex: true,
+};
 
 const viteLogger = createLogger();
 
@@ -62,8 +69,10 @@ export async function setupVite(app: Express, server: Server) {
       );
 
       // Dynamic /analysis/:videoId pages get metadata derived from stored data;
-      // an unknown video id yields a real 404.
-      const videoId = matchAnalysisPath(url.split("?")[0]);
+      // unknown video ids and unknown routes yield a real 404 (no soft-404s).
+      const pathname = url.split("?")[0];
+      const videoId = matchAnalysisPath(pathname);
+      const selfUrl = `${req.protocol}://${req.get("host")}${req.originalUrl}`;
       let status = 200;
       if (videoId) {
         const override = await getAnalysisSeo(videoId);
@@ -72,14 +81,20 @@ export async function setupVite(app: Express, server: Server) {
         } else {
           status = 404;
           template = injectSeo(template, url, {
+            ...NOT_FOUND_SEO,
             title: "Analysis Not Found - YouTube Comments Analyzer",
             description: "This analysis could not be found.",
-            canonical: `${req.protocol}://${req.get("host")}${req.originalUrl}`,
-            noindex: true,
+            canonical: selfUrl,
           });
         }
-      } else {
+      } else if (isKnownStaticRoute(pathname)) {
         template = injectSeo(template, url);
+      } else {
+        status = 404;
+        template = injectSeo(template, url, {
+          ...NOT_FOUND_SEO,
+          canonical: selfUrl,
+        });
       }
 
       const page = await vite.transformIndexHtml(url, template);
@@ -109,23 +124,35 @@ export function serveStatic(app: Express) {
 
   // fall through to index.html if the file doesn't exist
   app.use("*", async (req, res) => {
-    const videoId = matchAnalysisPath(req.originalUrl.split("?")[0]);
+    const url = req.originalUrl;
+    const pathname = url.split("?")[0];
+    const selfUrl = `${req.protocol}://${req.get("host")}${url}`;
+    const videoId = matchAnalysisPath(pathname);
+
     if (videoId) {
       const override = await getAnalysisSeo(videoId);
       if (override) {
-        const page = injectSeo(indexTemplate, req.originalUrl, override);
+        const page = injectSeo(indexTemplate, url, override);
         return res.status(200).set({ "Content-Type": "text/html" }).end(page);
       }
-      const page = injectSeo(indexTemplate, req.originalUrl, {
+      const page = injectSeo(indexTemplate, url, {
+        ...NOT_FOUND_SEO,
         title: "Analysis Not Found - YouTube Comments Analyzer",
         description: "This analysis could not be found.",
-        canonical: `${req.protocol}://${req.get("host")}${req.originalUrl}`,
-        noindex: true,
+        canonical: selfUrl,
       });
       return res.status(404).set({ "Content-Type": "text/html" }).end(page);
     }
 
-    const page = injectSeo(indexTemplate, req.originalUrl);
-    res.status(200).set({ "Content-Type": "text/html" }).end(page);
+    if (isKnownStaticRoute(pathname)) {
+      const page = injectSeo(indexTemplate, url);
+      return res.status(200).set({ "Content-Type": "text/html" }).end(page);
+    }
+
+    const page = injectSeo(indexTemplate, url, {
+      ...NOT_FOUND_SEO,
+      canonical: selfUrl,
+    });
+    res.status(404).set({ "Content-Type": "text/html" }).end(page);
   });
 }

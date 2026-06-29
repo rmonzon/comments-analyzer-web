@@ -1,20 +1,33 @@
+# https://www.robotstxt.org/robotstxt.html
+
 User-agent: *
 Allow: /
-
-# Sitemap
-Sitemap: https://commentsanalyzer.info/sitemap.xml
-
-# Crawl-delay for respectful crawling
-Crawl-delay: 1
-
-# Block access to admin or private areas (if any)
 Disallow: /api/
-Disallow: /_*
-Disallow: /src/
+Disallow: /extension-auth
 
-# Allow important pages
+# Explicitly welcome AI crawlers for AI-powered discovery
+User-agent: GPTBot
 Allow: /
-Allow: /history
-Allow: /about
-Allow: /privacy
-Allow: /terms
+Disallow: /api/
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /api/
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /api/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /api/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /api/
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /api/
+
+Sitemap: https://commentsanalyzer.info/sitemap.xml
