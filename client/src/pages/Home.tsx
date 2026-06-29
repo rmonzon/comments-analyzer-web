@@ -20,12 +20,21 @@ export default function Home() {
     }
   }, [setLocation]);
 
-  // Load AdSense after first paint so its (large) script doesn't compete for
-  // bandwidth during the initial render on slow mobile connections.
+  // Load AdSense only after the first user interaction (or a delayed fallback)
+  // so the ad script's execution and any auto-injected ad units stay out of the
+  // initial-load window — keeping them from hurting LCP, TBT and CLS.
   useEffect(() => {
     if (document.getElementById("adsbygoogle-js")) return;
 
+    let done = false;
+    const events = ["scroll", "pointerdown", "keydown", "touchstart"] as const;
+
     const inject = () => {
+      if (done) return;
+      done = true;
+      events.forEach((e) => window.removeEventListener(e, inject));
+      clearTimeout(fallback);
+
       const script = document.createElement("script");
       script.id = "adsbygoogle-js";
       script.async = true;
@@ -35,14 +44,16 @@ export default function Home() {
       document.body.appendChild(script);
     };
 
-    const w = window as typeof window & {
-      requestIdleCallback?: (cb: () => void) => number;
+    events.forEach((e) =>
+      window.addEventListener(e, inject, { once: true, passive: true }),
+    );
+    // Fallback so ads still load for users who never interact.
+    const fallback = setTimeout(inject, 6000);
+
+    return () => {
+      events.forEach((e) => window.removeEventListener(e, inject));
+      clearTimeout(fallback);
     };
-    if (typeof w.requestIdleCallback === "function") {
-      w.requestIdleCallback(inject);
-    } else {
-      setTimeout(inject, 2000);
-    }
   }, []);
 
   return (
