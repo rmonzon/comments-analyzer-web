@@ -4,6 +4,7 @@ import {
   getRouteSeo,
   type RouteSeo,
 } from "../shared/seo";
+import { getRouteJsonLd } from "../shared/structuredData";
 
 /** Escape a string for safe use inside an HTML double-quoted attribute. */
 function escapeAttr(value: string): string {
@@ -130,5 +131,32 @@ export function injectSeo(template: string, url: string): string {
     `<meta ${rh} property="twitter:image" content="${OG_IMAGE}" />`,
   );
 
+  // Route-specific JSON-LD. These are emitted without data-rh so the client
+  // Helmet leaves them untouched; crawlers fetch each URL independently and
+  // receive the correct structured data server-side.
+  const jsonLd = getRouteJsonLd(pathname);
+  if (jsonLd.length > 0) {
+    const scripts = jsonLd
+      .map(
+        (obj) =>
+          `<script type="application/ld+json">${serializeJsonLd(obj)}</script>`,
+      )
+      .join("\n    ");
+    if (html.includes("</head>")) {
+      html = html.replace("</head>", `    ${scripts}\n  </head>`);
+    }
+  }
+
   return html;
+}
+
+/**
+ * Serialize a JSON-LD object for safe inline embedding inside a <script> tag by
+ * escaping the characters that could prematurely close the element.
+ */
+function serializeJsonLd(obj: Record<string, unknown>): string {
+  return JSON.stringify(obj)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026");
 }
