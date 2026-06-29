@@ -44,6 +44,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const youtubeService = new YouTubeService();
   const openaiService = new OpenAIService();
 
+  // Permanent redirect from the legacy shared-analysis URL to the canonical
+  // path-based URL so link equity consolidates on a single indexable page.
+  app.get("/shared", (req, res, next) => {
+    const id = req.query.id;
+    if (typeof id === "string" && /^[A-Za-z0-9_-]{1,64}$/.test(id)) {
+      return res.redirect(301, `/analysis/${id}`);
+    }
+    next();
+  });
+
   // Serve Clerk configuration
   app.get("/api/config/clerk", (req, res) => {
     res.json({
