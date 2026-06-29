@@ -112,26 +112,30 @@ export default function Header() {
           {/* Theme Toggle and User Actions */}
           <div className="flex items-center gap-3">
             <ThemeToggle />
-            <SignedIn>
-              <div className="flex items-center gap-2">
-                {getSubscriptionBadge()}
-                <UserButton
-                  appearance={{
-                    elements: {
-                      avatarBox: "w-8 h-8",
-                    },
-                  }}
-                />
-              </div>
-            </SignedIn>
-            <SignedOut>
-              <SignInButton mode="modal">
-                <Button variant="outline" size="sm">
-                  <User className="h-4 w-4 mr-2" />
-                  Sign In
-                </Button>
-              </SignInButton>
-            </SignedOut>
+            {/* Reserve space so the auth control appearing once Clerk loads
+                doesn't shift the header (avoids CLS). */}
+            <div className="flex items-center justify-end min-w-[92px] min-h-[36px]">
+              <SignedIn>
+                <div className="flex items-center gap-2">
+                  {getSubscriptionBadge()}
+                  <UserButton
+                    appearance={{
+                      elements: {
+                        avatarBox: "w-8 h-8",
+                      },
+                    }}
+                  />
+                </div>
+              </SignedIn>
+              <SignedOut>
+                <SignInButton mode="modal">
+                  <Button variant="outline" size="sm">
+                    <User className="h-4 w-4 mr-2" />
+                    Sign In
+                  </Button>
+                </SignInButton>
+              </SignedOut>
+            </div>
           </div>
 
           {/* Mobile Menu */}
