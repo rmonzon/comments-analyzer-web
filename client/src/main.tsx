@@ -5,16 +5,40 @@ import App from "./App";
 import "./index.css";
 import { useEffect, useState } from "react";
 
-function AppWrapper() {
+// The Clerk publishable key is public by design, so prefer embedding it at
+// build time. When present this lets the app render immediately instead of
+// blocking the first paint on a runtime /api/config/clerk round-trip (which
+// was a major mobile LCP regression on slow connections).
+const BUILD_TIME_CLERK_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as
+  | string
+  | undefined;
+
+const clerkAppearance = {
+  variables: {
+    colorPrimary: "#2094f3",
+    colorText: "black",
+    fontSize: "1rem",
+  },
+};
+
+function ClerkRoot({ clerkKey }: { clerkKey: string }) {
+  return (
+    <ClerkProvider appearance={clerkAppearance} publishableKey={clerkKey}>
+      <App />
+    </ClerkProvider>
+  );
+}
+
+// Fallback for deployments that don't embed the key at build time: fetch it at
+// runtime. Slower (gates first paint), but keeps the app working.
+function AppWrapperWithFetch() {
   const [clerkKey, setClerkKey] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Try to get the Clerk key from the server
     const fetchClerkKey = async () => {
       try {
-        // Use a direct fetch to bypass Vite middleware
         const response = await fetch(
           window.location.origin + "/api/config/clerk",
           {
@@ -88,24 +112,15 @@ function AppWrapper() {
     );
   }
 
-  return (
-    <ClerkProvider
-      appearance={{
-        variables: {
-          colorPrimary: "#2094f3",
-          colorText: "black",
-          fontSize: "1rem",
-        },
-      }}
-      publishableKey={clerkKey}
-    >
-      <App />
-    </ClerkProvider>
-  );
+  return <ClerkRoot clerkKey={clerkKey} />;
 }
 
 createRoot(document.getElementById("root")!).render(
   <HelmetProvider>
-    <AppWrapper />
+    {BUILD_TIME_CLERK_KEY ? (
+      <ClerkRoot clerkKey={BUILD_TIME_CLERK_KEY} />
+    ) : (
+      <AppWrapperWithFetch />
+    )}
   </HelmetProvider>,
 );
