@@ -20,6 +20,31 @@ export default function Home() {
     }
   }, [setLocation]);
 
+  // Load AdSense after first paint so its (large) script doesn't compete for
+  // bandwidth during the initial render on slow mobile connections.
+  useEffect(() => {
+    if (document.getElementById("adsbygoogle-js")) return;
+
+    const inject = () => {
+      const script = document.createElement("script");
+      script.id = "adsbygoogle-js";
+      script.async = true;
+      script.crossOrigin = "anonymous";
+      script.src =
+        "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8572681182636372";
+      document.body.appendChild(script);
+    };
+
+    const w = window as typeof window & {
+      requestIdleCallback?: (cb: () => void) => number;
+    };
+    if (typeof w.requestIdleCallback === "function") {
+      w.requestIdleCallback(inject);
+    } else {
+      setTimeout(inject, 2000);
+    }
+  }, []);
+
   return (
     <div className="bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <Seo
@@ -27,11 +52,6 @@ export default function Home() {
         description={ROUTE_SEO["/"].description}
         path="/"
       />
-      <script
-        async
-        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8572681182636372"
-        crossOrigin="anonymous"
-      ></script>
       <IntroSection />
     </div>
   );
