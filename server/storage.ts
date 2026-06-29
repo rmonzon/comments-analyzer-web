@@ -56,6 +56,9 @@ export interface IStorage {
       analysisDate: string;
     }[]
   >;
+  getAnalyzedVideoIdsForSitemap(): Promise<
+    { videoId: string; analysisDate: string }[]
+  >;
 
   // Premium interest operations
   createPremiumInterest(
@@ -398,6 +401,28 @@ export class DatabaseStorage implements IStorage {
       console.error("Error in getAllAnalyzedVideos:", error);
       return []; // Return empty array on error instead of throwing
     }
+  }
+
+  // Lightweight, single-query variant for the sitemap: it only needs each
+  // analyzed video's id and date, so it avoids the per-video N+1 lookups in
+  // getAllAnalyzedVideos (which is far too slow on the serverless driver).
+  async getAnalyzedVideoIdsForSitemap(): Promise<
+    { videoId: string; analysisDate: string }[]
+  > {
+    if (!db) {
+      console.error("Database connection is not initialized");
+      return [];
+    }
+    const rows = await db
+      .select({
+        videoId: analyses.videoId,
+        analysisDate: analyses.createdAt,
+      })
+      .from(analyses);
+    return rows.map((r) => ({
+      videoId: r.videoId,
+      analysisDate: r.analysisDate.toISOString(),
+    }));
   }
 
   // Session store property for Replit Auth
