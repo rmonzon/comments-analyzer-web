@@ -4,6 +4,7 @@ import { clerkClient, getAuth } from "@clerk/express";
 import { storage } from "./storage";
 import { YouTubeService } from "./services/youtube";
 import { OpenAIService } from "./services/openai";
+import { generateSitemap } from "./sitemap";
 import { z } from "zod";
 
 // Contains user IDs that should be treated as premium users for testing purposes
@@ -43,6 +44,20 @@ const getCurrentUserPlan = (req: any) => {
 export async function registerRoutes(app: Express): Promise<Server> {
   const youtubeService = new YouTubeService();
   const openaiService = new OpenAIService();
+
+  // Dynamically generated sitemap (static routes + one URL per analyzed video).
+  // Registered before express.static / the SPA catch-all so it takes precedence.
+  app.get("/sitemap.xml", async (_req, res) => {
+    try {
+      const xml = await generateSitemap();
+      res.setHeader("Content-Type", "application/xml");
+      res.setHeader("Cache-Control", "public, max-age=3600");
+      res.status(200).send(xml);
+    } catch (err) {
+      console.error("Failed to generate sitemap", err);
+      res.status(500).send("Failed to generate sitemap");
+    }
+  });
 
   // Permanent redirect from the legacy shared-analysis URL to the canonical
   // path-based URL so link equity consolidates on a single indexable page.

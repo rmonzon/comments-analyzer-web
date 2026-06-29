@@ -84,13 +84,18 @@ export const ROUTE_SEO: Record<string, RouteSeo> = {
   },
 };
 
-/** Look up route metadata for a pathname, falling back to homepage defaults. */
-export function getRouteSeo(pathname: string): RouteSeo {
-  // Normalize: strip trailing slash (except root) and ignore case.
+/** Normalize a pathname: drop query/hash and trailing slash (except root). */
+function normalizePath(pathname: string): string {
   let path = pathname.split("?")[0].split("#")[0];
   if (path.length > 1 && path.endsWith("/")) {
     path = path.slice(0, -1);
   }
+  return path;
+}
+
+/** Look up route metadata for a pathname, falling back to homepage defaults. */
+export function getRouteSeo(pathname: string): RouteSeo {
+  const path = normalizePath(pathname);
   return (
     ROUTE_SEO[path] ?? {
       path,
@@ -99,3 +104,24 @@ export function getRouteSeo(pathname: string): RouteSeo {
     }
   );
 }
+
+/**
+ * Static paths the SPA router knows how to render. Used by the server to return
+ * a real 404 for everything else (dynamic /analysis/:id is checked separately).
+ * "/shared" is included because it 301-redirects to the canonical analysis URL.
+ */
+export function isKnownStaticRoute(pathname: string): boolean {
+  const path = normalizePath(pathname);
+  return path in ROUTE_SEO || path === "/shared";
+}
+
+/** Indexable static routes, used to build the sitemap. */
+export const SITEMAP_STATIC_ROUTES: { path: string; priority: number; changefreq: string }[] = [
+  { path: "/", priority: 1.0, changefreq: "weekly" },
+  { path: "/analyze", priority: 0.9, changefreq: "weekly" },
+  { path: "/pricing", priority: 0.7, changefreq: "monthly" },
+  { path: "/about", priority: 0.6, changefreq: "monthly" },
+  { path: "/faq", priority: 0.6, changefreq: "monthly" },
+  { path: "/privacy", priority: 0.3, changefreq: "yearly" },
+  { path: "/terms", priority: 0.3, changefreq: "yearly" },
+];
