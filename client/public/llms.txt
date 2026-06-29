@@ -1,0 +1,28 @@
+# YouTube Comments Analyzer
+
+> AI-powered tool that analyzes the comment section of any public YouTube video. It extracts overall sentiment (positive/neutral/negative), surfaces key discussion themes, and generates a concise summary so creators, marketers, and researchers can understand audience reactions without reading hundreds of comments.
+
+Key facts:
+- Analyze any public YouTube video by pasting its URL.
+- Output includes a sentiment breakdown, key discussion points, and a comprehensive summary.
+- Free tier analyzes up to 100 comments per video; paid plans analyze more.
+- Uses the official YouTube Data API; private and unlisted videos are not supported.
+- A free Chrome extension runs the analysis directly on YouTube video pages.
+
+## Main pages
+- [Home](https://commentsanalyzer.info/): Product overview and entry point to analyze a video.
+- [Analyze](https://commentsanalyzer.info/analyze): Paste a YouTube URL to run an analysis.
+- [Pricing](https://commentsanalyzer.info/pricing): Free and paid plan comparison.
+- [About](https://commentsanalyzer.info/about): What the tool does and who it is for.
+- [FAQ](https://commentsanalyzer.info/faq): Common questions about accuracy, privacy, the Chrome extension, and limits.
+
+## Analysis pages
+- Each analyzed video has a shareable, permanent page at `https://commentsanalyzer.info/analysis/{videoId}` containing its sentiment breakdown, key themes, and summary.
+
+## Policies
+- [Privacy Policy](https://commentsanalyzer.info/privacy)
+- [Terms of Service](https://commentsanalyzer.info/terms)
+
+## Resources
+- [Chrome extension](https://chromewebstore.google.com/detail/youtube-comments-analyzer/jojpopolngligeffhficnhlhliebahep)
+- [Sitemap](https://commentsanalyzer.info/sitemap.xml)
