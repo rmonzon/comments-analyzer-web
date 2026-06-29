@@ -25,7 +25,7 @@ export default function ResultsSection({
   const [isSharing, setIsSharing] = useState(false);
 
   const handleShare = async () => {
-    const shareUrl = `${window.location.origin}?analyze=${videoData.id}`;
+    const shareUrl = `${window.location.origin}/analysis/${videoData.id}`;
     
     setIsSharing(true);
     

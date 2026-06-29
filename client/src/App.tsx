@@ -24,6 +24,7 @@ function Router() {
       <Route path="/analyze" component={Analysis} />
       <Route path="/history" component={VideosList} />
       <Route path="/pricing" component={Pricing} />
+      <Route path="/analysis/:videoId" component={SharedAnalysis} />
       <Route path="/shared" component={SharedAnalysis} />
       <Route path="/privacy" component={PrivacyPolicy} />
       <Route path="/terms" component={TermsOfService} />

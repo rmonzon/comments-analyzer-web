@@ -6,6 +6,7 @@ import { type Server } from "http";
 import viteConfig from "../vite.config";
 import { nanoid } from "nanoid";
 import { injectSeo } from "./seo";
+import { matchAnalysisPath, getAnalysisSeo } from "./analysisMeta";
 
 const viteLogger = createLogger();
 
@@ -59,9 +60,30 @@ export async function setupVite(app: Express, server: Server) {
         `src="/src/main.tsx"`,
         `src="/src/main.tsx?v=${nanoid()}"`,
       );
-      template = injectSeo(template, url);
+
+      // Dynamic /analysis/:videoId pages get metadata derived from stored data;
+      // an unknown video id yields a real 404.
+      const videoId = matchAnalysisPath(url.split("?")[0]);
+      let status = 200;
+      if (videoId) {
+        const override = await getAnalysisSeo(videoId);
+        if (override) {
+          template = injectSeo(template, url, override);
+        } else {
+          status = 404;
+          template = injectSeo(template, url, {
+            title: "Analysis Not Found - YouTube Comments Analyzer",
+            description: "This analysis could not be found.",
+            canonical: `${req.protocol}://${req.get("host")}${req.originalUrl}`,
+            noindex: true,
+          });
+        }
+      } else {
+        template = injectSeo(template, url);
+      }
+
       const page = await vite.transformIndexHtml(url, template);
-      res.status(200).set({ "Content-Type": "text/html" }).end(page);
+      res.status(status).set({ "Content-Type": "text/html" }).end(page);
     } catch (e) {
       vite.ssrFixStacktrace(e as Error);
       next(e);
@@ -86,7 +108,23 @@ export function serveStatic(app: Express) {
   const indexTemplate = fs.readFileSync(indexPath, "utf-8");
 
   // fall through to index.html if the file doesn't exist
-  app.use("*", (req, res) => {
+  app.use("*", async (req, res) => {
+    const videoId = matchAnalysisPath(req.originalUrl.split("?")[0]);
+    if (videoId) {
+      const override = await getAnalysisSeo(videoId);
+      if (override) {
+        const page = injectSeo(indexTemplate, req.originalUrl, override);
+        return res.status(200).set({ "Content-Type": "text/html" }).end(page);
+      }
+      const page = injectSeo(indexTemplate, req.originalUrl, {
+        title: "Analysis Not Found - YouTube Comments Analyzer",
+        description: "This analysis could not be found.",
+        canonical: `${req.protocol}://${req.get("host")}${req.originalUrl}`,
+        noindex: true,
+      });
+      return res.status(404).set({ "Content-Type": "text/html" }).end(page);
+    }
+
     const page = injectSeo(indexTemplate, req.originalUrl);
     res.status(200).set({ "Content-Type": "text/html" }).end(page);
   });

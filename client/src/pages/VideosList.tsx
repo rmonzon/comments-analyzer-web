@@ -259,8 +259,8 @@ export default function VideosList() {
                             >
                               <ExternalLink className="h-5 w-5" />
                             </a>
-                            <Link 
-                              href={`/?videoId=${video.videoId}`}
+                            <Link
+                              href={`/analysis/${video.videoId}`}
                               className="text-blue-500 hover:text-blue-700 transition-colors"
                               title="View Analysis"
                             >

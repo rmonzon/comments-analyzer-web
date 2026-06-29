@@ -33,11 +33,32 @@ function replaceTag(html: string, regex: RegExp, replacement: string): string {
 }
 
 /**
+/**
+ * Optional per-request metadata that overrides the static route lookup. Used for
+ * dynamic pages (e.g. /analysis/:videoId) whose metadata depends on stored data.
+ */
+export interface SeoOverride {
+  title: string;
+  description: string;
+  canonical: string;
+  image?: string;
+  type?: string;
+  noindex?: boolean;
+  jsonLd?: Record<string, unknown>[];
+}
+
+/**
  * Inject per-route SEO metadata (title, description, canonical, Open Graph and
  * Twitter tags, robots) into the index.html template. Mirrors the client
  * <Seo> component so non-JS crawlers and social/AI scrapers see correct tags.
+ * Pass an `override` for dynamic routes whose metadata is computed at request
+ * time.
  */
-export function injectSeo(template: string, url: string): string {
+export function injectSeo(
+  template: string,
+  url: string,
+  override?: SeoOverride,
+): string {
   // Build a pathname from the request URL; tolerate absolute or relative URLs.
   let pathname = "/";
   try {
@@ -47,11 +68,18 @@ export function injectSeo(template: string, url: string): string {
   }
 
   const seo: RouteSeo = getRouteSeo(pathname);
-  const canonical = `${SITE_URL}${seo.path === "/" ? "/" : seo.path}`;
-  const title = escapeText(seo.title);
-  const titleAttr = escapeAttr(seo.title);
-  const desc = escapeAttr(seo.description);
-  const robots = seo.noindex ? "noindex, follow" : "index, follow";
+  const canonical =
+    override?.canonical ?? `${SITE_URL}${seo.path === "/" ? "/" : seo.path}`;
+  const titleRaw = override?.title ?? seo.title;
+  const descRaw = override?.description ?? seo.description;
+  const image = override?.image ?? OG_IMAGE;
+  const ogType = override?.type ?? "website";
+  const title = escapeText(titleRaw);
+  const titleAttr = escapeAttr(titleRaw);
+  const desc = escapeAttr(descRaw);
+  const robots = (override?.noindex ?? seo.noindex)
+    ? "noindex, follow"
+    : "index, follow";
 
   // react-helmet-async marks the tags it manages with data-rh="true". Emitting
   // the same attribute here lets the client-side Helmet adopt these tags on
@@ -90,6 +118,11 @@ export function injectSeo(template: string, url: string): string {
   // Open Graph
   html = replaceTag(
     html,
+    /<meta\s+property="og:type"[\s\S]*?\/>/,
+    `<meta ${rh} property="og:type" content="${ogType}" />`,
+  );
+  html = replaceTag(
+    html,
     /<meta\s+property="og:url"[\s\S]*?\/>/,
     `<meta ${rh} property="og:url" content="${canonical}" />`,
   );
@@ -106,7 +139,7 @@ export function injectSeo(template: string, url: string): string {
   html = replaceTag(
     html,
     /<meta\s+property="og:image"[\s\S]*?\/>/,
-    `<meta ${rh} property="og:image" content="${OG_IMAGE}" />`,
+    `<meta ${rh} property="og:image" content="${image}" />`,
   );
 
   // Twitter
@@ -128,13 +161,13 @@ export function injectSeo(template: string, url: string): string {
   html = replaceTag(
     html,
     /<meta\s+property="twitter:image"[\s\S]*?\/>/,
-    `<meta ${rh} property="twitter:image" content="${OG_IMAGE}" />`,
+    `<meta ${rh} property="twitter:image" content="${image}" />`,
   );
 
   // Route-specific JSON-LD. These are emitted without data-rh so the client
   // Helmet leaves them untouched; crawlers fetch each URL independently and
   // receive the correct structured data server-side.
-  const jsonLd = getRouteJsonLd(pathname);
+  const jsonLd = override?.jsonLd ?? getRouteJsonLd(pathname);
   if (jsonLd.length > 0) {
     const scripts = jsonLd
       .map(

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useRoute } from "wouter";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ResultsSection from "@/components/ResultsSection";
@@ -15,25 +15,33 @@ import Seo from "@/components/Seo";
 
 export default function SharedAnalysis() {
   const [, setLocation] = useLocation();
+  const [, routeParams] = useRoute("/analysis/:videoId");
   const [videoId, setVideoId] = useState<string | null>(null);
   const { toast } = useToast();
-  
-  // Extract videoId from URL parameters
+
+  // Resolve the videoId from the canonical /analysis/:videoId path, falling
+  // back to the legacy /shared?id= query param (which we 301-style redirect to
+  // the canonical URL so only one URL gets indexed).
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get("id");
-    if (id) {
-      setVideoId(id);
-    } else {
-      toast({
-        title: "Missing Video ID",
-        description: "No video ID was provided in the URL.",
-        variant: "destructive",
-      });
-      // Redirect to home page if no ID is found
-      setLocation("/");
+    const routeId = routeParams?.videoId;
+    if (routeId) {
+      setVideoId(routeId);
+      return;
     }
-  }, [setLocation, toast]);
+
+    const id = new URLSearchParams(window.location.search).get("id");
+    if (id) {
+      setLocation(`/analysis/${id}`, { replace: true });
+      return;
+    }
+
+    toast({
+      title: "Missing Video ID",
+      description: "No video ID was provided in the URL.",
+      variant: "destructive",
+    });
+    setLocation("/");
+  }, [routeParams?.videoId, setLocation, toast]);
 
   // Fetch video data
   const {
@@ -94,11 +102,18 @@ export default function SharedAnalysis() {
       <Seo
         title={
           videoData?.title
-            ? `${videoData.title} - Comment Analysis`
+            ? `${videoData.title} — YouTube Comment Analysis`
             : "Shared YouTube Analysis - YouTube Comments Analyzer"
         }
-        description="View a previously generated AI analysis of a YouTube video's comments, including sentiment breakdown and key insights."
-        noindex
+        description={
+          videoData?.title
+            ? `AI analysis of YouTube comments on "${videoData.title}" — sentiment breakdown, key discussion themes, and a summary of viewer reactions.`
+            : "View an AI analysis of a YouTube video's comments, including sentiment breakdown and key insights."
+        }
+        path={videoId ? `/analysis/${videoId}` : undefined}
+        image={videoData?.thumbnail}
+        type="article"
+        noindex={!videoId}
       />
       <main className="flex-grow container mx-auto px-4 py-6">
         <div className="mb-6">

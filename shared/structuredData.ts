@@ -68,6 +68,54 @@ export function breadcrumbSchema(
   };
 }
 
+export interface AnalysisVideoMeta {
+  videoId: string;
+  title: string;
+  description?: string;
+  thumbnail?: string;
+  channelTitle?: string;
+  publishedAt?: string;
+  viewCount?: number;
+}
+
+/**
+ * VideoObject describing the YouTube video that a shared analysis page is
+ * about. Undefined fields are dropped automatically by JSON.stringify.
+ */
+export function videoObjectSchema(
+  v: AnalysisVideoMeta,
+): Record<string, unknown> {
+  const schema: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "VideoObject",
+    name: v.title,
+    description: v.description || `AI comment analysis for "${v.title}".`,
+    thumbnailUrl: v.thumbnail ? [v.thumbnail] : undefined,
+    uploadDate: v.publishedAt,
+    embedUrl: `https://www.youtube.com/embed/${v.videoId}`,
+    contentUrl: `https://www.youtube.com/watch?v=${v.videoId}`,
+  };
+  if (v.channelTitle) {
+    schema.author = { "@type": "Person", name: v.channelTitle };
+  }
+  if (typeof v.viewCount === "number") {
+    schema.interactionStatistic = {
+      "@type": "InteractionCounter",
+      interactionType: { "@type": "WatchAction" },
+      userInteractionCount: v.viewCount,
+    };
+  }
+  return schema;
+}
+
+/** Breadcrumb for a shared-analysis page: Home > <video title>. */
+export function analysisBreadcrumbSchema(
+  title: string,
+  path: string,
+): Record<string, unknown> {
+  return breadcrumbSchema([HOME_CRUMB, { name: title, path }]);
+}
+
 const HOME_CRUMB = { name: "Home", path: "/" };
 
 /**
