@@ -344,59 +344,35 @@ export class DatabaseStorage implements IStorage {
         return [];
       }
 
-      // First, get all analyses to find which videos have been analyzed
-      const allAnalyses = await db
+      // Single JOIN of analyses x videos (was an N+1 loop of one query per
+      // analyzed video, which is far too slow on the serverless driver).
+      const rows = await db
         .select({
-          videoId: analyses.videoId,
+          videoId: videos.id,
+          title: videos.title,
+          channelTitle: videos.channelTitle,
+          publishedAt: videos.publishedAt,
+          thumbnail: videos.thumbnail,
+          viewCount: videos.viewCount,
+          totalComments: videos.commentCount,
           commentsAnalyzed: analyses.commentsAnalyzed,
           analysisDate: analyses.createdAt,
         })
-        .from(analyses);
+        .from(analyses)
+        .innerJoin(videos, eq(analyses.videoId, videos.id));
 
-      console.log(`Found ${allAnalyses.length} analyses in database`);
-
-      if (allAnalyses.length === 0) {
-        return [];
-      }
-
-      // Now get all videos that have been analyzed
-      const result = [];
-
-      for (const analysis of allAnalyses) {
-        // Get the video data for each analyzed video
-        const videoData = await db
-          .select({
-            id: videos.id,
-            title: videos.title,
-            channelTitle: videos.channelTitle,
-            publishedAt: videos.publishedAt,
-            thumbnail: videos.thumbnail,
-            viewCount: videos.viewCount,
-            totalComments: videos.commentCount,
-          })
-          .from(videos)
-          .where(eq(videos.id, analysis.videoId))
-          .limit(1);
-
-        if (videoData.length > 0) {
-          const video = videoData[0];
-
-          result.push({
-            videoId: video.id,
-            title: video.title,
-            channelTitle: video.channelTitle,
-            publishedAt: video.publishedAt.toISOString(),
-            thumbnail: video.thumbnail,
-            viewCount: video.viewCount,
-            commentsAnalyzed: analysis.commentsAnalyzed,
-            totalComments: video.totalComments,
-            analysisDate: analysis.analysisDate.toISOString(),
-          });
-        }
-      }
-
-      console.log(`Returning ${result.length} actual videos from database`);
-      return result;
+      console.log(`Returning ${rows.length} actual videos from database`);
+      return rows.map((row) => ({
+        videoId: row.videoId,
+        title: row.title,
+        channelTitle: row.channelTitle,
+        publishedAt: row.publishedAt.toISOString(),
+        thumbnail: row.thumbnail,
+        viewCount: row.viewCount,
+        commentsAnalyzed: row.commentsAnalyzed,
+        totalComments: row.totalComments,
+        analysisDate: row.analysisDate.toISOString(),
+      }));
     } catch (error) {
       console.error("Error in getAllAnalyzedVideos:", error);
       return []; // Return empty array on error instead of throwing
