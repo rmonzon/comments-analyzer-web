@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client";
 import { ClerkProvider } from "@clerk/clerk-react";
+import { HelmetProvider } from "react-helmet-async";
 import App from "./App";
 import "./index.css";
 import { useEffect, useState } from "react";
@@ -103,4 +104,8 @@ function AppWrapper() {
   );
 }
 
-createRoot(document.getElementById("root")!).render(<AppWrapper />);
+createRoot(document.getElementById("root")!).render(
+  <HelmetProvider>
+    <AppWrapper />
+  </HelmetProvider>,
+);

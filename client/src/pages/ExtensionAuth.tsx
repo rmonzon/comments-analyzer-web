@@ -7,6 +7,8 @@ import {
   UserButton,
 } from "@clerk/clerk-react";
 import { BrandIcon } from "@/components/BrandIcon";
+import Seo from "@/components/Seo";
+import { ROUTE_SEO } from "@shared/seo";
 
 const TOKEN_TEMPLATE = "extension";
 // Refresh shortly before a typical 1-hour token expires.
@@ -69,6 +71,12 @@ export default function ExtensionAuth() {
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-4">
+      <Seo
+        title={ROUTE_SEO["/extension-auth"].title}
+        description={ROUTE_SEO["/extension-auth"].description}
+        path="/extension-auth"
+        noindex
+      />
       <div className="max-w-md w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-8 shadow-sm">
         <div className="flex items-center gap-3 mb-6">
           <BrandIcon className="w-8 h-8" />

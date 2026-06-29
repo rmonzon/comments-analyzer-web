@@ -1,10 +1,17 @@
 import { Link } from "wouter";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Seo from "@/components/Seo";
+import { ROUTE_SEO } from "@shared/seo";
 
 export default function TermsOfService() {
   return (
     <div className="container max-w-3xl mx-auto px-4 py-12">
+      <Seo
+        title={ROUTE_SEO["/terms"].title}
+        description={ROUTE_SEO["/terms"].description}
+        path="/terms"
+      />
       <div className="mb-8">
         <Button variant="outline" className="mb-6" asChild>
           <Link href="/">
