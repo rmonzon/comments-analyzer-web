@@ -2,10 +2,17 @@ import { Link } from "wouter";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FAQSection from "@/components/FAQSection";
+import Seo from "@/components/Seo";
+import { ROUTE_SEO } from "@shared/seo";
 
 export default function FAQ() {
   return (
     <div className="container max-w-4xl mx-auto px-4 py-12">
+      <Seo
+        title={ROUTE_SEO["/faq"].title}
+        description={ROUTE_SEO["/faq"].description}
+        path="/faq"
+      />
       <div className="mb-8">
         <Button variant="outline" className="mb-6" asChild>
           <Link href="/">

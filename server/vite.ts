@@ -5,6 +5,7 @@ import { createServer as createViteServer, createLogger } from "vite";
 import { type Server } from "http";
 import viteConfig from "../vite.config";
 import { nanoid } from "nanoid";
+import { injectSeo } from "./seo";
 
 const viteLogger = createLogger();
 
@@ -58,6 +59,7 @@ export async function setupVite(app: Express, server: Server) {
         `src="/src/main.tsx"`,
         `src="/src/main.tsx?v=${nanoid()}"`,
       );
+      template = injectSeo(template, url);
       const page = await vite.transformIndexHtml(url, template);
       res.status(200).set({ "Content-Type": "text/html" }).end(page);
     } catch (e) {
@@ -78,8 +80,14 @@ export function serveStatic(app: Express) {
 
   app.use(express.static(distPath));
 
+  // Read the built index.html once and inject per-route SEO metadata on each
+  // navigation request so non-JS crawlers receive correct tags.
+  const indexPath = path.resolve(distPath, "index.html");
+  const indexTemplate = fs.readFileSync(indexPath, "utf-8");
+
   // fall through to index.html if the file doesn't exist
-  app.use("*", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
+  app.use("*", (req, res) => {
+    const page = injectSeo(indexTemplate, req.originalUrl);
+    res.status(200).set({ "Content-Type": "text/html" }).end(page);
   });
 }

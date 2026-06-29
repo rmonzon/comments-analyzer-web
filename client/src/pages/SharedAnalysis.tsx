@@ -11,6 +11,7 @@ import { VideoData, VideoAnalysis } from "@shared/types";
 import { queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, RefreshCw } from "lucide-react";
+import Seo from "@/components/Seo";
 
 export default function SharedAnalysis() {
   const [, setLocation] = useLocation();
@@ -90,6 +91,15 @@ export default function SharedAnalysis() {
 
   return (
     <div className="min-h-screen flex flex-col font-roboto bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-200">
+      <Seo
+        title={
+          videoData?.title
+            ? `${videoData.title} - Comment Analysis`
+            : "Shared YouTube Analysis - YouTube Comments Analyzer"
+        }
+        description="View a previously generated AI analysis of a YouTube video's comments, including sentiment breakdown and key insights."
+        noindex
+      />
       <main className="flex-grow container mx-auto px-4 py-6">
         <div className="mb-6">
           <div className="flex items-center justify-between gap-4">

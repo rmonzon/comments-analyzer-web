@@ -1,8 +1,15 @@
 import { PricingTable, ClerkLoaded } from "@clerk/clerk-react";
+import Seo from "@/components/Seo";
+import { ROUTE_SEO } from "@shared/seo";
 
 export default function Pricing() {
   return (
     <div className="bg-gray-50 dark:bg-gray-900">
+      <Seo
+        title={ROUTE_SEO["/pricing"].title}
+        description={ROUTE_SEO["/pricing"].description}
+        path="/pricing"
+      />
       <div className="py-12">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">

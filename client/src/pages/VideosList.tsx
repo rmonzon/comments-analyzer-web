@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link } from 'wouter';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import Seo from '@/components/Seo';
+import { ROUTE_SEO } from '@shared/seo';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -130,7 +132,13 @@ export default function VideosList() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">      
+    <div className="min-h-screen flex flex-col">
+      <Seo
+        title={ROUTE_SEO["/history"].title}
+        description={ROUTE_SEO["/history"].description}
+        path="/history"
+        noindex
+      />
       <main className="container mx-auto px-4 py-8 flex-grow">
         <Card className="w-full shadow-card">
           <CardHeader>

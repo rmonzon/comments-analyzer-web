@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import Seo from "@/components/Seo";
+import { ROUTE_SEO } from "@shared/seo";
 import URLInputForm from "@/components/URLInputForm";
 import ResultsSection from "@/components/ResultsSection";
 import LoadingState from "@/components/LoadingState";
@@ -168,6 +170,11 @@ export default function Analysis() {
 
   return (
     <div className="bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <Seo
+        title={ROUTE_SEO["/analyze"].title}
+        description={ROUTE_SEO["/analyze"].description}
+        path="/analyze"
+      />
       <script
         async
         src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8572681182636372"
